@@ -1,5 +1,8 @@
-MoDELib2 fork for Quickstart Manual
+# MoDELib2 fork from original upstream
 
-test
+## Current Works
 
-test2
+- Implement the stacking fault noise generation based on the MD correlation data.
+
+- Create a quickstart guide
+
