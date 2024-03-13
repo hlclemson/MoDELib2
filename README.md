@@ -1,4 +1,4 @@
-# MoDELib2 fork from original upstream
+# MoDELib2 fork from the original upstream
 
 ## Current Works
 

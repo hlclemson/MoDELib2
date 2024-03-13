@@ -5,8 +5,8 @@ project(DDomp VERSION 1.0.0 LANGUAGES CXX)
 
 option(BUILD_AS_LIB "ON to build as a static library" OFF)
 
-set(EIGEN3_INCLUDE_DIRS /opt/local/include/eigen3)
-set(BOOST_INCLUDE_DIRS /opt/local/include)
+set(EIGEN3_INCLUDE_DIRS /usr/include/eigen3)
+set(BOOST_INCLUDE_DIRS /usr/include/boost)
 set(MoDELibRootDir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
