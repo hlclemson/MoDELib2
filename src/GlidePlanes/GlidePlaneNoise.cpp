@@ -100,8 +100,6 @@ std::pair<typename SolidSolutionNoiseReader::GridSizeType,typename SolidSolution
     return std::make_pair((GridSizeType()<<NX,NY).finished(),(GridSpacingType()<<DX,DY).finished());
 }
 
-
-
 void SolidSolutionNoiseReader::Read_noise_vtk(const char *fname, REAL_SCALAR *Noise, int Nr, const double& MSS)
 {
     char line[200];
@@ -249,8 +247,6 @@ SolidSolutionNoise::SolidSolutionNoise(const std::string& noiseFile,const Polycr
 }
 
 
-
-
 #ifdef _MODEL_GLIDE_PLANE_NOISE_GENERATOR_
 
 SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase& mat,
@@ -340,7 +336,7 @@ SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& nois
                     Mk_xz = Mk_yz;
                 }
                 else
-            {
+                {
                     Nk_xz = -Nk_yz;
                     Mk_xz = -Mk_yz;
                 }
@@ -356,7 +352,7 @@ SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& nois
                     Rk_xz[ind] = sqrt(S_xz_k(kx,ky,kz))*(Nk_xz+Mk_xz*COMPLEX(0.0,1.0));
                 }
                 else
-            {
+                {
                     Rk_yz[ind] = sqrt(S_yz_k(kx,ky,kz)/2.)*(Nk_yz+Mk_yz*COMPLEX(0.0,1.0));
                     Rk_xz[ind] = sqrt(S_xz_k(kx,ky,kz)/2.)*(Nk_xz+Mk_xz*COMPLEX(0.0,1.0));
                 }
@@ -400,7 +396,6 @@ SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& nois
     Write_field_slice(Rr_yz, fileName_yz.c_str());
 
 }
-
 
 // Cai doubly-convoluted spreading function in Fourier space
 typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::Wk_Cai(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz, REAL_SCALAR a)
@@ -452,8 +447,7 @@ typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::S
 
 #else
 
-SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase& ,
-                                                         const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A) :
+SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase&, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A):
     /*init*/ NX(_gridSize(0))     // dimension along x
     /*init*/,NY(_gridSize(1))     // dimension along y
     /*init*/,NZ(64)      // dimension along z
@@ -513,54 +507,49 @@ void SolidSolutionNoiseGenerator::Write_field_slice(REAL_SCALAR *F, const char *
     fclose(OutFile);
 }
 
-//StackingFaultNoise::StackingFaultNoise(const std::string&, // noiseFile
-//                                       const PolycrystallineMaterialBase& mat,
-//                                       const NoiseTraitsBase::GridSizeType& gridSize,
-//                                       const NoiseTraitsBase::GridSpacingType& gridSpacing_SI)
-//{
-//    std::cout<<greenBoldColor<<"Creating StackingFaultNoise"<<defaultColor<<std::endl;
-//
-//    //        const double isfEnergyDensityMEAN(TextFileParser(mat.materialFile).readScalar<double>("isfEnergyDensityMEAN_SI",true)/(mat.mu_SI*mat.b_SI));
-//    const double isfEnergyDensitySTD(TextFileParser(mat.materialFile).readScalar<double>("isfEnergyDensitySTD_SI",true)/std::sqrt(gridSpacing_SI(0)*gridSpacing_SI(1))/(mat.mu_SI*mat.b_SI));
-//
-//    std::normal_distribution<double> distribution (0.0,isfEnergyDensitySTD);
-//
-//    const size_t N(gridSize.array().prod());
-//    this->reserve(N);
-//    for(size_t k=0;k<N;++k)
-//    {// J/m^2 = N/m = Pa*m
-//        this->push_back(distribution(generator));
-//        //                this->push_back(distribution(generator));
-//    }
-//
-//    NoiseType ave(0.0);
-//    for(const auto& valArr: *this)
-//    {
-//        ave+=valArr;
-//    }
-//    ave/=this->size();
-//
-//    NoiseType var(0.0);
-//    for(const auto& valArr: *this)
-//    {
-//        var+= (valArr-ave)*(valArr-ave);
-//    }
-//    var/=this->size();
-//
-//    std::cout<<"gridSize= "<<gridSize.transpose()<<std::endl;
-//    std::cout<<"gridSpacing_SI= "<<gridSpacing_SI.transpose()<<std::endl;
-//    std::cout<<"noiseAverage="<<ave<<std::endl;
-//    std::cout<<"noiseVariance="<<var<<std::endl;
-//}
-
-StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, // noiseFile
-                                       const PolycrystallineMaterialBase& mat,
-                                       const NoiseTraitsBase::GridSizeType& gridSize,
-                                       const NoiseTraitsBase::GridSpacingType& gridSpacing_SI)
+const typename StackingFaultNoise::NoiseContainerType& StackingFaultNoise::noiseVector() const
 {
-    std::cout<<greenBoldColor<<"Creating StackingFaultNoise"<<defaultColor<<std::endl;
+    return *this;
+}
+
+typename StackingFaultNoise::NoiseContainerType& StackingFaultNoise::noiseVector()
+{
+    return *this;
+}
+
+typename StackingFaultCorrelationReader::GridSizeType StackingFaultCorrelationReader::Read_dimensions(const char *fname)
+{
+    int NX, NY, NZ;
+    char line[200];
+    FILE *InFile=fopen(fname,"r");
+
+    if (InFile == NULL)
+    {
+        fprintf(stderr, "Can't open noise file %s\n",fname);
+        exit(1);
+    }
+
+    for(int i=0;i<5;i++)
+    {
+        fgets(line, 200, InFile);
+    }
+    fscanf(InFile, "%s %d %d %d\n", line, &(NX), &(NY), &(NZ));
+    return (GridSizeType()<<NX,NY).finished();
+}
+
+StackingFaultCorrelationReader::StackingFaultCorrelationReader(const std::string& noiseFile, // noiseFile
+                                       const PolycrystallineMaterialBase& mat,
+                                       const NoiseTraitsBase::GridSizeType& _gridSize,
+                                       const NoiseTraitsBase::GridSpacingType& _gridSpacing_SI)
+{
+    std::cout << "SF correlation reader test" << std::endl;
 
     const std::string fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true));
+    const auto gridSize(Read_dimensions(fileName_vtk.c_str()));
+    //const auto gridSize_correlation(Read_dimensions(fileName_vtk.c_str()));
+
+    std::cout << "gridSize = " << gridSize << std::endl;
+    exit(1);
 
     std::ifstream vtkFile(fileName_vtk); //access vtk file
     // error check
@@ -569,12 +558,13 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, // noiseFil
     }
 
     typedef Eigen::Matrix<double,3,1> VectorDimD;
-    std::deque<std::pair<VectorDimD, std::set<int>>> rawPoints; // second pair is CELLID
+    //std::deque<std::pair<VectorDimD, std::set<int>>> rawPoints; // second pair is CELLID
+    std::deque<VectorDimD> rawPoints; // second pair is CELLID
     std::deque<VectorDimD> basis1;
     std::deque<VectorDimD> basis2;
     std::vector<double> correlationCoeffs = {};
     //std::deque<> correlationCoeffs;
-    int NX=0, NY=0, NZ=0, NR=0; // dimensions, initialized to zero to avoid undefined behavior
+    int NX=0, NY=0, NZ=0, NR=0, NK=0; // dimensions, initialized to zero to avoid undefined behavior
 
     // begin parsing structured_grid vtk file for lines
     std::string line;
@@ -586,6 +576,7 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, // noiseFil
         {
             sscanf(line.c_str(), "DIMENSIONS %d %d %d", &NX, &NY, &NZ);
             NR = NX*NY*NZ;
+            NK = NX*NY*(NZ/2+1);
             //std::cout << "NX =" << NX << " NY =" << NY<< " NZ =" << NZ << " NR = " << NR << std::endl;
         }
         //if the "POINTS" string is read, read the following data
@@ -603,9 +594,9 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, // noiseFil
                 std::getline(vtkFile, line);
                 std::stringstream ss(line);
                 ss >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> x3 >> y3 >> z3;
-                rawPoints.push_back(std::make_pair((VectorDimD()<<x1,y1,z1).finished(), std::set<int>())); // second pair is CELLID
-                rawPoints.push_back(std::make_pair((VectorDimD()<<x2,y2,z2).finished(), std::set<int>()));
-                rawPoints.push_back(std::make_pair((VectorDimD()<<x3,y3,z3).finished(), std::set<int>()));
+                rawPoints.push_back((VectorDimD()<<x1,y1,z1).finished()); // second pair is CELLID
+                rawPoints.push_back((VectorDimD()<<x2,y2,z2).finished());
+                rawPoints.push_back((VectorDimD()<<x3,y3,z3).finished());
             }
             // print Eigen vector element for debugging
             //for (const auto& pair : rawPoints) {
@@ -629,7 +620,6 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, // noiseFil
             // get the number of points in the file
             const size_t firstSpace(line.find(' '));
             const size_t numOfPoints = std::atoi(line.substr(firstSpace+1).c_str());
-            std::cout << numOfPoints << std::endl;
             // read the point coordinates
             for(size_t n=0; n<numOfPoints+numOfHeaders; ++n)
             {
@@ -672,45 +662,159 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, // noiseFil
     //{
     //     std::cout << vec << std::endl;
     //}
+
+    // for fourier transform
+    // allocate
+}
+
+StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase&, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A):
+    /*init*/ NX(_gridSize(0))     // dimension along x
+    /*init*/,NY(_gridSize(1))     // dimension along y
+    /*init*/,NZ(1)      // dimension along z
+    /*init*/,NR(NX*NY*NZ)
+    /*init*/,NK(NX*NY*(NZ/2+1))
+    /*init*/,Norm(1./REAL_SCALAR(NR))
+{
+    std::cout<<greenBoldColor<<"Creating StackingFaultNoise"<<defaultColor<<std::endl;
+    std::cout << "SF generator test" << std::endl;
+}
+
+//StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const NoiseTraitsBase::GridSizeType& gridSize, const NoiseTraitsBase::GridSpacingType& gridSpacing_SI):
+StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A, const int& stackingFaultNoiseMode) :
+/* init */ gridSize(_gridSize)
+/* init */,gridSpacing_A(_gridSpacing_A)
+{
+    std::cout << "inside stacking fault" << std::endl;
+    noiseVector()=(StackingFaultNoiseGenerator(noiseFile,mat,gridSize,gridSpacing_A));
     exit(1);
 }
 
-//StackingFaultNoise::StackingFaultCorrelation(const std::string& correlationFile, const PolycrystallineMaterialBase& mat):
+//StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, // noiseFile
+//                                       const PolycrystallineMaterialBase& mat,
+//                                       const NoiseTraitsBase::GridSizeType& gridSize,
+//                                       const NoiseTraitsBase::GridSpacingType& gridSpacing_SI)
 //{
-//    std::cout<<greenBoldColor<<"Reading Stacking Fault Correleation files"<<defaultColor<<std::endl;
-//    std::ifstream vtkFile(vtkFileName);
-//}
-
-// new!!!! 
-//readStackingFaultCorrelation::readStackingFaultCorrelation(const std::string&, // noiseFile
-//                                                 const PolycrystallineMaterialBase& mat,
-//                                                 const NoiseTraitsBase::GridSizeType& gridSize,
-//                                                 const NoiseTraitsBase::GridSpacingType& gridSpacing_SI)
-//{
-//    std::cout<<greenBoldColor<<"Reading Stacking Fault Correleation files"<<defaultColor<<std::endl;
-//    const std::string fileName_correlation(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true));
-//    std::cout << fileName_correlation << std::endl;
-//    exit(1);
-//    // Open the VTK file
-//    std::ifstream vtkFile("AlMg5_Cx_R100.vtk");
+//    std::cout<<greenBoldColor<<"Creating StackingFaultNoise"<<defaultColor<<std::endl;
+//
+//    const std::string fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true));
+//    //const auto gridSize_correlation(Read_dimensions(fileName_vtk.c_str()));
+//
+//    std::ifstream vtkFile(fileName_vtk); //access vtk file
+//    // error check
 //    if (!vtkFile.is_open()) {
-//        std::cerr << "Error opening VTK file!" << std::endl;
-//        return 1;
+//        throw std::runtime_error("Error opening stacking fault VTK correlation file!");
 //    }
-//}
-
-//stackingFaultCorrelationReader::stackingFaultCorrelationReader(const std::string& noiseFile,const PolycrystallineMaterialBase& mat, const typename SolidSolutionNoiseReader::GridSizeType& _gridSize, const typename SolidSolutionNoiseReader::GridSpacingType& _gridSpacing_A)
-//{
-//    std::cout<<greenBoldColor<<"Reading Stacking Fault Correleation files"<<defaultColor<<std::endl;
-//    const std::string fileName_correlation(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true));
-//    std::cout << fileName_correlation << std::endl;
+//
+//    typedef Eigen::Matrix<double,3,1> VectorDimD;
+//    //std::deque<std::pair<VectorDimD, std::set<int>>> rawPoints; // second pair is CELLID
+//    std::deque<VectorDimD> rawPoints; // second pair is CELLID
+//    std::deque<VectorDimD> basis1;
+//    std::deque<VectorDimD> basis2;
+//    std::vector<double> correlationCoeffs = {};
+//    //std::deque<> correlationCoeffs;
+//    int NX=0, NY=0, NZ=0, NR=0, NK=0; // dimensions, initialized to zero to avoid undefined behavior
+//
+//
+//    // begin parsing structured_grid vtk file for lines
+//    std::string line;
+//    const size_t numOfPointsPerLine = 3;
+//    while (std::getline(vtkFile, line)) 
+//    {
+//        // parse dimensions of the noise file
+//        if (line.find("DIMENSIONS")!=std::string::npos) 
+//        {
+//            sscanf(line.c_str(), "DIMENSIONS %d %d %d", &NX, &NY, &NZ);
+//            NR = NX*NY*NZ;
+//            NK = NX*NY*(NZ/2+1);
+//            //std::cout << "NX =" << NX << " NY =" << NY<< " NZ =" << NZ << " NR = " << NR << std::endl;
+//        }
+//        //if the "POINTS" string is read, read the following data
+//        if(line.find("POINTS")!=std::string::npos) 
+//        {
+//            // get the number of points in the file
+//            const size_t firstSpace(line.find(' '));
+//            const size_t secondSpace(line.find(' ', firstSpace+1));
+//            const size_t numOfPoints = std::atoi(line.substr(firstSpace+1, secondSpace-firstSpace-1).c_str());
+//            // data structure of ID points
+//            // read the point coordinates
+//            double x1, y1, z1, x2, y2, z2, x3, y3, z3;
+//            for(size_t n=0; n<numOfPoints/numOfPointsPerLine; ++n)
+//            {
+//                std::getline(vtkFile, line);
+//                std::stringstream ss(line);
+//                ss >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> x3 >> y3 >> z3;
+//                rawPoints.push_back((VectorDimD()<<x1,y1,z1).finished()); // second pair is CELLID
+//                rawPoints.push_back((VectorDimD()<<x2,y2,z2).finished());
+//                rawPoints.push_back((VectorDimD()<<x3,y3,z3).finished());
+//            }
+//            // print Eigen vector element for debugging
+//            //for (const auto& pair : rawPoints) {
+//            //    const VectorDimD& vec = pair.first;
+//            //    const std::set<int>& indices = pair.second;
+//            //    //print the vector
+//            //    std::cout << "Vector: [" << vec.transpose() << "]" << std::endl;
+//            //    // print the set
+//            //    std::cout << ", set: {";
+//            //    for (auto it = indices.begin(); it != indices.end();) {
+//            //        std::cout << *it;
+//            //        if (++it != indices.end()) std::cout <<", ";
+//            //    }
+//            //    std::cout <<"}" << std::endl;
+//            //}
+//        }
+//        //if the "POINT_DATA" string is read, read the following data
+//        if(line.find("POINT_DATA")!=std::string::npos) 
+//        {
+//            const size_t numOfHeaders = 2;
+//            // get the number of points in the file
+//            const size_t firstSpace(line.find(' '));
+//            const size_t numOfPoints = std::atoi(line.substr(firstSpace+1).c_str());
+//            // read the point coordinates
+//            for(size_t n=0; n<numOfPoints+numOfHeaders; ++n)
+//            {
+//                std::getline(vtkFile, line);
+//                // ignore the headers that come right after point_data
+//                if(n<numOfHeaders)
+//                    continue;
+//                correlationCoeffs.push_back(std::atoi(line.c_str()));
+//            }
+//        }
+//        // print correlation coefficient vector for debugging
+//        //for (const double& coeff : correlationCoeffs)
+//        //{
+//        //     std::cout << coeff << std::endl;
+//        //}
+//        
+//        if(line.find("VECTORS")!=std::string::npos) 
+//        {
+//            std::getline(vtkFile, line);
+//            std::stringstream ss(line);
+//            double x, y, z;
+//            if(basis1.empty())
+//            {
+//                ss >> x >> y >> z;
+//                basis1.push_back((VectorDimD()<<x,y,z).finished());
+//            }
+//            else
+//            {
+//                ss >> x >> y >> z;
+//                basis2.push_back((VectorDimD()<<x,y,z).finished());
+//            }
+//        }
+//    }
+//    // print vectors for debugging
+//    //for (const auto& vec : basis1)
+//    //{
+//    //     std::cout << vec << std::endl;
+//    //}
+//    //for (const auto& vec : basis2)
+//    //{
+//    //     std::cout << vec << std::endl;
+//    //}
+//
+//    // for fourier transform
+//    // allocate
 //    exit(1);
-//    // Open the VTK file
-//    std::ifstream vtkFile("AlMg5_Cx_R100.vtk");
-//    if (!vtkFile.is_open()) {
-//        std::cerr << "Error opening VTK file!" << std::endl;
-//        return 1;
-//    }
 //}
 
 GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat) :
@@ -718,7 +822,7 @@ GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const Polycrystall
     /* init */,solidSolutionNoiseMode(TextFileParser(noiseFile).readScalar<int>("solidSolutionNoiseMode"))
     /* init */,stackingFaultNoiseMode(TextFileParser(noiseFile).readScalar<int>("stackingFaultNoiseMode"))
     /* init */,solidSolution(solidSolutionNoiseMode? new SolidSolutionNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI*1.0e10,solidSolutionNoiseMode) : nullptr)
-    /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI) : nullptr)
+    /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI,stackingFaultNoiseMode) : nullptr)
 ///* init */,stackingFault(stackingFaultNoiseMode? new readStackingFaultCorrelation(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI) : nullptr)
 {
     if(solidSolution)
@@ -726,7 +830,7 @@ GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const Polycrystall
         Eigen::VectorXd rowsAvr0( Eigen::VectorXd::Zero(solidSolution->gridSize(0)) );
         Eigen::VectorXd colsAvr0( Eigen::VectorXd::Zero(solidSolution->gridSize(1)) );
         Eigen::VectorXd rowsAvr1( Eigen::VectorXd::Zero(solidSolution->gridSize(0)) );
-        Eigen::VectorXd colsAvr1( Eigen::VectorXd::Zero(solidSolution->gridSize(1)));
+        Eigen::VectorXd colsAvr1( Eigen::VectorXd::Zero(solidSolution->gridSize(1)) );
 
         for(size_t k=0; k<solidSolution->size(); ++k)
         {

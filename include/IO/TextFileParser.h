@@ -482,7 +482,6 @@ public:
         
         while (std::getline(*this, line))
         {
-            
             const size_t foundKey=line.find(key);
             const size_t foundEqual=line.find("=");
             
@@ -555,7 +554,6 @@ public:
                 std::cout<<" "<<val;
             }
             std::cout<<"; "<<comment<<defaultColor<<std::endl;
-            
         }
         
         return array;
