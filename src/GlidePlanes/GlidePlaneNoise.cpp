@@ -690,8 +690,8 @@ StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& nois
     std::cout << "Rr_noise_xy = " << std::endl;
     debugOut << "Rr_noise_xy = " << std::endl;
     for (int i=0; i<NR; ++i) {
-        std::cout << Rr_noise_xy[i] << std::endl;
-        debugOut << Rr_noise_xy[i] << std::endl;
+        std::cout << Rr_noise_xy[i]/static_cast<double>(NR) << std::endl; // normalize the magnitude
+        debugOut << Rr_noise_xy[i]/static_cast<double>(NR) << std::endl; // normalize the magnitude
     }
 
     // ouput vtk files
