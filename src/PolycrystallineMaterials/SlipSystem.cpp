@@ -130,6 +130,13 @@ namespace model
 
     Eigen::Matrix<double,2,1> SlipSystem::globalToLocal(const VectorDim& x) const
     {
+        //std::cout << std::endl << "globalTolocal" << std::endl;
+        //std::cout << "G2Lfull = " << G2Lfull << std::endl;
+        //std::cout << "x = " << x << std::endl;
+        //std::cout << "(G2Lfull*x) = " << (G2Lfull*x) << std::endl;
+        //std::cout << "(G2Lfull*x).template segment<2>(0) = " << (G2Lfull*x).template segment<2>(0) << std::endl;
+        //std::cout << "(G2Lfull*x).template segment<2>(1) = " << (G2Lfull*x).template segment<2>(1) << std::endl;
+        //exit(1);
         return (G2Lfull*x).template segment<2>(0);
     }
 
@@ -140,7 +147,6 @@ namespace model
 
     std::tuple<Eigen::Matrix<double,3,3>,double,double> SlipSystem::gridInterp(const VectorDim& x) const
     {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
-        
         if(planeNoise)
         {
             const std::tuple<double,double,double> gridNoise(planeNoise->gridInterp(globalToLocal(x)));

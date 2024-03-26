@@ -29,7 +29,7 @@
 #include <filesystem>
 
 // debugging
-#include <typeinfo>
+//#include <typeinfo>
 
 namespace model
 {
@@ -506,15 +506,15 @@ void SolidSolutionNoiseGenerator::Write_field_slice(REAL_SCALAR *F, const char *
     fclose(OutFile);
 }
 
-const typename StackingFaultNoise::NoiseContainerType& StackingFaultNoise::noiseVector() const
-{
-    return *this;
-}
-
-typename StackingFaultNoise::NoiseContainerType& StackingFaultNoise::noiseVector()
-{
-    return *this;
-}
+//const typename StackingFaultNoise::NoiseContainerType& StackingFaultNoise::noiseVector() const
+//{
+//    return *this;
+//}
+//
+//typename StackingFaultNoise::NoiseContainerType& StackingFaultNoise::noiseVector()
+//{
+//    return *this;
+//}
 
 StackingFaultCorrelationReader::StackingFaultCorrelationReader(const std::string& noiseFile, const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat)
 {
@@ -595,7 +595,8 @@ StackingFaultCorrelationReader::StackingFaultCorrelationReader(const std::string
     }
 }
 
-typename StackingFaultNoiseGenerator::GridSizeType StackingFaultNoiseGenerator::Read_dimensions(const char *fname)
+//typename StackingFaultNoiseGenerator::GridSizeType StackingFaultNoiseGenerator::Read_dimensions(const char *fname)
+typename StackingFaultNoise::GridSizeType StackingFaultNoise::Read_dimensions(const char *fname)
 {
     int NX, NY, NZ;
     char line[200];
@@ -616,7 +617,8 @@ typename StackingFaultNoiseGenerator::GridSizeType StackingFaultNoiseGenerator::
     return (GridSizeType()<<NX,NY).finished();
 }
 
-StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat):
+//StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat):
+StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode):
     /*init*/seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
     /*init*/,fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
 {
@@ -636,7 +638,7 @@ StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& nois
     REAL_SCALAR *Rr_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space
     COMPLEX *Rk_xy = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
     COMPLEX *frHat = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
-    COMPLEX *frHatCorrelation = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
+    //COMPLEX *frHatCorrelation = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
     REAL_SCALAR *Rr_noise_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
 
     // read stacking fault correlation
@@ -675,7 +677,13 @@ StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& nois
     //    frHatCorrelation[i] = frHat[i]*std::conj(frHat[i]);
     //}
 
+    // take inverse fourier transform on the sampled random function
     fftw_execute(plan_R_xy_noise_c2r);
+
+    // normalize the magnitude
+    for (int i=0; i<NR; ++i) {
+        Rr_noise_xy[i] = Rr_noise_xy[i]/static_cast<double>(NR);
+    }
 
     std::ofstream debugOut("debug_output.txt", std::ios::app);
 
@@ -694,20 +702,20 @@ StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& nois
         debugOut << Rr_noise_xy[i]/static_cast<double>(NR) << std::endl; // normalize the magnitude
     }
 
-    // ouput vtk files
-    //const std::string fileName_yz(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("solidSolutionNoiseFile_yz",true));
-    //std::cout<<"Writing stacking fault noise file "<<fileName_xz<<std::endl;
-    //Write_field_slice(Rr_xz, fileName_xz.c_str());
-    exit(1);
+    //const size_t N(NR.array());
+    this->reserve(NR);
+    for(size_t k=0;k<NR;++k)
+    {
+        this->push_back(Rr_noise_xy[k]);
+    }
+    //exit(1);
 }
 
-//StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const NoiseTraitsBase::GridSizeType& gridSize, const NoiseTraitsBase::GridSpacingType& gridSpacing_SI):
-StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode)
-{
-    std::cout << "inside stacking fault" << std::endl;
-    noiseVector()=(StackingFaultNoiseGenerator(noiseFile,mat));
-    exit(1);
-}
+//StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode)
+//{
+//    std::cout << "inside stacking fault" << std::endl;
+//    noiseVector()=(StackingFaultNoiseGenerator(noiseFile,mat));
+//}
 
 GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat) :
     /* init */ UniformPeriodicGrid<2>(TextFileParser(noiseFile).readMatrix<int,1,2>("gridSize",true),TextFileParser(noiseFile).readMatrix<double,1,2>("gridSpacing_SI",true)/mat.b_SI)
@@ -772,14 +780,14 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
             effsolNoiseXZ+=solidSolution->operator[](storageID)(0)*idxAndWeights.second[p];
             effsolNoiseYZ+=solidSolution->operator[](storageID)(1)*idxAndWeights.second[p];
         }
-        //if(stackingFault)
-        //{
-        //    effsfNoise+=stackingFault->operator[](storageID)*idxAndWeights.second[p];
-        //}
         if(stackingFault)
         {
-            std::cout<<"inside gridInterp funciton, SF"<<std::endl;
+            effsfNoise+=stackingFault->operator[](storageID)*idxAndWeights.second[p];
         }
+        //if(stackingFault)
+        //{
+        //    std::cout<<"inside gridInterp funciton, SF"<<std::endl;
+        //}
     }
 
     return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
@@ -797,14 +805,14 @@ std::tuple<double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int
         effsolNoiseXZ=solidSolution->operator[](storageID)(0);
         effsolNoiseYZ=solidSolution->operator[](storageID)(1);
     }
-    //if(stackingFault)
-    //{
-    //    effsfNoise=stackingFault->operator[](storageID);
-    //}
     if(stackingFault)
     {
-        std::cout<<"inside gridVal funciton, SF"<<std::endl;
+        effsfNoise=stackingFault->operator[](storageID);
     }
+    //if(stackingFault)
+    //{
+    //    std::cout<<"inside gridVal funciton, SF"<<std::endl;
+    //}
     return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
 }
 

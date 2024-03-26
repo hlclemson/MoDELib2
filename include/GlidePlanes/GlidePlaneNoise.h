@@ -173,14 +173,16 @@ struct StackingFaultCorrelationReader: public NoiseTraits<2>::NoiseContainerType
     //                         const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A);
 };
 
-struct StackingFaultNoiseGenerator: public NoiseTraits<2>::NoiseContainerType
+//struct StackingFaultNoiseGenerator: public NoiseTraits<2>::NoiseContainerType
+//struct StackingFaultNoiseGenerator: public NoiseTraits<1>::NoiseContainerType
+struct StackingFaultNoise: public NoiseTraits<1>::NoiseContainerType
 {
-    typedef typename NoiseTraits<2>::REAL_SCALAR REAL_SCALAR;
-    typedef typename NoiseTraits<2>::COMPLEX COMPLEX;
-    typedef typename NoiseTraits<2>::GridSizeType GridSizeType;
+    typedef typename NoiseTraits<1>::REAL_SCALAR REAL_SCALAR;
+    typedef typename NoiseTraits<1>::COMPLEX COMPLEX;
+    typedef typename NoiseTraits<1>::GridSizeType GridSizeType;
     typedef typename NoiseTraitsBase::GridSpacingType GridSpacingType;
-    typedef typename NoiseTraits<2>::NoiseType NoiseType;
-    typedef typename NoiseTraits<2>::NoiseContainerType NoiseContainerType;
+    typedef typename NoiseTraits<1>::NoiseType NoiseType;
+    typedef typename NoiseTraits<1>::NoiseContainerType NoiseContainerType;
 
     int seed;
     const std::string fileName_vtk;
@@ -192,7 +194,8 @@ struct StackingFaultNoiseGenerator: public NoiseTraits<2>::NoiseContainerType
     //int NK;
     //REAL_SCALAR Norm;
 
-    StackingFaultNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase& mat);
+    //StackingFaultNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase& mat);
+    StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode);
     void Write_field_slice(REAL_SCALAR *F, const char *fname);
 };
 //struct StackingFaultNoise : public NoiseTraits<1>::NoiseContainerType
@@ -211,23 +214,23 @@ struct StackingFaultNoiseGenerator: public NoiseTraits<2>::NoiseContainerType
 //
 //};
 
-class StackingFaultNoise: public NoiseTraits<2>::NoiseContainerType
-{
-    //typedef typename NoiseTraitsBase::REAL_SCALAR REAL_SCALAR;
-    //typedef typename NoiseTraitsBase::COMPLEX COMPLEX;
-    typedef typename NoiseTraitsBase::GridSizeType GridSizeType;
-    //typedef typename NoiseTraitsBase::GridSpacingType GridSpacingType;
-    //typedef typename NoiseTraits<2>::NoiseType NoiseType;
-    //typedef typename NoiseTraits<2>::NoiseContainerType NoiseContainerType;
-    typedef typename NoiseTraits<2>::NoiseType NoiseType;
-    typedef typename NoiseTraits<2>::NoiseContainerType NoiseContainerType;
-
-    const NoiseContainerType& noiseVector() const;
-    NoiseContainerType& noiseVector();
-
-    public:
-        StackingFaultNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode);
-};
+//class StackingFaultNoise: public NoiseTraits<2>::NoiseContainerType
+//{
+//    //typedef typename NoiseTraitsBase::REAL_SCALAR REAL_SCALAR;
+//    //typedef typename NoiseTraitsBase::COMPLEX COMPLEX;
+//    typedef typename NoiseTraitsBase::GridSizeType GridSizeType;
+//    //typedef typename NoiseTraitsBase::GridSpacingType GridSpacingType;
+//    //typedef typename NoiseTraits<2>::NoiseType NoiseType;
+//    //typedef typename NoiseTraits<2>::NoiseContainerType NoiseContainerType;
+//    typedef typename NoiseTraits<2>::NoiseType NoiseType;
+//    typedef typename NoiseTraits<2>::NoiseContainerType NoiseContainerType;
+//
+//    const NoiseContainerType& noiseVector() const;
+//    NoiseContainerType& noiseVector();
+//
+//    public:
+//        StackingFaultNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode);
+//};
 
 struct GlidePlaneNoise : public UniformPeriodicGrid<2>
 {
