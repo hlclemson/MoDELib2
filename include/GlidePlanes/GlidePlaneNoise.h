@@ -168,7 +168,7 @@ struct StackingFaultCorrelationReader: public NoiseTraits<2>::NoiseContainerType
     static GridSizeType Read_dimensions(const char *fname);
     static void Read_correlation_vtk(const char *fname, REAL_SCALAR *Noise, int Nr,const double& MSS);
 
-    StackingFaultCorrelationReader(const std::string& noiseFile, const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat);
+    StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat);
     //StackingFaultNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat,
     //                         const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A);
 };
@@ -195,7 +195,7 @@ struct StackingFaultNoise: public NoiseTraits<1>::NoiseContainerType
     //REAL_SCALAR Norm;
 
     //StackingFaultNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase& mat);
-    StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode);
+    StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat);
     void Write_field_slice(REAL_SCALAR *F, const char *fname);
 };
 //struct StackingFaultNoise : public NoiseTraits<1>::NoiseContainerType

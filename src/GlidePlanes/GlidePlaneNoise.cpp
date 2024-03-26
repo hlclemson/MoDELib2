@@ -516,7 +516,7 @@ void SolidSolutionNoiseGenerator::Write_field_slice(REAL_SCALAR *F, const char *
 //    return *this;
 //}
 
-StackingFaultCorrelationReader::StackingFaultCorrelationReader(const std::string& noiseFile, const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat)
+StackingFaultCorrelationReader::StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat)
 {
     std::cout << "Reading stacking fault correlation" << std::endl;
 
@@ -618,7 +618,8 @@ typename StackingFaultNoise::GridSizeType StackingFaultNoise::Read_dimensions(co
 }
 
 //StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat):
-StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode):
+StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile,
+                                       const PolycrystallineMaterialBase& mat):
     /*init*/seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
     /*init*/,fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
 {
@@ -642,7 +643,7 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const Polyc
     REAL_SCALAR *Rr_noise_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
 
     // read stacking fault correlation
-    StackingFaultCorrelationReader(noiseFile, fileName_vtk, Rr_xy, mat);
+    StackingFaultCorrelationReader(fileName_vtk, Rr_xy, mat);
 
     std::default_random_engine generator(seed);
     std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
@@ -680,7 +681,7 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const Polyc
     // take inverse fourier transform on the sampled random function
     fftw_execute(plan_R_xy_noise_c2r);
 
-    // normalize the magnitude
+    // normalize the magnitude by the number of element (FFTW inverse transform does not normalize the magnitude)
     for (int i=0; i<NR; ++i) {
         Rr_noise_xy[i] = Rr_noise_xy[i]/static_cast<double>(NR);
     }
@@ -698,13 +699,13 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const Polyc
     std::cout << "Rr_noise_xy = " << std::endl;
     debugOut << "Rr_noise_xy = " << std::endl;
     for (int i=0; i<NR; ++i) {
-        std::cout << Rr_noise_xy[i]/static_cast<double>(NR) << std::endl; // normalize the magnitude
-        debugOut << Rr_noise_xy[i]/static_cast<double>(NR) << std::endl; // normalize the magnitude
+        std::cout << Rr_noise_xy[i] << std::endl;
+        debugOut << Rr_noise_xy[i] << std::endl;
     }
 
     //const size_t N(NR.array());
     this->reserve(NR);
-    for(size_t k=0;k<NR;++k)
+    for(int k=0;k<NR;++k)
     {
         this->push_back(Rr_noise_xy[k]);
     }
@@ -722,7 +723,7 @@ GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const Polycrystall
     /* init */,solidSolutionNoiseMode(TextFileParser(noiseFile).readScalar<int>("solidSolutionNoiseMode"))
     /* init */,stackingFaultNoiseMode(TextFileParser(noiseFile).readScalar<int>("stackingFaultNoiseMode"))
     /* init */,solidSolution(solidSolutionNoiseMode? new SolidSolutionNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI*1.0e10,solidSolutionNoiseMode) : nullptr)
-    /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,stackingFaultNoiseMode) : nullptr)
+    /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat) : nullptr)
 ///* init */,stackingFault(stackingFaultNoiseMode? new readStackingFaultCorrelation(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI) : nullptr)
 {
     if(solidSolution)
