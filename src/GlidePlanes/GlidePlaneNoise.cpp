@@ -633,14 +633,16 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile,
     std::cout<<greenBoldColor<<"Reading Stacking Fault Correlation"<<defaultColor<<std::endl;
 
     // fft plans
-    fftw_plan plan_R_xy_r2c, plan_R_xy_noise_c2r;
+    fftw_plan plan_R_xy_r2c, plan_R_xy_noise_c2r, plan_Rcor_c2r;
 
     // allocate
     REAL_SCALAR *Rr_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space
     COMPLEX *Rk_xy = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
     COMPLEX *frHat = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
-    //COMPLEX *frHatCorrelation = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
     REAL_SCALAR *Rr_noise_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
+
+    COMPLEX *frHatCorrelation = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
+    REAL_SCALAR *frCorrelation = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
 
     // read stacking fault correlation
     StackingFaultCorrelationReader(fileName_vtk, Rr_xy, mat);
@@ -649,44 +651,101 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile,
     std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
 
     plan_R_xy_r2c = fftw_plan_dft_r2c_2d(NX, NY, Rr_xy, reinterpret_cast<fftw_complex*>(Rk_xy), FFTW_ESTIMATE);
-    //plan_R_xy_noise_c2r = fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(frHatCorrelation), Rr_noise_xy, FFTW_ESTIMATE);
     plan_R_xy_noise_c2r = fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(frHat), Rr_noise_xy, FFTW_ESTIMATE);
+    plan_Rcor_c2r = fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(frHatCorrelation), frCorrelation, FFTW_ESTIMATE);
 
     std::cout<<greenBoldColor<<"Creating StackingFaultNoise"<<defaultColor<<std::endl;
+    
+    //test
+    fftw_plan plan_R_xy_1, plan_R_xy_2;
+    //REAL_SCALAR *Rr_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space
+    //COMPLEX *Rk_xy = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
+    REAL_SCALAR *Rr_xy_recover = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
+    plan_R_xy_1 = fftw_plan_dft_r2c_2d(NX, NY, Rr_xy, reinterpret_cast<fftw_complex*>(Rk_xy), FFTW_ESTIMATE);
+    plan_R_xy_2 = fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(Rk_xy), Rr_xy_recover, FFTW_ESTIMATE);
+
+    fftw_execute(plan_R_xy_1);
+    fftw_execute(plan_R_xy_2);
+
+    for (int i=0; i<NR; ++i) {
+        Rr_xy_recover[i] = Rr_xy_recover[i]/static_cast<double>(NR);
+    }
+
+    //debugging
+    std::ofstream debugOutR("correlation_recovered.txt", std::ios::app);
+    std::ofstream debugOutC("original_Correlation.txt", std::ios::app);
+    std::cout << "Rr_xy_recover = " << std::endl;
+    debugOutR << "Rr_xy_recover = " << std::endl;
+    for (int i=0; i<NR; ++i) {
+        std::cout << Rr_xy_recover[i] << std::endl;
+        debugOutR << Rr_xy_recover[i] << std::endl;
+    }
+    //debugging
+    std::cout << "Rr_xy = " << std::endl;
+    debugOutC << "Rr_xy = " << std::endl;
+    for (int i=0; i<NR; ++i) {
+        std::cout << Rr_xy[i] << std::endl;
+        debugOutC << Rr_xy[i] << std::endl;
+    }
+    //test
+    exit(1);
 
     // FFT to fourier space
     fftw_execute(plan_R_xy_r2c);
 
-    //for (int i=0; i<NK; ++i) {
-    //    std::cout << Rk_xy[i] << std::endl;
-    //}
-
-    // introduce noise to correlation in fourier space
-    for (int i=0; i<NK; ++i) 
+    // ensemble average
+    int sampleSize = 100;
+    for (int j=0; j<sampleSize; ++j)
     {
-        // random numbers
-        REAL_SCALAR Nk_xy = distribution(generator);
-        REAL_SCALAR Mk_xy = distribution(generator);
-        //Rk_xy[i] = sqrt(Rk_xy[i])*(Nk_xy+Mk_xy*COMPLEX(0.0,1.0)/sqrt(2.0));
-        //frHat[i] = sqrt(Rk_xy[i])*((Nk_xy+Mk_xy*COMPLEX(0.0,1.0))/sqrt(2.0));
-        frHat[i] = std::sqrt(Rk_xy[i])*((Nk_xy+Mk_xy*COMPLEX(0.0,1.0))/std::sqrt(2.0));
+        // introduce noise to correlation in fourier space
+        for (int i=0; i<NK; ++i) 
+        {
+            // random numbers
+            REAL_SCALAR Nk_xy = distribution(generator);
+            REAL_SCALAR Mk_xy = distribution(generator);
+            //Rk_xy[i] = sqrt(Rk_xy[i])*(Nk_xy+Mk_xy*COMPLEX(0.0,1.0)/sqrt(2.0));
+            //frHat[i] = sqrt(Rk_xy[i])*((Nk_xy+Mk_xy*COMPLEX(0.0,1.0))/sqrt(2.0));
+            frHat[i] = std::sqrt(Rk_xy[i])*((Nk_xy+Mk_xy*COMPLEX(0.0,1.0))/std::sqrt(2.0));
+        }
+
+        // normalize the magnitude by the number of element (FFTW inverse transform does not normalize the magnitude)
+        for (int i=0; i<NK; ++i) 
+        {
+            frHat[i] = frHat[i]/static_cast<double>(NK);
+        }
+
+        // normalize the magnitude by the number of element (FFTW inverse transform does not normalize the magnitude)
+        //for (int i=0; i<NR; ++i) {
+        //    Rr_noise_xy[i] = Rr_noise_xy[i]/static_cast<double>(NR);
+        //}
+
+        // calculate spatial correlation of the newly created random function
+        for (int i=0; i<NK; ++i) 
+        {
+            frHatCorrelation[i] += frHat[i]*std::conj(frHat[i]);
+        }
     }
 
-    // calculate spatial correlation of the newly created random function
+    for (int k=0; k<NK; ++k) 
+    {
+        frHatCorrelation[k] = frHatCorrelation[k]/static_cast<double>(sampleSize);
+    }
+    // normalize the magnitude by the number of element (FFTW inverse transform does not normalize the magnitude)
     //for (int i=0; i<NK; ++i) 
     //{
-    //    frHatCorrelation[i] = frHat[i]*std::conj(frHat[i]);
+    //    frHatCorrelation[i] = frHatCorrelation[i]/static_cast<double>(NK);
     //}
 
-    // take inverse fourier transform on the sampled random function
+    // take inverse fourier transform on the sampled random function (frHat -> ft)
     fftw_execute(plan_R_xy_noise_c2r);
 
-    // normalize the magnitude by the number of element (FFTW inverse transform does not normalize the magnitude)
-    for (int i=0; i<NR; ++i) {
-        Rr_noise_xy[i] = Rr_noise_xy[i]/static_cast<double>(NR);
-    }
+    // take inverse fourier transform on the sampled correlation ( frHat*frHat_conj -> C)
+    fftw_execute(plan_Rcor_c2r);
 
-    std::ofstream debugOut("debug_output.txt", std::ios::app);
+    //debugging
+    std::ofstream debugOut("original_Correlation.txt", std::ios::app);
+    std::ofstream debugOut2("fr.txt", std::ios::app);
+    std::ofstream debugOut3("sampled_correlation.txt", std::ios::app);
 
     //debugging
     std::cout << "Rr_xy = " << std::endl;
@@ -697,10 +756,18 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile,
     }
 
     std::cout << "Rr_noise_xy = " << std::endl;
-    debugOut << "Rr_noise_xy = " << std::endl;
+    debugOut2 << "Rr_noise_xy = " << std::endl;
     for (int i=0; i<NR; ++i) {
         std::cout << Rr_noise_xy[i] << std::endl;
-        debugOut << Rr_noise_xy[i] << std::endl;
+        debugOut2 << Rr_noise_xy[i] << std::endl;
+    }
+
+    //debugging
+    std::cout << "frCorrelation= " << std::endl;
+    debugOut3 << "frCorrelation= " << std::endl;
+    for (int i=0; i<NR; ++i) {
+        std::cout << frCorrelation[i] << std::endl;
+        debugOut3 << frCorrelation[i]  << std::endl;
     }
 
     //const size_t N(NR.array());
@@ -709,7 +776,7 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile,
     {
         this->push_back(Rr_noise_xy[k]);
     }
-    //exit(1);
+    exit(1);
 }
 
 //StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode)
