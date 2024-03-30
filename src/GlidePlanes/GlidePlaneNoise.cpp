@@ -28,258 +28,257 @@
 #include <UniformPeriodicGrid.h>
 #include <filesystem>
 
-// debugging
-//#include <typeinfo>
-
 namespace model
 {
 
-int SolidSolutionNoiseReader::LittleEndian()
-{
-    int num = 1;
-    if(*(char *)&num == 1)
+    int SolidSolutionNoiseReader::LittleEndian()
     {
-        return 1;       //little endian
-    }
-    else
-{
-        return 0;       // big endian
-    }
-}
-
-float SolidSolutionNoiseReader::ReverseFloat( const float inFloat )
-{
-    float retVal;
-    char *FloatToConvert = ( char* ) & inFloat;
-    char *returnFloat = ( char* ) & retVal;
-
-    // swap the bytes into a temporary buffer
-    returnFloat[0] = FloatToConvert[3];
-    returnFloat[1] = FloatToConvert[2];
-    returnFloat[2] = FloatToConvert[1];
-    returnFloat[3] = FloatToConvert[0];
-
-    return retVal;
-}
-
-double SolidSolutionNoiseReader::ReverseDouble( const double inDouble )
-{
-    double retVal;
-    char *DoubleToConvert = ( char* ) & inDouble;
-    char *returnDouble = ( char* ) & retVal;
-
-    // swap the bytes into a temporary buffer
-    returnDouble[0] = DoubleToConvert[7];
-    returnDouble[1] = DoubleToConvert[6];
-    returnDouble[2] = DoubleToConvert[5];
-    returnDouble[3] = DoubleToConvert[4];
-    returnDouble[4] = DoubleToConvert[3];
-    returnDouble[5] = DoubleToConvert[2];
-    returnDouble[6] = DoubleToConvert[1];
-    returnDouble[7] = DoubleToConvert[0];
-
-    return retVal;
-}
-
-std::pair<typename SolidSolutionNoiseReader::GridSizeType,typename SolidSolutionNoiseReader::GridSpacingType> SolidSolutionNoiseReader::Read_dimensions(const char *fname)
-{
-    int NX, NY, NZ;
-    double DX, DY, DZ;
-    char line[200];
-    FILE *InFile=fopen(fname,"r");
-
-    if (InFile == NULL)
-    {
-        fprintf(stderr, "Can't open noise file %s\n",fname);
-        exit(1);
-    }
-
-    for(int i=0;i<5;i++)
-    {
-        fgets(line, 200, InFile);
-    }
-    fscanf(InFile, "%s %lf %lf %lf\n", line, &(DX), &(DY), &(DZ));
-    fscanf(InFile, "%s %d %d %d\n", line, &(NX), &(NY), &(NZ));
-    return std::make_pair((GridSizeType()<<NX,NY).finished(),(GridSpacingType()<<DX,DY).finished());
-}
-
-void SolidSolutionNoiseReader::Read_noise_vtk(const char *fname, REAL_SCALAR *Noise, int Nr, const double& MSS)
-{
-    char line[200];
-    double temp;
-    FILE *InFile=fopen(fname,"r");
-
-    if (InFile == NULL)
-    {
-        fprintf(stderr, "Can't open noise file %s\n",fname);
-        exit(1);
-    }
-
-    for(int i=0;i<10;i++)
-    {
-        fgets(line, 200, InFile);
-    }
-
-    if(LittleEndian()) // if machine works with LittleEndian
-    {
-        for(int ind=0;ind<Nr;ind++)
+        int num = 1;
+        if(*(char *)&num == 1)
         {
-            fread(&temp, sizeof(double), 1, InFile);
-            Noise[ind] = MSS*REAL_SCALAR(ReverseDouble(temp));
+            return 1;       //little endian
+        }
+        else
+        {
+            return 0;       // big endian
         }
     }
-    else // if machine works with BigEndian
-{
-        for(int ind=0;ind<Nr;ind++)
-        {
-            //                int flag =
-            fread(&temp, sizeof(double), 1, InFile);
-            Noise[ind] = MSS*REAL_SCALAR(temp);
-        }
-    }
-}
 
-SolidSolutionNoiseReader::SolidSolutionNoiseReader(const std::string& noiseFile,const PolycrystallineMaterialBase& mat,
-                                                   const typename SolidSolutionNoiseReader::GridSizeType& _gridSize, const typename SolidSolutionNoiseReader::GridSpacingType& _gridSpacing_A)
-{
-    std::cout<<"Reading SolidSolutionNoise files"<<std::endl;
-
-    const std::string fileName_xz(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("solidSolutionNoiseFile_xz",true));
-    const auto gridSize_xz(Read_dimensions(fileName_xz.c_str()));
-    const std::string fileName_yz(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("solidSolutionNoiseFile_yz",true));
-    const auto gridSize_yz(Read_dimensions(fileName_yz.c_str()));
-    const double MSSS_SI(TextFileParser(mat.materialFile).readScalar<double>("MSSS_SI",true));
-    const double MSS(std::sqrt(MSSS_SI)/mat.mu_SI);
-
-    if((gridSize_xz.first-gridSize_yz.first).matrix().squaredNorm()==0 && (gridSize_xz.first-_gridSize).matrix().squaredNorm()==0)
+    float SolidSolutionNoiseReader::ReverseFloat( const float inFloat )
     {
-        if((gridSize_xz.second-gridSize_yz.second).matrix().squaredNorm()==0.0 && (gridSize_xz.second-_gridSpacing_A).matrix().squaredNorm()==0.0)
+        float retVal;
+        char *FloatToConvert = ( char* ) & inFloat;
+        char *returnFloat = ( char* ) & retVal;
+        
+        // swap the bytes into a temporary buffer
+        returnFloat[0] = FloatToConvert[3];
+        returnFloat[1] = FloatToConvert[2];
+        returnFloat[2] = FloatToConvert[1];
+        returnFloat[3] = FloatToConvert[0];
+        
+        return retVal;
+    }
+
+    double SolidSolutionNoiseReader::ReverseDouble( const double inDouble )
+    {
+        double retVal;
+        char *DoubleToConvert = ( char* ) & inDouble;
+        char *returnDouble = ( char* ) & retVal;
+        
+        // swap the bytes into a temporary buffer
+        returnDouble[0] = DoubleToConvert[7];
+        returnDouble[1] = DoubleToConvert[6];
+        returnDouble[2] = DoubleToConvert[5];
+        returnDouble[3] = DoubleToConvert[4];
+        returnDouble[4] = DoubleToConvert[3];
+        returnDouble[5] = DoubleToConvert[2];
+        returnDouble[6] = DoubleToConvert[1];
+        returnDouble[7] = DoubleToConvert[0];
+        
+        return retVal;
+    }
+
+    std::pair<typename SolidSolutionNoiseReader::GridSizeType,typename SolidSolutionNoiseReader::GridSpacingType> SolidSolutionNoiseReader::Read_dimensions(const char *fname)
+    {
+        int NX, NY, NZ;
+        double DX, DY, DZ;
+        char line[200];
+        FILE *InFile=fopen(fname,"r");
+        
+        if (InFile == NULL)
         {
-            const size_t Nr(gridSize_xz.first.array().prod());
-            // allocate noises
-            REAL_SCALAR *Noise_xz = (REAL_SCALAR *) malloc(sizeof(REAL_SCALAR)*Nr);
-            // read noise vtk file
-            Read_noise_vtk(fileName_xz.c_str(), Noise_xz, Nr,MSS);
+            fprintf(stderr, "Can't open noise file %s\n",fname);
+            exit(1);
+        }
+        
+        for(int i=0;i<5;i++)
+        {
+            fgets(line, 200, InFile);
+        }
+        fscanf(InFile, "%s %lf %lf %lf\n", line, &(DX), &(DY), &(DZ));
+        fscanf(InFile, "%s %d %d %d\n", line, &(NX), &(NY), &(NZ));
+        return std::make_pair((GridSizeType()<<NX,NY).finished(),(GridSpacingType()<<DX,DY).finished());
+    }
 
-            // allocate noises
-            REAL_SCALAR *Noise_yz = (REAL_SCALAR *) malloc(sizeof(REAL_SCALAR)*Nr);
-            // read noise vtk file
-            Read_noise_vtk(fileName_yz.c_str(), Noise_yz, Nr,MSS);
-
-            this->resize(Nr);
-            for(size_t k=0;k<Nr;++k)
+    void SolidSolutionNoiseReader::Read_noise_vtk(const char *fname, REAL_SCALAR *Noise, int Nr, const double& MSS)
+    {
+        char line[200];
+        double temp;
+        FILE *InFile=fopen(fname,"r");
+        
+        if (InFile == NULL)
+        {
+            fprintf(stderr, "Can't open noise file %s\n",fname);
+            exit(1);
+        }
+        
+        for(int i=0;i<10;i++)
+        {
+            fgets(line, 200, InFile);
+        }
+        
+        if(LittleEndian()) // if machine works with LittleEndian
+        {
+            for(int ind=0;ind<Nr;ind++)
             {
-                this->operator[](k)<<Noise_xz[k],Noise_yz[k];
+                fread(&temp, sizeof(double), 1, InFile);
+                Noise[ind] = MSS*REAL_SCALAR(ReverseDouble(temp));
+            }
+        }
+        else // if machine works with BigEndian
+        {
+            for(int ind=0;ind<Nr;ind++)
+            {
+                //                int flag =
+                fread(&temp, sizeof(double), 1, InFile);
+                Noise[ind] = MSS*REAL_SCALAR(temp);
+            }
+        }
+    }
+
+    SolidSolutionNoiseReader::SolidSolutionNoiseReader(const std::string& noiseFile,const PolycrystallineMaterialBase& mat,
+                                                       const typename SolidSolutionNoiseReader::GridSizeType& _gridSize, const typename SolidSolutionNoiseReader::GridSpacingType& _gridSpacing_A)
+    {
+        std::cout<<"Reading SolidSolutionNoise files"<<std::endl;
+
+        const std::string fileName_xz(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("solidSolutionNoiseFile_xz",true));
+        const auto gridSize_xz(Read_dimensions(fileName_xz.c_str()));
+        const std::string fileName_yz(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("solidSolutionNoiseFile_yz",true));
+        const auto gridSize_yz(Read_dimensions(fileName_yz.c_str()));
+        const double MSSS_SI(TextFileParser(mat.materialFile).readScalar<double>("MSSS_SI",true));
+        const double MSS(std::sqrt(MSSS_SI)/mat.mu_SI);
+        
+        if((gridSize_xz.first-gridSize_yz.first).matrix().squaredNorm()==0 && (gridSize_xz.first-_gridSize).matrix().squaredNorm()==0)
+        {
+            if((gridSize_xz.second-gridSize_yz.second).matrix().squaredNorm()==0.0 && (gridSize_xz.second-_gridSpacing_A).matrix().squaredNorm()==0.0)
+            {
+                const size_t Nr(gridSize_xz.first.array().prod());
+                // allocate noises
+                REAL_SCALAR *Noise_xz = (REAL_SCALAR *) malloc(sizeof(REAL_SCALAR)*Nr);
+                // read noise vtk file
+                Read_noise_vtk(fileName_xz.c_str(), Noise_xz, Nr,MSS);
+                
+                // allocate noises
+                REAL_SCALAR *Noise_yz = (REAL_SCALAR *) malloc(sizeof(REAL_SCALAR)*Nr);
+                // read noise vtk file
+                Read_noise_vtk(fileName_yz.c_str(), Noise_yz, Nr,MSS);
+                
+                this->resize(Nr);
+                for(size_t k=0;k<Nr;++k)
+                {
+                    this->operator[](k)<<Noise_xz[k],Noise_yz[k];
+                }
+            }
+            else
+            {
+                std::cout<<"gridSpacing in "<<fileName_xz<<std::endl;
+                std::cout<<gridSize_xz.second<<std::endl;
+                std::cout<<"gridSpacing in "<<fileName_yz<<std::endl;
+                std::cout<<gridSize_yz.second<<std::endl;
+                std::cout<<"input gridSpacing_A = "<<_gridSpacing_A<<std::endl;
+                throw std::runtime_error("gridSpacing mismatch.");
             }
         }
         else
         {
-            std::cout<<"gridSpacing in "<<fileName_xz<<std::endl;
-            std::cout<<gridSize_xz.second<<std::endl;
-            std::cout<<"gridSpacing in "<<fileName_yz<<std::endl;
-            std::cout<<gridSize_yz.second<<std::endl;
-            std::cout<<"input gridSpacing_A = "<<_gridSpacing_A<<std::endl;
-            throw std::runtime_error("gridSpacing mismatch.");
+            std::cout<<"gridSize in "<<fileName_xz<<std::endl;
+            std::cout<<gridSize_xz.first<<std::endl;
+            std::cout<<"gridSize in "<<fileName_yz<<std::endl;
+            std::cout<<gridSize_yz.first<<std::endl;
+            std::cout<<"input gridSize = "<<_gridSize<<std::endl;
+            throw std::runtime_error("gridSize mismatch.");
         }
     }
-    else
+
+    const typename SolidSolutionNoise::NoiseContainerType& SolidSolutionNoise::noiseVector() const
     {
-        std::cout<<"gridSize in "<<fileName_xz<<std::endl;
-        std::cout<<gridSize_xz.first<<std::endl;
-        std::cout<<"gridSize in "<<fileName_yz<<std::endl;
-        std::cout<<gridSize_yz.first<<std::endl;
-        std::cout<<"input gridSize = "<<_gridSize<<std::endl;
-        throw std::runtime_error("gridSize mismatch.");
+        return *this;
     }
-}
 
-const typename SolidSolutionNoise::NoiseContainerType& SolidSolutionNoise::noiseVector() const
-{
-    return *this;
-}
+    typename SolidSolutionNoise::NoiseContainerType& SolidSolutionNoise::noiseVector()
+    {
+        return *this;
+    }
 
-typename SolidSolutionNoise::NoiseContainerType& SolidSolutionNoise::noiseVector()
-{
-    return *this;
-}
-
-SolidSolutionNoise::SolidSolutionNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat,
-                                       const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A, const int& solidSolutionNoiseMode) :
+    SolidSolutionNoise::SolidSolutionNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat,
+                                           const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A, const int& solidSolutionNoiseMode) :
     /* init */ gridSize(_gridSize)
     /* init */,gridSpacing_A(_gridSpacing_A)
-{
-
-    switch (solidSolutionNoiseMode)
     {
-        case 1:
+        
+        switch (solidSolutionNoiseMode)
+        {
+            case 1:
             {// read noise
                 std::cout<<greenBoldColor<<"Reading SolidSolutionNoise"<<defaultColor<<std::endl;
                 noiseVector()=(SolidSolutionNoiseReader(noiseFile,mat,gridSize,gridSpacing_A));
                 break;
             }
-
-        case 2:
+                
+            case 2:
             {// compute noise
                 std::cout<<greenBoldColor<<"Generating SolidSolutionNoise"<<defaultColor<<std::endl;
                 noiseVector()=(SolidSolutionNoiseGenerator(noiseFile,mat,gridSize,gridSpacing_A));
                 break;
             }
-
-        default:
-            break;
+                
+            default:
+                break;
+        }
+        
+        NoiseType ave(NoiseType::Zero());
+        for(const auto& valArr: noiseVector())
+        {
+            ave+=valArr;
+        }
+        ave/=noiseVector().size();
+        
+        NoiseType var(NoiseType::Zero());
+        for(const auto& valArr: noiseVector())
+        {
+            var+= ((valArr-ave).array()*(valArr-ave).array()).matrix();
+        }
+        var/=noiseVector().size();
+        
+        std::cout<<"gridSize= "<<gridSize.transpose()<<std::endl;
+        std::cout<<"gridSpacing_A= "<<gridSpacing_A.transpose()<<std::endl;
+        std::cout<<"noiseAverage="<<ave<<std::endl;
+        std::cout<<"noiseVariance="<<var<<std::endl;
     }
-
-    NoiseType ave(NoiseType::Zero());
-    for(const auto& valArr: noiseVector())
-    {
-        ave+=valArr;
-    }
-    ave/=noiseVector().size();
-
-    NoiseType var(NoiseType::Zero());
-    for(const auto& valArr: noiseVector())
-    {
-        var+= ((valArr-ave).array()*(valArr-ave).array()).matrix();
-    }
-    var/=noiseVector().size();
-
-    std::cout<<"gridSize= "<<gridSize.transpose()<<std::endl;
-    std::cout<<"gridSpacing_A= "<<gridSpacing_A.transpose()<<std::endl;
-    std::cout<<"noiseAverage="<<ave<<std::endl;
-    std::cout<<"noiseVariance="<<var<<std::endl;
-}
 
 
 #ifdef _MODEL_GLIDE_PLANE_NOISE_GENERATOR_
 
 SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase& mat,
-                                                         const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A) :
-    /*init*/ NX(_gridSize(0))     // dimension along x
-    /*init*/,NY(_gridSize(1))     // dimension along y
-    /*init*/,NZ(64)      // dimension along z
-    /*init*/,DX(_gridSpacing_A(0))     // grid spacing [AA]
-    /*init*/,DY(_gridSpacing_A(1))     // grid spacing [AA]
-    /*init*/,DZ(_gridSpacing_A(1))     // grid spacing [AA]
-    /*init*/,a(TextFileParser(noiseFile).readScalar<double>("spreadLstress_A",true))      // spreading length for stresses [AA]
-    /*init*/,a_cai(TextFileParser(noiseFile).readScalar<double>("a_cai_A",true))
-    ///*init*/,a_cai(DislocationFieldBase<3>::a*mat.b_SI*1e10)  // spreading length for non-singular dislocaion theory [AA]
-    /*init*/,seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
-    /*init*/,LX(NX*DX)
-    /*init*/,LY(NY*DY)
-    /*init*/,LZ(NZ*DZ)
-    /*init*/,DV(DX*DY*DZ)
-    /*init*/,NR(NX*NY*NZ)
-    /*init*/,NK(NX*NY*(NZ/2+1))
-    /*init*/,Norm(1./REAL_SCALAR(NR))
+                                                        const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A) :
+/*init*/ NX(_gridSize(0))     // dimension along x
+/*init*/,NY(_gridSize(1))     // dimension along y
+/*init*/,NZ(64)      // dimension along z
+/*init*/,DX(_gridSpacing_A(0))     // grid spacing [AA]
+/*init*/,DY(_gridSpacing_A(1))     // grid spacing [AA]
+/*init*/,DZ(_gridSpacing_A(1))  
+   // grid spacing [AA]
+/*init*/,a(TextFileParser(noiseFile).readScalar<double>("spreadLstress_A",true))      // spreading length for stresses [AA]
+/*init*/,a_cai(TextFileParser(noiseFile).readScalar<double>("a_cai_A",true))
+///*init*/,a_cai(DislocationFieldBase<3>::a*mat.b_SI*1e10)  // spreading length for non-singular dislocaion theory [AA]
+/*init*/,seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
+/*init*/,LX(NX*DX)
+/*init*/,LY(NY*DY)
+/*init*/,LZ(NZ*DZ)
+/*init*/,DV(DX*DY*DZ)
+/*init*/,NR(NX*NY*NZ)
+/*init*/,NK(NX*NY*(NZ/2+1))
+/*init*/,Norm(1./REAL_SCALAR(NR))
 {
-
+    
     std::cout<<"Computing SolidSolutionNoise..."<<std::endl;
 
     std::cout << "a_cai = " << a_cai << std::endl;
     std::cout << "a = " << a << std::endl;
-    const double MSSS_SI(TextFileParser(mat.materialFile).readScalar<double>("MSSS_SI",true));
-    const double MSS(std::sqrt(MSSS_SI)/mat.mu_SI);
+        const double MSSS_SI(TextFileParser(mat.materialFile).readScalar<double>("MSSS_SI",true));
+        const double MSS(std::sqrt(MSSS_SI)/mat.mu_SI);
 
+    
     // fftw_plan plan_R_yz_r2c, plan_R_xz_r2c;  // fft plan
     fftw_plan plan_R_yz_c2r, plan_R_xz_c2r;  // fft plan
 
@@ -288,6 +287,7 @@ SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& nois
     COMPLEX *Rk_yz = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK);
     REAL_SCALAR *Rr_xz = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR);
     COMPLEX *Rk_xz = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK);
+
 
     // prepare plans
     //    plan_W_r2c = fftw_plan_dft_r2c_3d(NX, NY, NZ, Wr, reinterpret_cast<fftw_complex*>(Wk), FFTW_ESTIMATE);
@@ -363,12 +363,44 @@ SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& nois
                     Rk_yz[ind] = Rk_yz[ind]*Wk_Cai(kx, ky, kz, a_cai);
                     Rk_xz[ind] = Rk_xz[ind]*Wk_Cai(kx, ky, kz, a_cai);
                 }
-
+                
             }
         }
     }
     Rk_yz[0] = 0;
     Rk_xz[0] = 0;
+    
+
+    //debugging
+    std::ofstream debugOutss1("Rk_xz.txt", std::ios::app);
+    std::ofstream debugOutss2("Rk_yz.txt", std::ios::app);
+    std::cout << "Rk_xz = " << std::endl;
+    debugOutss1 << "Rk_xz = " << std::endl;
+
+    for (int i=0; i<NX; i++) 
+    {
+        for(int j=0; j<NY;j++)
+        {
+            const int k=0;
+            const int ind = NY*NZ*i + j*NZ + k;
+            std::cout << Rk_xz[ind] << std::endl;
+            debugOutss1 << Rk_xz[ind] << std::endl;
+        }   
+    }
+
+    std::cout << "Rk_yz = " << std::endl;
+    debugOutss2 << "Rk_yz = " << std::endl;
+
+    for (int i=0; i<NX; i++) 
+    {
+        for(int j=0; j<NY;j++)
+        {
+            const int k=0;
+            const int ind = NY*NZ*i + j*NZ + k;
+            std::cout << Rk_yz[ind] << std::endl;
+            debugOutss2 << Rk_yz[ind] << std::endl;
+        }   
+    }
 
     // FFT back to REAL_SCALAR space
     fftw_execute(plan_R_yz_c2r);
@@ -387,6 +419,37 @@ SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& nois
         }
     }
 
+    //debugging
+    // std::ofstream debugOutss1("SS_xz_Noise.txt", std::ios::app);
+    // std::ofstream debugOutss2("SS_yz_Noise.txt", std::ios::app);
+    // std::cout << "SS_xz_Noise = " << std::endl;
+    // debugOutss1 << "SS_xz_Noise = " << std::endl;
+
+    // for (int i=0; i<NX; i++) 
+    // {
+    //     for(int j=0; j<NY;j++)
+    //     {
+    //         const int k=0;
+    //         const int ind = NY*NZ*i + j*NZ + k;
+    //         std::cout << Rr_xz[ind] << std::endl;
+    //         debugOutss1 << Rr_xz[ind] << std::endl;
+    //     }   
+    // }
+
+    // std::cout << "SS_yz_Noise = " << std::endl;
+    // debugOutss2 << "SS_yz_Noise = " << std::endl;
+
+    // for (int i=0; i<NX; i++) 
+    // {
+    //     for(int j=0; j<NY;j++)
+    //     {
+    //         const int k=0;
+    //         const int ind = NY*NZ*i + j*NZ + k;
+    //         std::cout << Rr_yz[ind] << std::endl;
+    //         debugOutss2 << Rr_yz[ind] << std::endl;
+    //     }   
+    // }
+    
     // ouput vtk files
     const std::string fileName_xz(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("solidSolutionNoiseFile_xz",true));
     const std::string fileName_yz(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("solidSolutionNoiseFile_yz",true));
@@ -394,76 +457,78 @@ SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& nois
     Write_field_slice(Rr_xz, fileName_xz.c_str());
     std::cout<<"Writing noise file "<<fileName_yz<<std::endl;
     Write_field_slice(Rr_yz, fileName_yz.c_str());
+
 }
 
-// Cai doubly-convoluted spreading function in Fourier space
-typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::Wk_Cai(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz, REAL_SCALAR a)
-{
-    REAL_SCALAR k = sqrt(kx*kx + ky*ky + kz*kz);
-    if(k>0)
+    // Cai doubly-convoluted spreading function in Fourier space
+    typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::Wk_Cai(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz, REAL_SCALAR a)
     {
-        return a*k*sqrt(0.5*boost::math::cyl_bessel_k(2,a*k));
-        //            return a*k*sqrt(0.5*std::cyl_bessel_k(2,a*k));
+        REAL_SCALAR k = sqrt(kx*kx + ky*ky + kz*kz);
+        if(k>0)
+        {
+            return a*k*sqrt(0.5*boost::math::cyl_bessel_k(2,a*k));
+//            return a*k*sqrt(0.5*std::cyl_bessel_k(2,a*k));
+        }
+        else
+        {
+            return 1.;
+        }
+
     }
-    else
+
+    // Cai spreading function
+    typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::W_Cai(REAL_SCALAR r2, REAL_SCALAR a) 
     {
-        return 1.;
+        return 15.*a*a*a*a/(8.*M_PI*pow(r2+a*a,7./2.));
     }
 
-}
+    typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::W_t_Cai(REAL_SCALAR r2, REAL_SCALAR a) 
+    {
+        return 0.3425*W_Cai(r2,0.9038*a) + 0.6575*W_Cai(r2,0.5451*a);
+    }
 
-// Cai spreading function
-typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::W_Cai(REAL_SCALAR r2, REAL_SCALAR a) 
-{
-    return 15.*a*a*a*a/(8.*M_PI*pow(r2+a*a,7./2.));
-}
+    // normalized auto-correlation function in Fourier space for sigma_xy
+    typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::S_xy_k(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz) const
+    {
+        REAL_SCALAR k2 = kx*kx + ky*ky + kz*kz;
+        return 120.*M_PI*sqrt(M_PI)*a*a*a/(LX*LY*LZ)*(kx*kx*ky*ky)/(k2*k2)*exp(-a*a*k2);
+    }
 
-typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::W_t_Cai(REAL_SCALAR r2, REAL_SCALAR a) 
-{
-    return 0.3425*W_Cai(r2,0.9038*a) + 0.6575*W_Cai(r2,0.5451*a);
-}
+    // normalized auto-correlation function in Fourier space for sigma_xz
+    typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::S_xz_k(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz) const
+    {
+        REAL_SCALAR k2 = kx*kx + ky*ky + kz*kz;
+        return 120.*M_PI*sqrt(M_PI)*a*a*a/(LX*LY*LZ)*(kx*kx*kz*kz)/(k2*k2)*exp(-a*a*k2);
+    }
 
-// normalized auto-correlation function in Fourier space for sigma_xy
-typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::S_xy_k(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz) const
-{
-    REAL_SCALAR k2 = kx*kx + ky*ky + kz*kz;
-    return 120.*M_PI*sqrt(M_PI)*a*a*a/(LX*LY*LZ)*(kx*kx*ky*ky)/(k2*k2)*exp(-a*a*k2);
-}
-
-// normalized auto-correlation function in Fourier space for sigma_xz
-typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::S_xz_k(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz) const
-{
-    REAL_SCALAR k2 = kx*kx + ky*ky + kz*kz;
-    return 120.*M_PI*sqrt(M_PI)*a*a*a/(LX*LY*LZ)*(kx*kx*kz*kz)/(k2*k2)*exp(-a*a*k2);
-}
-
-// normalized auto-correlation function in Fourier space for sigma_yz
-typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::S_yz_k(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz) const
-{
-    REAL_SCALAR k2 = kx*kx + ky*ky + kz*kz;
-    return 120.*M_PI*sqrt(M_PI)*a*a*a/(LX*LY*LZ)*(ky*ky*kz*kz)/(k2*k2)*exp(-a*a*k2);
-}
+    // normalized auto-correlation function in Fourier space for sigma_yz
+    typename SolidSolutionNoiseGenerator::REAL_SCALAR SolidSolutionNoiseGenerator::S_yz_k(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz) const
+    {
+        REAL_SCALAR k2 = kx*kx + ky*ky + kz*kz;
+        return 120.*M_PI*sqrt(M_PI)*a*a*a/(LX*LY*LZ)*(ky*ky*kz*kz)/(k2*k2)*exp(-a*a*k2);
+    }
 
 #else
 
-SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase&, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A):
-    /*init*/ NX(_gridSize(0))     // dimension along x
-    /*init*/,NY(_gridSize(1))     // dimension along y
-    /*init*/,NZ(64)      // dimension along z
-    /*init*/,DX(_gridSpacing_A(0))     // grid spacing [AA]
-    /*init*/,DY(_gridSpacing_A(1))     // grid spacing [AA]
-    /*init*/,DZ(_gridSpacing_A(1))     // grid spacing [AA]
-    /*init*/,a(TextFileParser(noiseFile).readScalar<double>("spreadLstress_A",true)) // spreading length for stresses [AA]
-    /*init*/,a_cai(TextFileParser(noiseFile).readScalar<double>("a_cai_A",true))
-    ///*init*/,a_cai(DislocationFieldBase<3>::a*mat.b_SI*1e10)  // spreading length for non-singular dislocaion theory [AA]
-    /*init*/,seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
-    /*init*/,LX(NX*DX)
-    /*init*/,LY(NY*DY)
-    /*init*/,LZ(NZ*DZ)
-    /*init*/,DV(DX*DY*DZ)
-    /*init*/,NR(NX*NY*NZ)
-    /*init*/,NK(NX*NY*(NZ/2+1))
-    /*init*/,Norm(1./REAL_SCALAR(NR))
+SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& noiseFile,const PolycrystallineMaterialBase& ,
+                                                        const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A) :
+/*init*/ NX(_gridSize(0))     // dimension along x
+/*init*/,NY(_gridSize(1))     // dimension along y
+/*init*/,NZ(64)      // dimension along z
+/*init*/,DX(_gridSpacing_A(0))     // grid spacing [AA]
+/*init*/,DY(_gridSpacing_A(1))     // grid spacing [AA]
+/*init*/,DZ(_gridSpacing_A(1))     // grid spacing [AA]
+/*init*/,a(TextFileParser(noiseFile).readScalar<double>("spreadLstress_A",true))      // spreading length for stresses [AA]
+/*init*/,a_cai(TextFileParser(noiseFile).readScalar<double>("a_cai_A",true))
+///*init*/,a_cai(DislocationFieldBase<3>::a*mat.b_SI*1e10)  // spreading length for non-singular dislocaion theory [AA]
+/*init*/,seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
+/*init*/,LX(NX*DX)
+/*init*/,LY(NY*DY)
+/*init*/,LZ(NZ*DZ)
+/*init*/,DV(DX*DY*DZ)
+/*init*/,NR(NX*NY*NZ)
+/*init*/,NK(NX*NY*(NZ/2+1))
+/*init*/,Norm(1./REAL_SCALAR(NR))
 {
     this->reserve(NX*NY);
     for(int i=0;i<NX;i++)
@@ -477,126 +542,165 @@ SolidSolutionNoiseGenerator::SolidSolutionNoiseGenerator(const std::string& nois
 
 #endif
 
-void SolidSolutionNoiseGenerator::Write_field_slice(REAL_SCALAR *F, const char *fname)
-{
-    FILE *OutFile=fopen(fname,"w");
-
-    fprintf(OutFile,"# vtk DataFile Version 2.0\n");
-    fprintf(OutFile,"iter %d\n",0);
-    fprintf(OutFile,"BINARY\n");
-    fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
-    fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
-    fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
-    fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
-    fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
-    fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
-    fprintf(OutFile,"LOOKUP_TABLE \t default\n");
-
-    for(int i=0;i<NX;i++)
+    void SolidSolutionNoiseGenerator::Write_field_slice(REAL_SCALAR *F, const char *fname)
     {
-        for(int j=0;j<NY;j++)
+        FILE *OutFile=fopen(fname,"w");
+        
+        fprintf(OutFile,"# vtk DataFile Version 2.0\n");
+        fprintf(OutFile,"iter %d\n",0);
+        fprintf(OutFile,"BINARY\n");
+        fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
+        fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
+        fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
+        fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
+        fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
+        fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
+        fprintf(OutFile,"LOOKUP_TABLE \t default\n");
+        
+        for(int i=0;i<NX;i++)
         {
-            const int k=0;
-            const int ind = NY*NZ*i + j*NZ + k;
-            const double temp=SolidSolutionNoiseReader::ReverseDouble(double(F[ind]));
-            fwrite(&temp, sizeof(double), 1, OutFile);
+            for(int j=0;j<NY;j++)
+            {
+                const int k=0;
+                const int ind = NY*NZ*i + j*NZ + k;
+                const double temp=SolidSolutionNoiseReader::ReverseDouble(double(F[ind]));
+                fwrite(&temp, sizeof(double), 1, OutFile);
+            }
         }
+        
+        fclose(OutFile);
     }
 
-    fclose(OutFile);
-}
 
-//const typename StackingFaultNoise::NoiseContainerType& StackingFaultNoise::noiseVector() const
-//{
-//    return *this;
-//}
-//
-//typename StackingFaultNoise::NoiseContainerType& StackingFaultNoise::noiseVector()
-//{
-//    return *this;
-//}
+    // typename StackingFaultCorrelationReader::GridSizeType StackingFaultCorrelationReader::Read_dimensions(const char *fname)
+    // {
+    //     int NX, NY, NZ;
+    //     char line[200];
+    //     FILE *InFile =fopen(fname,"r");
 
-StackingFaultCorrelationReader::StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat)
-{
-    std::cout << "Reading stacking fault correlation" << std::endl;
+    //     if (InFile == NULL)
+    //     {
+    //         fprintf(stderr, "Can't open noise file %s\n",fname);
+    //         exit(1);
+    //     }
 
-    std::ifstream vtkFile(fileName_vtk); //access vtk file
-    // error check
-    if (!vtkFile.is_open()) {
+    //     for(int i =0;i<4;i++)
+    //     {
+    //         fgets(line, 200, InFile);
+    //     }
+    //     fscanf(InFile, "%s  %d  %d  %d\n", line, &(NX), &(NY), &(NZ));
+    //     return (GridSizeType()<<NX,NY).finished();
+
+    // }
+
+    StackingFaultCorrelationReader::StackingFaultCorrelationReader(//const std::string& noiseFile, // noiseFile
+                                          const std::string& fileName_vtk,
+                                          REAL_SCALAR *Rr_isf,
+                                           const PolycrystallineMaterialBase& mat)
+                                        //    const NoiseTraitsBase::GridSizeType& _gridSize,
+                                        //    const NoiseTraitsBase::GridSpacingType& _gridSpacing_SI)
+    {
+        
+        std::cout<<greenBoldColor<<"Reading  StackingFaull correlation"<<defaultColor<<std::endl;
+        
+        //const double isfEnergyDensityMEAN(TextFileParser(mat.materialFile).readScalar<double>("isfEnergyDensityMEAN_SI",true)/(mat.mu_SI*mat.b_SI));
+       // const double isfEnergyDensitySTD(TextFileParser(mat.materialFile).readScalar<double>("isfEnergyDensitySTD_SI",true)/std::sqrt(gridSpacing_SI(0)*gridSpacing_SI(1))/(mat.mu_SI*mat.b_SI));
+        // const std::string fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true));
+        // const auto gridSize(Read_dimensions(fileName_vtk.c_str()))
+
+        // std :: cout  << "gridSize = " << gridSize << std::endl;
+
+        std::ifstream vtkFile(fileName_vtk); //access vtk file
+        // error check
+        if (!vtkFile.is_open()) 
+        {
         throw std::runtime_error("Error opening stacking fault VTK correlation file!");
-    }
-
-    typedef Eigen::Matrix<double,3,1> VectorDimD;
-    std::deque<VectorDimD> rawPoints; // second pair is CELLID
-    std::deque<VectorDimD> basis1;
-    std::deque<VectorDimD> basis2;
-
-    // begin parsing structured_grid vtk file for lines
-    std::string line;
-    const size_t numOfPointsPerLine = 3;
-    while (std::getline(vtkFile, line)) 
-    {
-        //if the "POINTS" string is read, read the following data
-        if(line.find("POINTS")!=std::string::npos) 
-        {
-            // get the number of points in the file
-            const size_t firstSpace(line.find(' '));
-            const size_t secondSpace(line.find(' ', firstSpace+1));
-            const size_t numOfPoints = std::atoi(line.substr(firstSpace+1, secondSpace-firstSpace-1).c_str());
-            // data structure of ID points
-            // read the point coordinates
-            double x1, y1, z1, x2, y2, z2, x3, y3, z3;
-            for(size_t n=0; n<numOfPoints/numOfPointsPerLine; ++n)
-            {
-                std::getline(vtkFile, line);
-                std::stringstream ss(line);
-                ss >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> x3 >> y3 >> z3;
-                rawPoints.push_back((VectorDimD()<<x1,y1,z1).finished()); // second pair is CELLID
-                rawPoints.push_back((VectorDimD()<<x2,y2,z2).finished());
-                rawPoints.push_back((VectorDimD()<<x3,y3,z3).finished());
-            }
-        }
-        //if the "POINT_DATA" string is read, read the following data
-        if(line.find("POINT_DATA")!=std::string::npos) 
-        {
-            const size_t numOfHeaders = 2;
-            // get the number of points in the file
-            const size_t firstSpace(line.find(' '));
-            const size_t numOfPoints = std::atoi(line.substr(firstSpace+1).c_str());
-            // read the point coordinates
-            for(size_t n=0; n<numOfPoints+numOfHeaders; ++n)
-            {
-                std::getline(vtkFile, line);
-                // ignore the headers that come right after point_data
-                if(n<numOfHeaders)
-                    continue;
-                const int ind = n-numOfHeaders;
-                //correlationCoeffs.push_back(std::atoi(line.c_str()));
-                Rr_xy[ind] = std::atoi(line.c_str());
-            }
         }
 
-        if(line.find("VECTORS")!=std::string::npos) 
+        typedef Eigen::Matrix<double,3,1> VectorDimD;
+        std::deque<VectorDimD> rawPoints;  // second pair is CELLID
+        std::deque<VectorDimD> basis1;
+        std::deque<VectorDimD> basis2;
+        // std::vector<double> correlationCoeffs = {};
+
+        int NX=0, NY=0, NZ=0, NR=0; // dimensions, initialized to zero to avoid undefined behavior
+
+        // begin parsing structured_grid vtk file for lines
+        std::string line;
+        const size_t numOfPointsPerLine = 3;
+        while (std::getline(vtkFile, line)) 
         {
-            std::getline(vtkFile, line);
-            std::stringstream ss(line);
-            double x, y, z;
-            if(basis1.empty())
+            // parse dimensions of the noise file
+            // if (line.find("DIMENSIONS")!=std::string::npos) 
+            // {
+            //     sscanf(line.c_str(), "DIMENSIONS %d %d %d", &NX, &NY, &NZ);
+            //     NR = NX*NY*NZ;
+            //     // input_d.push_back((VectorDimD()<<NX,NY,NZ).finished());
+            //     std::cout << "NX =" << NX << " NY =" << NY<< " NZ =" << NZ << " NR = " << NR << std::endl;
+            // }
+            //if the "POINTS" string is read, read the following data
+            if(line.find("POINTS")!=std::string::npos) 
             {
-                ss >> x >> y >> z;
-                basis1.push_back((VectorDimD()<<x,y,z).finished());
+                // get the number of points in the file
+                const size_t firstSpace(line.find(' '));
+                const size_t secondSpace(line.find(' ', firstSpace+1));
+                const size_t numOfPoints = std::atoi(line.substr(firstSpace+1, secondSpace-firstSpace-1).c_str());
+                // data structure of ID points
+                // read the point coordinates
+                double x1, y1, z1, x2, y2, z2, x3, y3, z3;
+                for(size_t n=0; n<numOfPoints/numOfPointsPerLine; ++n)
+                {
+                    std::getline(vtkFile, line);
+                    std::stringstream ss(line);
+                    ss >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> x3 >> y3 >> z3;
+                    rawPoints.push_back((VectorDimD()<<x1,y1,z1).finished()); // second pair is CELLID
+                    rawPoints.push_back((VectorDimD()<<x2,y2,z2).finished());
+                    rawPoints.push_back((VectorDimD()<<x3,y3,z3).finished());
+                }
             }
-            else
+         //if the "POINT_DATA" string is read, read the following data
+            if(line.find("POINT_DATA")!=std::string::npos) 
             {
-                ss >> x >> y >> z;
-                basis2.push_back((VectorDimD()<<x,y,z).finished());
+                const size_t numOfHeaders = 2;
+                // get the number of points in the file
+                const size_t firstSpace(line.find(' '));
+                const size_t numOfPoints = std::atoi(line.substr(firstSpace+1).c_str());
+                std::cout << numOfPoints << std::endl;
+                // read the point coordinates
+                for(size_t n=0; n<numOfPoints+numOfHeaders; ++n)
+                    {
+                        std::getline(vtkFile, line);
+                        // ignore the headers that come right after point_data
+                        if(n<numOfHeaders)
+                            continue;
+                        const int ind = n - numOfHeaders;
+                        // correlationCoeffs.push_back(std::atoi(line.c_str()));
+                        Rr_isf[ind] = std::atoi(line.c_str());
+                    }
             }
-        }
-    }
+        
+            if(line.find("VECTORS")!=std::string::npos) 
+                {
+                    std::getline(vtkFile, line);
+                    std::stringstream ss(line);
+                    double x, y, z;
+                    if(basis1.empty())
+                        {
+                            ss >> x >> y >> z;
+                            basis1.push_back((VectorDimD()<<x,y,z).finished());
+                        }
+                    else
+                        {
+                               ss >> x >> y >> z;
+                               basis2.push_back((VectorDimD()<<x,y,z).finished());
+                        }
+                }
+       }
 }
 
-//typename StackingFaultNoiseGenerator::GridSizeType StackingFaultNoiseGenerator::Read_dimensions(const char *fname)
+// typename StackingFaultNoiseGenerator::GridSizeType StackingFaultNoiseGenerator::Read_dimensions(const char *fname)
 typename StackingFaultNoise::GridSizeType StackingFaultNoise::Read_dimensions(const char *fname)
+
 {
     int NX, NY, NZ;
     char line[200];
@@ -617,272 +721,354 @@ typename StackingFaultNoise::GridSizeType StackingFaultNoise::Read_dimensions(co
     return (GridSizeType()<<NX,NY).finished();
 }
 
-//StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat):
-StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile,
-                                       const PolycrystallineMaterialBase& mat):
-    /*init*/seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
-    /*init*/,fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
+   StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat ):
+                                                 /*init*/ seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
+                                                 /*init*/,fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
+                                                // const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A) :
+// /*init*/ NX(_gridSize(0))     // dimension along x
+// /*init*/,NY(_gridSize(1))     // dimension along y
+// /*init*/,NZ(1)                       // dimension along z
+// /*init*/,DX(_gridSpacing_A(0))     // grid spacing [AA]
+// /*init*/,DY(_gridSpacing_A(1))     // grid spacing [AA]
+// /*init*/,DZ(_gridSpacing_A(1))     // grid spacing [AA]
+// /*init*/,seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
+// /*init*/,NR(NX*NY*NZ)
+// /*init*/,NK(NX*(NY/2+1)*NZ)
+// /*init*/,Norm(1./REAL_SCALAR(NR))
 {
     GridSizeType dimensions;
     dimensions = Read_dimensions(fileName_vtk.c_str());
-    NX = dimensions(0);
-    NY = dimensions(1);
+    NX = dimensions(1);
+    NY = dimensions(0);
     NZ = 1;
     NR = NX*NY*NZ;
-    NK = NX*NY*(NZ/2+1);
+    NK = NX*(NY/2+1)*(NZ/2+1);
+    
     std::cout<<greenBoldColor<<"Reading Stacking Fault Correlation"<<defaultColor<<std::endl;
 
-    // fft plans
-    fftw_plan plan_R_xy_r2c, plan_R_xy_noise_c2r, plan_Rcor_c2r;
+    // Input the parameters of  StackingFaultCorrelationReader
+    // StackingFaultCorrelationReader reader(noiseFile, mat, gridSize, gridSpacing_A);
+    // const auto& rawPoints = reader.RawPoints;
+    // const auto& basis1 = reader.Basis1;
+    // const auto& basis2 = reader.Basis2;
+    // const auto& coeffs = reader.CorrelationCoeffs;
+
+    // if (!reader.input_d.empty()) 
+    // {
+    //     const IntDimD& vec = reader.input_d[0];
+    //     int in_NX = vec(0, 0);
+    //     int in_NY = vec(1, 0);
+    //     int in_NZ = vec(2, 0);
+    //     int in_NR =  in_NX*in_NY*in_NZ
+    // }
+
+    // const double isfEnergyDensitySTD_SI(TextFileParser(mat.materialFile).readScalar<double>("isfEnergyDensitySTD_SI",true));
+    // // const double isfEnergyDensitySTD_SI(std::sqrt(MSSS_SI)/mat.mu_SI);
+    // // generated 2-d
+    // std::vector<double> paddedArray(Nx * Ny, 0); // 0-pading 256*256
+    // // Calculate where the original data should start to fill
+    // int startRow = (Nx - in_NX) / 2;
+    // int startCol = (Ny - in_NY) / 2;
+
+    // // fill data with 0-pading
+    // for (int i = 0; i < in_NX; ++i) 
+    // {
+    //     for (int j = 0; j < in_NY; ++j) 
+    //     {
+    //         // calculate index in paddedArray
+    //         int index = (startRow + i) * Ny + (startCol + j);
+    //         paddedArray[index] = correlationCoeffs[i * in_NY + j];
+    //     }
+    // }
+    // if (Rr_isf != nullptr) 
+    // {
+    //     std::copy(paddedArray.begin(), paddedArray.end(), Rr_isf);
+    // }
+
+    // Two FFT plan
+    fftw_plan plan_R_isf_r2c, plan_R_isf_c2r,  plan_Rcor_c2r ;  // Real space-> F Space  fft plan
 
     // allocate
-    REAL_SCALAR *Rr_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space
-    COMPLEX *Rk_xy = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
+    REAL_SCALAR *Rr_isf = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space
+    COMPLEX *Rk_isf = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
     COMPLEX *frHat = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
-    REAL_SCALAR *Rr_noise_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
+    // COMPLEX *frHatCorrelation = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
+    REAL_SCALAR *Rr_noise_isf = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
 
     COMPLEX *frHatCorrelation = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
     REAL_SCALAR *frCorrelation = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
 
-    // read stacking fault correlation
-    StackingFaultCorrelationReader(fileName_vtk, Rr_xy, mat);
+     // read stacking fault correlation
+    StackingFaultCorrelationReader(fileName_vtk, Rr_isf, mat);
+    // generate gaussian white noise
+    // std::default_random_engine generator(seed);
+    // std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
 
-    std::default_random_engine generator(seed);
-    std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
-
-    plan_R_xy_r2c = fftw_plan_dft_r2c_2d(NX, NY, Rr_xy, reinterpret_cast<fftw_complex*>(Rk_xy), FFTW_ESTIMATE);
-    plan_R_xy_noise_c2r = fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(frHat), Rr_noise_xy, FFTW_ESTIMATE);
+    // FFTW prepare plans
+    // fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * Nx * (Ny/2+1));
+    // fftw_plan plan = fftw_plan_dft_r2c_2d(Nx, Ny, paddedArray.data(), out, FFTW_ESTIMATE);
+    plan_R_isf_r2c = fftw_plan_dft_r2c_2d(NX, NY, Rr_isf, reinterpret_cast<fftw_complex*>(Rk_isf), FFTW_ESTIMATE);
+    plan_R_isf_c2r = fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(frHat), Rr_noise_isf, FFTW_ESTIMATE);
     plan_Rcor_c2r = fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(frHatCorrelation), frCorrelation, FFTW_ESTIMATE);
 
     std::cout<<greenBoldColor<<"Creating StackingFaultNoise"<<defaultColor<<std::endl;
-    
-    //test
-    fftw_plan plan_R_xy_1, plan_R_xy_2;
+
+    // Test to not perform fft-shift
+    fftw_plan plan_R_isf_1, plan_R_isf_2;
     //REAL_SCALAR *Rr_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space
     //COMPLEX *Rk_xy = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
-    REAL_SCALAR *Rr_xy_recover = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
-    plan_R_xy_1 = fftw_plan_dft_r2c_2d(NX, NY, Rr_xy, reinterpret_cast<fftw_complex*>(Rk_xy), FFTW_ESTIMATE);
-    plan_R_xy_2 = fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(Rk_xy), Rr_xy_recover, FFTW_ESTIMATE);
+    REAL_SCALAR *Rr_isf_recover = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
+    plan_R_isf_1 = fftw_plan_dft_r2c_2d(NX, NY, Rr_isf, reinterpret_cast<fftw_complex*>(Rk_isf), FFTW_ESTIMATE);
+    plan_R_isf_2 = fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(Rk_isf), Rr_isf_recover, FFTW_ESTIMATE);
 
-    fftw_execute(plan_R_xy_1);
-    fftw_execute(plan_R_xy_2);
+    fftw_execute(plan_R_isf_1);
+    fftw_execute(plan_R_isf_2);
 
-    for (int i=0; i<NR; ++i) {
-        Rr_xy_recover[i] = Rr_xy_recover[i]/static_cast<double>(NR);
+     for (int i=0; i<NR; ++i) {
+        Rr_isf_recover[i] = Rr_isf_recover[i]/static_cast<double>(NR);
     }
 
     //debugging
-    std::ofstream debugOutR("correlation_recovered.txt", std::ios::app);
-    std::ofstream debugOutC("original_Correlation.txt", std::ios::app);
-    std::cout << "Rr_xy_recover = " << std::endl;
-    debugOutR << "Rr_xy_recover = " << std::endl;
-    for (int i=0; i<NR; ++i) {
-        std::cout << Rr_xy_recover[i] << std::endl;
-        debugOutR << Rr_xy_recover[i] << std::endl;
-    }
-    //debugging
-    std::cout << "Rr_xy = " << std::endl;
-    debugOutC << "Rr_xy = " << std::endl;
-    for (int i=0; i<NR; ++i) {
-        std::cout << Rr_xy[i] << std::endl;
-        debugOutC << Rr_xy[i] << std::endl;
-    }
+    // std::ofstream debugOutR("correlation_recovered.txt", std::ios::app);
+    // std::ofstream debugOutC("original_Correlation2.txt", std::ios::app);
+    // std::cout << "Rr_isf_recover = " << std::endl;
+    // debugOutR << "Rr_isf_recover = " << std::endl;
+
+    // for (int i=0; i<NR; ++i) {
+    //     std::cout << Rr_isf_recover[i] << std::endl;
+    //     debugOutR << Rr_isf_recover[i] << std::endl;
+    // }
+    // //debugging
+    // std::cout << "Rr_isf = " << std::endl;
+    // debugOutC << "Rr_isf = " << std::endl;
+    // for (int i=0; i<NR; ++i) {
+    //     std::cout << Rr_isf[i] << std::endl;
+    //     debugOutC << Rr_isf[i] << std::endl;
+    // }
     //test
-    exit(1);
-
-    // FFT to fourier space
-    fftw_execute(plan_R_xy_r2c);
-
-    // ensemble average
-    int sampleSize = 100;
-    for (int j=0; j<sampleSize; ++j)
+    // exit(1);
+   //  REAL_SCALAR  to FFT space
+    fftw_execute(plan_R_isf_r2c);
+    // debug
+    std::ofstream debugOutRk("Rkisf.txt", std::ios::app);
+    std::cout << "Rk_isf = " << std::endl;
+    debugOutRk << "Rk_isf = " << std::endl;
+    for (int i=0; i<NK; ++i) 
     {
-        // introduce noise to correlation in fourier space
-        for (int i=0; i<NK; ++i) 
-        {
-            // random numbers
-            REAL_SCALAR Nk_xy = distribution(generator);
-            REAL_SCALAR Mk_xy = distribution(generator);
-            //Rk_xy[i] = sqrt(Rk_xy[i])*(Nk_xy+Mk_xy*COMPLEX(0.0,1.0)/sqrt(2.0));
-            //frHat[i] = sqrt(Rk_xy[i])*((Nk_xy+Mk_xy*COMPLEX(0.0,1.0))/sqrt(2.0));
-            frHat[i] = std::sqrt(Rk_xy[i])*((Nk_xy+Mk_xy*COMPLEX(0.0,1.0))/std::sqrt(2.0));
-        }
-
-        // normalize the magnitude by the number of element (FFTW inverse transform does not normalize the magnitude)
-        for (int i=0; i<NK; ++i) 
-        {
-            frHat[i] = frHat[i]/static_cast<double>(NK);
-        }
-
-        // normalize the magnitude by the number of element (FFTW inverse transform does not normalize the magnitude)
-        //for (int i=0; i<NR; ++i) {
-        //    Rr_noise_xy[i] = Rr_noise_xy[i]/static_cast<double>(NR);
-        //}
-
-        // calculate spatial correlation of the newly created random function
-        for (int i=0; i<NK; ++i) 
-        {
-            frHatCorrelation[i] += frHat[i]*std::conj(frHat[i]);
-        }
+        std::cout << Rk_isf[i] << std::endl;
+        debugOutRk << Rk_isf[i] << std::endl;
     }
+   // 
+    // ensemble average
+    /////////////////////////////////////////////////////
+    // generate Stacking Fault correlated component //
+    /////////////////////////////////////////////////////
+    int sampleSize = 1000;
+    for (int j=0; j<sampleSize; ++j)
+        {
+            unsigned int seed1 = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+            std::default_random_engine generator(seed1);
+            std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
+            for(int i=0; i<NK; ++i)
+                {
+        // random numbers
+                    REAL_SCALAR Nk_isf = distribution(generator);
+                    REAL_SCALAR Mk_isf = distribution(generator);
+        
+                    frHat[i] = std::sqrt(Rk_isf[i])*((Nk_isf+Mk_isf*COMPLEX(0.0,1.0))/std::sqrt(2.0));
+    
+                 }
+        
+    // Rk_isf[0] = 0;
+    // normalize the magnitude by the number of element (FFTW inverse transform does not normalize the magnitude)
+            // for (int i=0; i<NK; ++i) 
+            // {
+            //     frHat[i] = frHat[i]/static_cast<double>(NK);
+            //     // frHat[i] = frHat[i]/static_cast<double>(405);
+            //     // frHat[i] = frHat[i]/(static_cast<double>(NX)*static_cast<double>(NY/2+1));
 
-    for (int k=0; k<NK; ++k) 
+            // }
+
+            for (int i=0; i<NK; ++i) 
+            {
+                frHatCorrelation[i] += frHat[i]*std::conj(frHat[i]);
+            }
+    }
+    // calculate spatial correlation of the newly created random function
+     for (int k=0; k<NK; ++k) 
     {
         frHatCorrelation[k] = frHatCorrelation[k]/static_cast<double>(sampleSize);
     }
-    // normalize the magnitude by the number of element (FFTW inverse transform does not normalize the magnitude)
-    //for (int i=0; i<NK; ++i) 
-    //{
-    //    frHatCorrelation[i] = frHatCorrelation[i]/static_cast<double>(NK);
-    //}
-
+    
     // take inverse fourier transform on the sampled random function (frHat -> ft)
-    fftw_execute(plan_R_xy_noise_c2r);
+    fftw_execute(plan_R_isf_c2r);
+
+    for (int i=0; i<NR; ++i) 
+            {
+                Rr_noise_isf[i] = Rr_noise_isf[i]/static_cast<double>(NR);
+            }
 
     // take inverse fourier transform on the sampled correlation ( frHat*frHat_conj -> C)
     fftw_execute(plan_Rcor_c2r);
 
+    for (int i=0; i<NR; ++i) 
+            {
+                frCorrelation[i] = frCorrelation[i]/static_cast<double>(NR);
+            }
     //debugging
     std::ofstream debugOut("original_Correlation.txt", std::ios::app);
     std::ofstream debugOut2("fr.txt", std::ios::app);
     std::ofstream debugOut3("sampled_correlation.txt", std::ios::app);
 
     //debugging
-    std::cout << "Rr_xy = " << std::endl;
-    debugOut << "Rr_xy = " << std::endl;
-    for (int i=0; i<NR; ++i) {
-        std::cout << Rr_xy[i] << std::endl;
-        debugOut << Rr_xy[i] << std::endl;
+    std::cout << "Rr_isf = " << std::endl;
+    debugOut << "Rr_isf = " << std::endl;
+    for (int i=0; i<NR; ++i) 
+    {
+        std::cout << Rr_isf[i] << std::endl;
+        debugOut << Rr_isf[i] << std::endl;
     }
 
-    std::cout << "Rr_noise_xy = " << std::endl;
-    debugOut2 << "Rr_noise_xy = " << std::endl;
-    for (int i=0; i<NR; ++i) {
-        std::cout << Rr_noise_xy[i] << std::endl;
-        debugOut2 << Rr_noise_xy[i] << std::endl;
+    std::cout << "Rr_noise_isf = " << std::endl;
+    debugOut2 << "Rr_noise_isf = " << std::endl;
+    for (int i=0; i<NR; ++i) 
+    {
+        std::cout << Rr_noise_isf[i] << std::endl;
+        debugOut2 << Rr_noise_isf[i] << std::endl;
     }
 
     //debugging
     std::cout << "frCorrelation= " << std::endl;
     debugOut3 << "frCorrelation= " << std::endl;
-    for (int i=0; i<NR; ++i) {
+    for (int i=0; i<NR; ++i) 
+    {
         std::cout << frCorrelation[i] << std::endl;
         debugOut3 << frCorrelation[i]  << std::endl;
     }
 
-    //const size_t N(NR.array());
-    this->reserve(NR);
-    for(int k=0;k<NR;++k)
+    // ouput vtk files
+    //const std::string fileName_yz(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("solidSolutionNoiseFile_yz",true));
+    //std::cout<<"Writing stacking fault noise file "<<fileName_xz<<std::endl;
+    //Write_field_slice(Rr_xz, fileName_xz.c_str());
+
+    // const double isfEnergyDensityMEAN(TextFileParser(mat.materialFile).readScalar<double>("isfEnergyDensityMEAN_SI",true)/(mat.mu_SI*mat.b_SI));
+    // const double isfEnergyDensitySTD(TextFileParser(mat.materialFile).readScalar<double>("isfEnergyDensitySTD_SI",true)/std::sqrt(gridSpacing_SI(0)*gridSpacing_SI(1))/(mat.mu_SI*mat.b_SI));
+    this->reserve(NX*NY);
+    for (int k=0; k<NR; ++k)
     {
-        this->push_back(Rr_noise_xy[k]);
-    }
+        this ->push_back(Rr_noise_isf[k]);
+    }    
     exit(1);
 }
 
-//StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const int& stackingFaultNoiseMode)
-//{
-//    std::cout << "inside stacking fault" << std::endl;
-//    noiseVector()=(StackingFaultNoiseGenerator(noiseFile,mat));
-//}
+// const typename StackingFaultNoise ::NoiseContainerType& StackingFaultNoise::noiseVector() const
+//     {
+//         return *this;
+//     }
 
-GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat) :
+//     typename StackingFaultNoise ::NoiseContainerType& StackingFaultNoise::noiseVector() 
+//     {
+//         return *this;
+//     }
+
+// StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat,
+//                                            const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing_A, const int& StackingFaultNoiseMode)
+//     {
+//         std::cout<<greenBoldColor<<"Reading and generating StackingFaultNoise"<<defaultColor<<std::endl;
+//         noiseVector()=(StackingFaultNoiseGenerator(noiseFile,mat));
+//         exit(1);                    
+//     }
+              
+    GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat) :
     /* init */ UniformPeriodicGrid<2>(TextFileParser(noiseFile).readMatrix<int,1,2>("gridSize",true),TextFileParser(noiseFile).readMatrix<double,1,2>("gridSpacing_SI",true)/mat.b_SI)
     /* init */,solidSolutionNoiseMode(TextFileParser(noiseFile).readScalar<int>("solidSolutionNoiseMode"))
     /* init */,stackingFaultNoiseMode(TextFileParser(noiseFile).readScalar<int>("stackingFaultNoiseMode"))
     /* init */,solidSolution(solidSolutionNoiseMode? new SolidSolutionNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI*1.0e10,solidSolutionNoiseMode) : nullptr)
-    /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat) : nullptr)
-///* init */,stackingFault(stackingFaultNoiseMode? new readStackingFaultCorrelation(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI) : nullptr)
-{
-    if(solidSolution)
+    /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat) : nullptr) // changed
+    // /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI*1.0e10) : nullptr) // changed
     {
-        Eigen::VectorXd rowsAvr0( Eigen::VectorXd::Zero(solidSolution->gridSize(0)) );
-        Eigen::VectorXd colsAvr0( Eigen::VectorXd::Zero(solidSolution->gridSize(1)) );
-        Eigen::VectorXd rowsAvr1( Eigen::VectorXd::Zero(solidSolution->gridSize(0)) );
-        Eigen::VectorXd colsAvr1( Eigen::VectorXd::Zero(solidSolution->gridSize(1)) );
-
-        for(size_t k=0; k<solidSolution->size(); ++k)
-        {
-            const GridSizeType rowCol(rowAndColIndices(k));
-            rowsAvr0(rowCol(0)) += this->solidSolution->operator[](k)(0);
-            colsAvr0(rowCol(1)) += this->solidSolution->operator[](k)(0);
-            rowsAvr1(rowCol(0)) += this->solidSolution->operator[](k)(1);
-            colsAvr1(rowCol(1)) += this->solidSolution->operator[](k)(1);
-            }
-
-        const auto rowsNorm0(rowsAvr0.norm());
-        const auto colsNorm0(colsAvr0.norm());
-        const auto rowsNorm1(rowsAvr1.norm());
-        const auto colsNorm1(colsAvr1.norm());
-
-        std::cout<<"rowsNorm0= "<<rowsNorm0<< " ,rowsAvr0.size= " <<rowsAvr0.size() << std::endl;
-        std::cout<<"colsNorm0= "<<colsNorm0<< " ,colsAvr0.size= " <<colsAvr0.size() << std::endl;
-        std::cout<<"rowsNorm1= "<<rowsNorm1<< " ,rowsAvr1.size= " <<rowsAvr1.size() << std::endl;
-        std::cout<<"colsNorm1= "<<colsNorm1<< " ,colsAvr1.size= " <<colsAvr1.size() << std::endl;
-    }
-}
-
-typename GlidePlaneNoise::GridSizeType GlidePlaneNoise::rowAndColIndices(const int& storageIdx) const
-{
-    return GridSizeType(storageIdx/this->gridSize(1), storageIdx%this->gridSize(1));
-}
-
-int GlidePlaneNoise::storageIndex(const int& i,const int& j) const
-{/*!\param[in] localPos the  position vector on the grid
-      * \returns The grid index periodically wrapped within the gridSize bounds
-      */
-    return this->gridSize(1)*i+j;
-}
-
-std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos) const
-{   // Added by Hyunsoo (hyunsol@g.clemson.edu)
-
-    const auto idxAndWeights(this->posToPeriodicCornerIdxAndWeights(localPos));
-    double effsolNoiseXZ(0.0);
-    double effsolNoiseYZ(0.0);
-    double effsfNoise(0.0);
-    for(size_t p=0;p<idxAndWeights.first.size();++p)
-    {
-        const int storageID(storageIndex(idxAndWeights.first[p](0),idxAndWeights.first[p](1)));
         if(solidSolution)
         {
-            effsolNoiseXZ+=solidSolution->operator[](storageID)(0)*idxAndWeights.second[p];
-            effsolNoiseYZ+=solidSolution->operator[](storageID)(1)*idxAndWeights.second[p];
+            Eigen::VectorXd rowsAvr0( Eigen::VectorXd::Zero(solidSolution->gridSize(0)) );
+            Eigen::VectorXd colsAvr0( Eigen::VectorXd::Zero(solidSolution->gridSize(1)) );
+            Eigen::VectorXd rowsAvr1( Eigen::VectorXd::Zero(solidSolution->gridSize(0)) );
+            Eigen::VectorXd colsAvr1( Eigen::VectorXd::Zero(solidSolution->gridSize(1)));
+            
+            for(size_t k=0; k<solidSolution->size(); ++k)
+            {
+                const GridSizeType rowCol(rowAndColIndices(k));
+                rowsAvr0(rowCol(0)) += this->solidSolution->operator[](k)(0);
+                colsAvr0(rowCol(1)) += this->solidSolution->operator[](k)(0);
+                rowsAvr1(rowCol(0)) += this->solidSolution->operator[](k)(1);
+                colsAvr1(rowCol(1)) += this->solidSolution->operator[](k)(1);
+            }
+            
+            const auto rowsNorm0(rowsAvr0.norm());
+            const auto colsNorm0(colsAvr0.norm());
+            const auto rowsNorm1(rowsAvr1.norm());
+            const auto colsNorm1(colsAvr1.norm());
+            
+            std::cout<<"rowsNorm0= "<<rowsNorm0<< " ,rowsAvr0.size= " <<rowsAvr0.size() << std::endl;
+            std::cout<<"colsNorm0= "<<colsNorm0<< " ,colsAvr0.size= " <<colsAvr0.size() << std::endl;
+            std::cout<<"rowsNorm1= "<<rowsNorm1<< " ,rowsAvr1.size= " <<rowsAvr1.size() << std::endl;
+            std::cout<<"colsNorm1= "<<colsNorm1<< " ,colsAvr1.size= " <<colsAvr1.size() << std::endl;
+        }
+    }
+
+    typename GlidePlaneNoise::GridSizeType GlidePlaneNoise::rowAndColIndices(const int& storageIdx) const
+    {
+        return GridSizeType(storageIdx/this->gridSize(1), storageIdx%this->gridSize(1));
+    }
+
+    int GlidePlaneNoise::storageIndex(const int& i,const int& j) const
+    {/*!\param[in] localPos the  position vector on the grid
+      * \returns The grid index periodically wrapped within the gridSize bounds
+      */
+        return this->gridSize(1)*i+j;
+    }
+
+    std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos) const
+    {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
+        
+        const auto idxAndWeights(this->posToPeriodicCornerIdxAndWeights(localPos));
+        double effsolNoiseXZ(0.0);
+        double effsolNoiseYZ(0.0);
+        double effsfNoise(0.0);
+        for(size_t p=0;p<idxAndWeights.first.size();++p)
+        {
+            const int storageID(storageIndex(idxAndWeights.first[p](0),idxAndWeights.first[p](1)));
+            if(solidSolution)
+            {
+                effsolNoiseXZ+=solidSolution->operator[](storageID)(0)*idxAndWeights.second[p];
+                effsolNoiseYZ+=solidSolution->operator[](storageID)(1)*idxAndWeights.second[p];
+            }
+            if(stackingFault)
+            {
+                effsfNoise+=stackingFault->operator[](storageID)*idxAndWeights.second[p];
+            }
+        }
+        
+        return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
+    }
+
+    std::tuple<double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int,2,1>& idx) const
+    {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
+        const Eigen::Array<int,2,1> pidx(this->idxToPeriodicIdx(idx));
+        const int storageID(storageIndex(pidx(0),pidx(1)));
+        double effsolNoiseXZ(0.0);
+        double effsolNoiseYZ(0.0);
+        double effsfNoise(0.0);
+        if(solidSolution)
+        {
+            effsolNoiseXZ=solidSolution->operator[](storageID)(0);
+            effsolNoiseYZ=solidSolution->operator[](storageID)(1);
         }
         if(stackingFault)
         {
-            effsfNoise+=stackingFault->operator[](storageID)*idxAndWeights.second[p];
+            effsfNoise=stackingFault->operator[](storageID);
         }
-        //if(stackingFault)
-        //{
-        //    std::cout<<"inside gridInterp funciton, SF"<<std::endl;
-        //}
+        return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
     }
-
-    return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
-}
-
-std::tuple<double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int,2,1>& idx) const
-{   // Added by Hyunsoo (hyunsol@g.clemson.edu)
-    const Eigen::Array<int,2,1> pidx(this->idxToPeriodicIdx(idx));
-    const int storageID(storageIndex(pidx(0),pidx(1)));
-    double effsolNoiseXZ(0.0);
-    double effsolNoiseYZ(0.0);
-    double effsfNoise(0.0);
-    if(solidSolution)
-    {
-        effsolNoiseXZ=solidSolution->operator[](storageID)(0);
-        effsolNoiseYZ=solidSolution->operator[](storageID)(1);
-    }
-    if(stackingFault)
-    {
-        effsfNoise=stackingFault->operator[](storageID);
-    }
-    //if(stackingFault)
-    //{
-    //    std::cout<<"inside gridVal funciton, SF"<<std::endl;
-    //}
-    return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
-}
 
 }
 #endif
