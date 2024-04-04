@@ -151,19 +151,7 @@ struct SolidSolutionNoiseGenerator: public NoiseTraits<2>::NoiseContainerType
 
 };
 
-struct StackingFaultCorrelationReader: public NoiseTraits<2>::NoiseContainerType
-{
-    typedef typename NoiseTraitsBase::REAL_SCALAR REAL_SCALAR;
-    typedef typename NoiseTraitsBase::COMPLEX COMPLEX;
-    typedef typename NoiseTraitsBase::GridSizeType GridSizeType;
-    typedef typename NoiseTraitsBase::GridSpacingType GridSpacingType;
-    typedef typename NoiseTraits<2>::NoiseType NoiseType;
-    typedef typename NoiseTraits<2>::NoiseContainerType NoiseContainerType;
-
-    StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat);
-};
-
-struct StackingFaultNoise: public NoiseTraits<1>::NoiseContainerType
+struct StackingFaultNoiseGenerator: public NoiseTraits<1>::NoiseContainerType
 {
     typedef typename NoiseTraits<1>::REAL_SCALAR REAL_SCALAR;
     typedef typename NoiseTraits<1>::COMPLEX COMPLEX;
@@ -175,23 +163,66 @@ struct StackingFaultNoise: public NoiseTraits<1>::NoiseContainerType
     int seed;
     const std::string fileName_vtk;
     int NX, NY, NZ, NR, NK;
+    REAL_SCALAR DX, DY, DZ;
 
-    StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& stackingFaultGridSize);
+    static double ReverseDouble( const double inDouble );
+
+    //StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& stackingFaultGridSize);
+    StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing);
+    void StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat);
     void Write_field_slice(REAL_SCALAR *F, const char *fname);
 };
+
+class StackingFaultNoise : public NoiseTraits<1>::NoiseContainerType
+{
+    typedef typename NoiseTraits<1>::REAL_SCALAR REAL_SCALAR;
+    typedef typename NoiseTraits<1>::COMPLEX COMPLEX;
+    typedef typename NoiseTraits<1>::GridSizeType GridSizeType;
+    typedef typename NoiseTraitsBase::GridSpacingType GridSpacingType;
+    typedef typename NoiseTraits<1>::NoiseType NoiseType;
+    typedef typename NoiseTraits<1>::NoiseContainerType NoiseContainerType;
+
+    NoiseContainerType& noiseVector();
+
+public:
+    const GridSizeType gridSize;
+    const GridSpacingType gridSpacing;
+    StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing);
+};
+
+//struct StackingFaultNoise: public NoiseTraits<1>::NoiseContainerType
+//{
+//    typedef typename NoiseTraits<1>::REAL_SCALAR REAL_SCALAR;
+//    typedef typename NoiseTraits<1>::COMPLEX COMPLEX;
+//    typedef typename NoiseTraits<1>::GridSizeType GridSizeType;
+//    typedef typename NoiseTraitsBase::GridSpacingType GridSpacingType;
+//    typedef typename NoiseTraits<1>::NoiseType NoiseType;
+//    typedef typename NoiseTraits<1>::NoiseContainerType NoiseContainerType;
+//
+//    int seed;
+//    const std::string fileName_vtk;
+//    int NX, NY, NZ, NR, NK;
+//
+//    //StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& stackingFaultGridSize);
+//    StackingFaultNoise(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const std::pair<GridSizeType,GridSpacingType>& stackingFaultGridInfo);
+//    void Write_field_slice(REAL_SCALAR *F, const char *fname);
+//};
 
 struct GlidePlaneNoise : public UniformPeriodicGrid<2>
 {
     typedef typename Eigen::Matrix<double,3,1> VectorDim;
     typedef typename NoiseTraitsBase::GridSizeType GridSizeType;
+    typedef typename NoiseTraitsBase::GridSpacingType GridSpacingType;
 
     //added
     const std::string  isfVtkFileName;
     const Eigen::Matrix<double,2,2> basisTransformMatrix; // A^-T matrix
-    const GridSizeType stackingFaultGridSize;
-    Eigen::Matrix<double,2,2> initTransformBasis(const std::string& vtkFileName, const PolycrystallineMaterialBase& mat);
+    //const GridSizeType stackingFaultGridSize;
+    const std::pair<GridSizeType, GridSpacingType> stackingFaultGridInfo;
+    GridSizeType initStackingFaultGridSize(const char *fname);
+    GridSpacingType initStackingFaultGridSpacing(const std::string& fileName_vtk);
+    Eigen::Matrix<double,2,2> initTransformBasis(const std::string& fileName_vtk, const PolycrystallineMaterialBase& mat);
     //static GridSizeType Read_dimensions(const char *fname);
-    GridSizeType Read_dimensions(const char *fname);
     ///////
 
     const int solidSolutionNoiseMode;

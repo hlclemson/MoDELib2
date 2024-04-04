@@ -2,21 +2,23 @@ materialFile=../../../MaterialsLibrary/AlMg5.txt;
 absoluteTemperature=300; # [K] simulation temperature 
 dislocationMobilityType=default; # default or FCC,BCC,HEXbasal,HEXprismatic,HEXpyramidal 
 meshFile=../../../MeshLibrary/unitCube.msh; # mesh file 
-C2G1=1.0 0.0 0.0
-     0.0 1.0 0.0
-     0.0 0.0 1.0; # crystal rotation matrix 
-F=1414.2135623730949 0.0 0.0
-  0.0 1414.2135623730949 0.0
-  0.0 0.0 1414.2135623730949; # mesh deformation gradient. Mesh nodes X are mapped to x=F*(X-X0) 
+C2G1=0.0 0.7071067811865475 0.7071067811865475
+     0.816496580927726 0.408248290463863 -0.408248290463863
+     -0.5773502691896258 0.5773502691896258 -0.5773502691896258; # crystal rotation matrix 
+F=999.9999999999998 0.0 -4.440892098500626e-13
+  0.0 1732.0508075688772 -2.220446049250313e-13
+  0.0 0.0 7348.469228349536; # mesh deformation gradient. Mesh nodes X are mapped to x=F*(X-X0) 
 X0=0.5 0.5 0.5; # mesh shift. Mesh nodes X are mapped to x=F*(X-X0) 
 periodicFaceIDs=0 1 2 3 4 5; # IDs of faces labelled as periodic 
 gridSize=256 256; # size of grid on the glide plane
 gridSpacing_SI=1e-10 1e-10; # [m] spacing of grid on the glide plane
-solidSolutionNoiseMode=1; # 0=no noise, 1= read noise, 2=compute noise
+solidSolutionNoiseMode=2; # 0=no noise, 1= read noise, 2=compute noise
 solidSolutionNoiseFile_xz=../../../NoiseLibrary/noise_xz.vtk;
 solidSolutionNoiseFile_yz=../../../NoiseLibrary/noise_yz.vtk;
-stackingFaultCorrelationFile=../../../NoiseLibrary/AlMg5_Cx_R100.vtk;
 stackingFaultNoiseMode=1; # 0=no noise
+stackingFaultCorrelationFile=../../../NoiseLibrary/AlMg5_CxFFT_R100.vtk;
+stackingFaultNoiseFile=../../../NoiseLibrary/noise_SF.vtk;
+stackingFaultGridSpacing_SI=2.86e-10 2.86e-10; # [m] spacing of grid on the stacking fault noise plane
 spreadLstress_A=1; # add comment
 a_cai_A=1; # add comment
 seed=0; # add comment
