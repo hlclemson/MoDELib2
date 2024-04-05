@@ -517,34 +517,9 @@ void StackingFaultNoiseGenerator::StackingFaultCorrelationReader(const std::stri
         throw std::runtime_error("Error opening stacking fault VTK correlation file!");
     }
 
-    //std::deque<VectorDimD> rawPoints; // second pair is CELLID
-
-    // begin parsing structured_grid vtk file for lines
-    //const size_t numOfPointsPerLine = 3;
     std::string line;
     while (std::getline(vtkFile, line)) 
     {
-        //if the "POINTS" string is read, read the following data
-        //if(line.find("POINTS")!=std::string::npos) 
-        //{
-        //    // get the number of points in the file
-        //    const size_t firstSpace(line.find(' '));
-        //    const size_t secondSpace(line.find(' ', firstSpace+1));
-        //    const size_t numOfPoints = std::atoi(line.substr(firstSpace+1, secondSpace-firstSpace-1).c_str());
-        //    // data structure of ID points
-        //    // read the point coordinates
-        //    double x1, y1, z1, x2, y2, z2, x3, y3, z3;
-        //    for(size_t n=0; n<numOfPoints/numOfPointsPerLine; ++n)
-        //    {
-        //        std::getline(vtkFile, line);
-        //        std::stringstream ss(line);
-        //        ss >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> x3 >> y3 >> z3;
-        //        rawPoints.push_back((VectorDimD()<<x1,y1,z1).finished()); // second pair is CELLID
-        //        rawPoints.push_back((VectorDimD()<<x2,y2,z2).finished());
-        //        rawPoints.push_back((VectorDimD()<<x3,y3,z3).finished());
-        //    }
-        //}
-
         //if the "POINT_DATA" string is read, read the following data
         if(line.find("POINT_DATA")!=std::string::npos) 
         {
@@ -704,73 +679,6 @@ StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile, const Polyc
     std::cout<<"noiseVariance="<<var<<std::endl;
 }
 
-//StackingFaultNoise::StackingFaultNoise(const std::string& noiseFile,
-//                                       const PolycrystallineMaterialBase& mat,
-//                                       const std::pair<GridSizeType,GridSpacingType>& stackingFaultGridSize):
-//    /*init*/seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
-//    /*init*/,fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
-//    /*init*/,NX(stackingFaultGridSize(0))
-//    /*init*/,NY(stackingFaultGridSize(1))
-//    /*init*/,NZ(1)
-//{
-//    NR = NX*NY*NZ;
-//    NK = NX*NY*(NZ/2+1);
-//    std::cout<<greenBoldColor<<"Reading Stacking Fault Correlation"<<defaultColor<<std::endl;
-//    std::cout << "NX = " << NX << std::endl;
-//    std::cout << "NY = " << NY << std::endl;
-//    std::cout << "NZ = " << NZ << std::endl;
-//    std::cout << "NR = " << NR << std::endl;
-//    std::cout << "NK = " << NK << std::endl;
-//
-//    // fft plans
-//    fftw_plan plan_R_xy_r2c, plan_R_xy_noise_c2r;
-//
-//    // allocate
-//    REAL_SCALAR *Rr_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space
-//    COMPLEX *Rk_xy = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
-//    COMPLEX *frHat = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
-//    REAL_SCALAR *fr = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
-//
-//    // read stacking fault correlation
-//    StackingFaultCorrelationReader(fileName_vtk, Rr_xy, mat);
-//
-//    std::default_random_engine generator(seed);
-//    std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
-//
-//    plan_R_xy_r2c = fftw_plan_dft_r2c_2d(NY, NX, Rr_xy, reinterpret_cast<fftw_complex*>(Rk_xy), FFTW_ESTIMATE);
-//    plan_R_xy_noise_c2r = fftw_plan_dft_c2r_2d(NY, NX, reinterpret_cast<fftw_complex*>(frHat), fr, FFTW_ESTIMATE);
-//
-//    std::cout<<greenBoldColor<<"Creating StackingFaultNoise"<<defaultColor<<std::endl;
-//
-//    // FFT to fourier space
-//    fftw_execute(plan_R_xy_r2c);
-//
-//    // introduce noise to correlation in fourier space
-//    for (int i=0; i<NK; ++i) 
-//    {
-//        // random numbers
-//        REAL_SCALAR Nk_xy = distribution(generator);
-//        REAL_SCALAR Mk_xy = distribution(generator);
-//        frHat[i] = std::sqrt(Rk_xy[i])*((Nk_xy+Mk_xy*COMPLEX(0.0,1.0))/std::sqrt(2.0));
-//    }
-//
-//    // take inverse fourier transform on the sampled random function (frHat -> ft)
-//    fftw_execute(plan_R_xy_noise_c2r);
-//
-//    // normalize the sampled random function
-//    for (int i=0; i<NR; ++i) 
-//    {
-//        fr[i] = fr[i]/static_cast<double>(NR);
-//    }
-//
-//    //const size_t N(NR.array());
-//    this->reserve(NR);
-//    for(int k=0;k<NR;++k)
-//    {
-//        this->push_back(fr[k]/(mat.b_SI*mat.mu_SI)); // unit conversion
-//    }
-//}
-
 Eigen::Matrix<double,2,2> GlidePlaneNoise::initTransformBasis(const std::string& fileName_vtk, const PolycrystallineMaterialBase& mat)
 {
     typedef Eigen::Matrix<double,2,1> VectorDimD;
@@ -898,7 +806,7 @@ GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const Polycrystall
     /* init */,solidSolutionNoiseMode(TextFileParser(noiseFile).readScalar<int>("solidSolutionNoiseMode"))
     /* init */,stackingFaultNoiseMode(TextFileParser(noiseFile).readScalar<int>("stackingFaultNoiseMode"))
     /* init */,solidSolution(solidSolutionNoiseMode? new SolidSolutionNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI*1.0e10,solidSolutionNoiseMode) : nullptr)
-    /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,stackingFaultGridInfo.first, stackingFaultGridInfo.second*mat.b_SI*1.0e10) : nullptr)
+    /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,stackingFaultGridInfo.first, stackingFaultGridInfo.second*mat.b_SI) : nullptr)
 {
     //std::cout << "noiseFile = " << noiseFile << std::endl;
     //std::cout << "UniformPeriodicGrid<2>::gridSize.transpose() = " << UniformPeriodicGrid<2>::gridSize.transpose() << std::endl;
