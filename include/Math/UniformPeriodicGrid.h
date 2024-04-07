@@ -24,15 +24,49 @@ namespace model
         typedef Eigen::Array<double,dim,1> ArrayDimD;
         
         
-        const ArrayDimI gridSize;
-        const ArrayDimD gridSpacing;
+        // const ArrayDimI gridSize;
+        // const ArrayDimD gridSpacing;
 
-        UniformPeriodicGrid(const ArrayDimI& gridSize_in,const ArrayDimD& gridSpacing_in) :
-        /* init */ gridSize(gridSize_in)
-        /* init */,gridSpacing(gridSpacing_in)
+        // Storage
+        const ArrayDimI gridSize_ss, gridSize_sf;
+        const ArrayDimD gridSpacing_ss, gridSpacing_sf;
+
+        // use
+        mutable ArrayDimI gridSize;
+        mutable ArrayDimD gridSpacing;
+
+        UniformPeriodicGrid(const ArrayDimI& gridSize_in_ss, const ArrayDimD& gridSpacing_in_ss,
+                        const ArrayDimI& gridSize_in_sf, const ArrayDimD& gridSpacing_in_sf) :
+            /* init */ gridSize_ss(gridSize_in_ss), gridSpacing_ss(gridSpacing_in_ss),
+           /* init */ gridSize_sf(gridSize_in_sf), gridSpacing_sf(gridSpacing_in_sf),
+           /* init */ gridSize(gridSize_in_ss), // default
+           /* init */ gridSpacing(gridSpacing_in_ss) 
+           {
+
+           }
+
+    // Dynamic choose
+    void selectValues(bool SF) const
+    {
+        if (SF) 
         {
-            
+            gridSize = gridSize_sf;
+            gridSpacing = gridSpacing_sf;
         }
+         else 
+         {
+            gridSize = gridSize_ss;
+            gridSpacing = gridSpacing_ss;
+        }
+    }
+
+
+        // UniformPeriodicGrid(const ArrayDimI& gridSize_in,const ArrayDimD& gridSpacing_in) :
+        // /* init */ gridSize(gridSize_in)
+        // /* init */,gridSpacing(gridSpacing_in)
+        // {
+            
+        // }
         
         
         static std::array<ArrayDimI,CTM::pow(2,dim)> cornerIdx(const std::pair<ArrayDimI,ArrayDimI>& idx)
@@ -66,19 +100,22 @@ namespace model
         
         std::array<double,CTM::pow(2,dim)> posToWeights(const ArrayDimD& localPos) const
         {
-            const auto cidx(posToCornerIdx(localPos));
+            // const auto cidx(posToCornerIdx(localPos));
+            const auto cidx(cornerIdx(posToPeriodicIdx(localPos)));
+            ArrayDimD gridTotalSize = gridSpacing * gridSize.template cast<double>();
+            ArrayDimD PeriodicLocalPos = localPos - (localPos / gridTotalSize).floor() * gridTotalSize;
             const double vol(gridSpacing.prod());
             std::array<double,CTM::pow(2,dim)> temp;
             for(int p=0;p<CTM::pow(2,dim);++p)
             {
-                temp[p]=(gridSpacing-(idxToPos(cidx[p])-localPos).abs()).prod()/vol;
+                temp[p]=(gridSpacing-(idxToPos(cidx[p])-PeriodicLocalPos).abs()).prod()/vol;
             }
             return temp;
         }
         
         std::pair<std::array<ArrayDimI,CTM::pow(2,dim)>,std::array<double,CTM::pow(2,dim)>> posToPeriodicCornerIdxAndWeights(const ArrayDimD& localPos) const
         {
-            return std::make_pair(cornerIdx(posToPeriodicIdx(localPos)),posToWeights(localPos));
+            return std::make_pair(cornerIdx(posToPeriodicIdx(localPos)), posToWeights(localPos));
         }
         
         
