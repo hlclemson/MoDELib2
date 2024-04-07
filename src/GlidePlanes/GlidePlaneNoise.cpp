@@ -798,15 +798,19 @@ typename GlidePlaneNoise::GridSizeType GlidePlaneNoise::initStackingFaultGridSiz
     return (GridSizeType()<<NX,NY).finished();
 }
 
-GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat) :
-    /* init */ UniformPeriodicGrid<2>(TextFileParser(noiseFile).readMatrix<int,1,2>("gridSize",true),TextFileParser(noiseFile).readMatrix<double,1,2>("gridSpacing_SI",true)/mat.b_SI)
+ GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat) :
+    /* init */solidSolutionNoiseMode(TextFileParser(noiseFile).readScalar<int>("solidSolutionNoiseMode"))
+    /* init */,stackingFaultNoiseMode(TextFileParser(noiseFile).readScalar<int>("stackingFaultNoiseMode"))
+    /* init */,solidSolution(solidSolutionNoiseMode? new SolidSolutionNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI*1.0e10,solidSolutionNoiseMode) : nullptr)
     /* init */,isfVtkFileName(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
     /* init */,basisTransformMatrix(initTransformBasis(isfVtkFileName,mat))
     /* init */,stackingFaultGridInfo(initStackingFaultGridSize(isfVtkFileName.c_str()), initStackingFaultGridSpacing(isfVtkFileName))
-    /* init */,solidSolutionNoiseMode(TextFileParser(noiseFile).readScalar<int>("solidSolutionNoiseMode"))
-    /* init */,stackingFaultNoiseMode(TextFileParser(noiseFile).readScalar<int>("stackingFaultNoiseMode"))
-    /* init */,solidSolution(solidSolutionNoiseMode? new SolidSolutionNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI*1.0e10,solidSolutionNoiseMode) : nullptr)
     /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,stackingFaultGridInfo.first, stackingFaultGridInfo.second*mat.b_SI) : nullptr)
+    /* init */,UniformPeriodicGrid<2>(TextFileParser(noiseFile).readMatrix<int,1,2>("gridSize",true),
+                                                  TextFileParser(noiseFile).readMatrix<double,1,2>("gridSpacing_SI",true)/mat.b_SI,
+                                                  TextFileParser(noiseFile).readMatrix<int,1,2>("stackingFaultGridSize",true),
+                                                  TextFileParser(noiseFile).readMatrix<double,1,2>("stackingFaultGridSpacing_SI",true)/mat.b_SI )
+    {
 {
     //std::cout << "noiseFile = " << noiseFile << std::endl;
     //std::cout << "UniformPeriodicGrid<2>::gridSize.transpose() = " << UniformPeriodicGrid<2>::gridSize.transpose() << std::endl;
@@ -855,50 +859,73 @@ int GlidePlaneNoise::storageIndex(const int& i,const int& j) const
 
 std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos) const
 {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
-    Eigen::Matrix<double,2,1> localPosT = basisTransformMatrix*localPos;
-    //std::cout << "localPos = " << localPos << std::endl;
-    //std::cout << "localPosT = " << localPosT << std::endl;
+    // For SFNoise point use coordinate transformation, and consider different Spacing and Size
+        bool SF = true;
+        this->selectValues(SF);
+        Eigen::Matrix<double,2,1> localPosT = basisTransformMatrix*localPos;
+        const auto idxAndWeights_sf(this->posToPeriodicCornerIdxAndWeights(localPosT));
+       // For SolidSolution Noise 
+        SF = false;
+        this->selectValues(SF);
+        const auto idxAndWeights_ss(this->posToPeriodicCornerIdxAndWeights(localPos));
 
-    const auto idxAndWeights(this->posToPeriodicCornerIdxAndWeights(localPosT));
-    //const auto idxAndWeights(this->posToPeriodicCornerIdxAndWeights(localPos));
-    double effsolNoiseXZ(0.0);
-    double effsolNoiseYZ(0.0);
-    double effsfNoise(0.0);
-    for(size_t p=0;p<idxAndWeights.first.size();++p)
-    {
-        const int storageID(storageIndex(idxAndWeights.first[p](0),idxAndWeights.first[p](1)));
-        if(solidSolution)
+        // Initial value of Noise
+        double effsolNoiseXZ(0.0);
+        double effsolNoiseYZ(0.0);
+        double effsfNoise(0.0);
+
+        for(size_t p=0;p<idxAndWeights_ss.first.size();++p)
         {
-            effsolNoiseXZ+=solidSolution->operator[](storageID)(0)*idxAndWeights.second[p];
-            effsolNoiseYZ+=solidSolution->operator[](storageID)(1)*idxAndWeights.second[p];
+            const int storageID_ss(storageIndex(idxAndWeights_ss.first[p](0),idxAndWeights_ss.first[p](1)));
+            if(solidSolution)
+            {
+                effsolNoiseXZ+=solidSolution->operator[](storageID_ss)(0)*idxAndWeights_ss.second[p];
+                effsolNoiseYZ+=solidSolution->operator[](storageID_ss)(1)*idxAndWeights_ss.second[p];
+            }
+        }
+        
+        SF = true;
+        this->selectValues(SF);
+        for(size_t p=0;p<idxAndWeights_sf.first.size();++p)
+        {
+            const int storageID_sf(storageIndex(idxAndWeights_sf.first[p](0),idxAndWeights_sf.first[p](1)));
+            if(stackingFault)
+            {
+                effsfNoise+=stackingFault->operator[](storageID_sf)*idxAndWeights_sf.second[p];
+            }
+        }
+        
+        return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
+    }
+
+    std::tuple<double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int,2,1>& idx) const
+    {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
+        
+        double effsolNoiseXZ(0.0);
+        double effsolNoiseYZ(0.0);
+        double effsfNoise(0.0);
+        bool SF = false;
+        if(solidSolution)
+        { 
+            // For SS Noise
+            SF = false;
+            this->selectValues(SF);
+            const Eigen::Array<int,2,1> pidx_ss(this->idxToPeriodicIdx(idx));
+            const int storageID_ss(storageIndex(pidx_ss(0),pidx_ss(1)));
+            effsolNoiseXZ=solidSolution->operator[](storageID_ss)(0);
+            effsolNoiseYZ=solidSolution->operator[](storageID_ss)(1);
         }
         if(stackingFault)
         {
-            effsfNoise+=stackingFault->operator[](storageID)*idxAndWeights.second[p];
+             // For SF Noise
+            SF = true;
+            this->selectValues(SF);
+            const Eigen::Array<int,2,1> pidx_sf(this->idxToPeriodicIdx(idx));
+            const int storageID_sf(storageIndex(pidx_sf(0),pidx_sf(1)));
+            effsfNoise=stackingFault->operator[](storageID_sf);
         }
+        return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
     }
-
-    return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
-}
-
-std::tuple<double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int,2,1>& idx) const
-{   // Added by Hyunsoo (hyunsol@g.clemson.edu)
-    const Eigen::Array<int,2,1> pidx(this->idxToPeriodicIdx(idx));
-    const int storageID(storageIndex(pidx(0),pidx(1)));
-    double effsolNoiseXZ(0.0);
-    double effsolNoiseYZ(0.0);
-    double effsfNoise(0.0);
-    if(solidSolution)
-    {
-        effsolNoiseXZ=solidSolution->operator[](storageID)(0);
-        effsolNoiseYZ=solidSolution->operator[](storageID)(1);
-    }
-    if(stackingFault)
-    {
-        effsfNoise=stackingFault->operator[](storageID);
-    }
-    return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
-}
 
 }
 #endif
