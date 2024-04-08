@@ -168,7 +168,7 @@ struct StackingFaultNoiseGenerator: public NoiseTraits<1>::NoiseContainerType
     static double ReverseDouble( const double inDouble );
 
     StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing);
-    void StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat);
+    void StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy);
     void Write_field_slice(REAL_SCALAR *F, const char *fname);
 };
 

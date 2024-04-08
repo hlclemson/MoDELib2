@@ -506,8 +506,7 @@ void SolidSolutionNoiseGenerator::Write_field_slice(REAL_SCALAR *F, const char *
     fclose(OutFile);
 }
 
-//StackingFaultCorrelationReader::StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat)
-void StackingFaultNoiseGenerator::StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy, const PolycrystallineMaterialBase& mat)
+void StackingFaultNoiseGenerator::StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy)
 {
     std::cout << "Reading stacking fault correlation" << std::endl;
 
@@ -571,8 +570,7 @@ void StackingFaultNoiseGenerator::Write_field_slice(REAL_SCALAR *F, const char *
     fclose(OutFile);
 }
 
-StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat,
-                                       const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing):
+StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing):
     /*init*/seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
     /*init*/,fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
     /*init*/,NX(_gridSize(0))
@@ -602,7 +600,7 @@ StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& nois
     REAL_SCALAR *fr = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
 
     // read stacking fault correlation
-    StackingFaultCorrelationReader(fileName_vtk, Rr_xy, mat);
+    StackingFaultCorrelationReader(fileName_vtk, Rr_xy);
 
     std::default_random_engine generator(seed);
     std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
@@ -713,13 +711,8 @@ Eigen::Matrix<double,2,2> GlidePlaneNoise::initTransformBasis(const std::string&
     Eigen::Matrix<double,2,2> nonOrthoBasisMatrix;
     // fill the nonOrthoBasisMatrix with a block that has the size of <2,1> at the beginning of the first column
     nonOrthoBasisMatrix.block<2,1>(0,0) = basis1.front();
-    std::cout << "basis1.front() = " << basis1.front() << std::endl;
     // fill the nonOrthoBasisMatrix with a block that has the size of <2,1> at the beginning of the second column
     nonOrthoBasisMatrix.block<2,1>(0,1) = basis2.front();
-    std::cout << "basis2.front() = " << basis2.front() << std::endl;
-    // matrix A
-    std::cout << "nonOrthoBasisMatrix = " << nonOrthoBasisMatrix << std::endl;
-    std::cout << "nonOrthoBasisMatrix.transpose().inverse() = " << nonOrthoBasisMatrix.transpose().inverse() << std::endl;
     // A^-T matrix
     return nonOrthoBasisMatrix.transpose().inverse();
 }
@@ -854,15 +847,8 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
     double effsolNoiseXZ(0.0);
     double effsolNoiseYZ(0.0);
     double effsfNoise(0.0);
-    // For SFNoise point use coordinate transformation, and consider different Spacing and Size
-    //bool SF = true;
-    //this->selectValues(SF);
-    //this->selectGridSizeAndSpace("stackingFault");
-    //Eigen::Matrix<double,2,1> localPosT = basisTransformMatrix*localPos;
-    //const auto idxAndWeights_sf(this->posToPeriodicCornerIdxAndWeights(localPosT));
-    // For SolidSolution Noise 
-    //SF = false;
-    //this->selectValues(SF);
+    // solid solution noise and stacking fault noise use different grid sizes and grid spacings,
+    // selectGridSizeAndSpace(std::string noiseType) is used to select the correct grid size and grid spacing
     this->selectGridSizeAndSpace("solidSolution"); // use gridSize_ss and gridSpacing_ss
     const auto idxAndWeights_ss(this->posToPeriodicCornerIdxAndWeights(localPos));
     for(size_t p=0;p<idxAndWeights_ss.first.size();++p)
@@ -875,8 +861,6 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
         }
     }
 
-    //SF = true;
-    //this->selectValues(SF);
     Eigen::Matrix<double,2,1> localPosT = basisTransformMatrix*localPos;
     this->selectGridSizeAndSpace("stackingFault"); // use gridSize_sf and gridSpacing_sf
     const auto idxAndWeights_sf(this->posToPeriodicCornerIdxAndWeights(localPosT));
@@ -893,16 +877,11 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
 
 std::tuple<double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int,2,1>& idx) const
 {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
-
     double effsolNoiseXZ(0.0);
     double effsolNoiseYZ(0.0);
     double effsfNoise(0.0);
-    //bool SF = false;
     if(solidSolution)
     { 
-        // For SS Noise
-        //SF = false;
-        //this->selectValues(SF);
         this->selectGridSizeAndSpace("solidSolution"); // use gridSize_ss and gridSpacing_ss
         const Eigen::Array<int,2,1> pidx_ss(this->idxToPeriodicIdx(idx));
         const int storageID_ss(storageIndex(pidx_ss(0),pidx_ss(1)));
@@ -911,9 +890,6 @@ std::tuple<double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int
     }
     if(stackingFault)
     {
-        // For SF Noise
-        //SF = true;
-        //this->selectValues(SF);
         this->selectGridSizeAndSpace("stackingFault"); // use gridSize_sf and gridSpacing_sf
         const Eigen::Array<int,2,1> pidx_sf(this->idxToPeriodicIdx(idx));
         const int storageID_sf(storageIndex(pidx_sf(0),pidx_sf(1)));
