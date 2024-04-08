@@ -725,98 +725,89 @@ Eigen::Matrix<double,2,2> GlidePlaneNoise::initTransformBasis(const std::string&
 }
 
 // calculate the distance of the first nearest neighbor and return them as a grid spacing vector
-typename GlidePlaneNoise::GridSpacingType GlidePlaneNoise::initStackingFaultGridSpacing(const std::string& fileName_vtk)
+//typename GlidePlaneNoise::GridSpacingType GlidePlaneNoise::initStackingFaultGridSpacing(const std::string& fileName_vtk)
+//{
+//    std::cout << "Reading stacking fault grid spacing" << std::endl;
+//
+//    std::ifstream vtkFile(fileName_vtk); //access vtk file
+//    // error check
+//    if (!vtkFile.is_open()) {
+//        throw std::runtime_error("Error opening stacking fault VTK correlation file!");
+//    }
+//
+//    typedef Eigen::Matrix<double,3,1> pointDim;
+//    std::deque<pointDim> rawPoints;
+//
+//    // begin parsing structured_grid vtk file for lines
+//    const size_t numOfPointsPerLine = 3;
+//    std::string line;
+//    while (std::getline(vtkFile, line)) 
+//    {
+//        //if the "POINTS" string is read, read the following data
+//        if(line.find("POINTS")!=std::string::npos) 
+//        {
+//            // get the number of points in the file
+//            const size_t firstSpace(line.find(' '));
+//            const size_t secondSpace(line.find(' ', firstSpace+1));
+//            const size_t numOfPoints = std::atoi(line.substr(firstSpace+1, secondSpace-firstSpace-1).c_str());
+//            // data structure of ID points
+//            // read the point coordinates
+//            double x1, y1, z1, x2, y2, z2, x3, y3, z3;
+//            for(size_t n=0; n<numOfPoints/numOfPointsPerLine; ++n)
+//            {
+//                std::getline(vtkFile, line);
+//                std::stringstream ss(line);
+//                ss >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> x3 >> y3 >> z3;
+//                rawPoints.push_back((pointDim()<<x1,y1,z1).finished()); // second pair is CELLID
+//                rawPoints.push_back((pointDim()<<x2,y2,z2).finished());
+//                rawPoints.push_back((pointDim()<<x3,y3,z3).finished());
+//            }
+//        }
+//    }
+//
+//    // Calculate the distance of the first nearest neighbor
+//    pointDim refPoint = rawPoints[0];
+//    double firstNeighborDistance = (rawPoints[1] - refPoint).norm();
+//    //for (size_t i = 1; i < 2; ++i)
+//    //{
+//    //    double firstNeighborDistance = (rawPoints[i] - refPoint).norm();
+//    //}
+//    std::cout << "firstNeighborDistance = " << firstNeighborDistance << std::endl;
+//
+//    return Eigen::Array<double, 2, 1>(firstNeighborDistance, firstNeighborDistance);
+//}
+
+//typename GlidePlaneNoise::GridSizeType GlidePlaneNoise::initStackingFaultGridSize(const char *fname)
+//{
+//    int NX, NY, NZ;
+//    char line[200];
+//    FILE *InFile=fopen(fname,"r");
+//
+//    if (InFile == NULL)
+//    {
+//        fprintf(stderr, "Can't open stacking fault correlation VTK file %s\n",fname);
+//        exit(1);
+//    }
+//    // return the 5th line of the vtk file
+//    for(int i=0;i<4;i++)
+//    {
+//        fgets(line, 200, InFile);
+//    }
+//    // scan the returned line
+//    fscanf(InFile, "%s %d %d %d\n", line, &(NX), &(NY), &(NZ));
+//    return (GridSizeType()<<NX,NY).finished();
+//}
+
+GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat) :
+/* init */UniformPeriodicGrid<2>(TextFileParser(noiseFile).readMatrix<int,1,2>("solidSolutionGridSize",true), TextFileParser(noiseFile).readMatrix<double,1,2>("solidSolutionGridSpacing_SI",true)/mat.b_SI,
+                                  TextFileParser(noiseFile).readMatrix<int,1,2>("stackingFaultGridSize",true), TextFileParser(noiseFile).readMatrix<double,1,2>("stackingFaultGridSpacing_SI",true)/mat.b_SI)
+/* init */,solidSolutionNoiseMode(TextFileParser(noiseFile).readScalar<int>("solidSolutionNoiseMode"))
+/* init */,stackingFaultNoiseMode(TextFileParser(noiseFile).readScalar<int>("stackingFaultNoiseMode"))
+/* init */,solidSolution(solidSolutionNoiseMode? new SolidSolutionNoise(noiseFile,mat,this->gridSize_ss,this->gridSpacing_ss*mat.b_SI*1.0e10,solidSolutionNoiseMode) : nullptr)
+/* init */,isfVtkFileName(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
+/* init */,basisTransformMatrix(initTransformBasis(isfVtkFileName,mat))
+/* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,this->gridSize_sf, this->gridSpacing_sf*mat.b_SI*1.0e10) : nullptr)
 {
-    std::cout << "Reading stacking fault grid spacing" << std::endl;
-
-    std::ifstream vtkFile(fileName_vtk); //access vtk file
-    // error check
-    if (!vtkFile.is_open()) {
-        throw std::runtime_error("Error opening stacking fault VTK correlation file!");
-    }
-
-    typedef Eigen::Matrix<double,3,1> pointDim;
-    std::deque<pointDim> rawPoints;
-
-    // begin parsing structured_grid vtk file for lines
-    const size_t numOfPointsPerLine = 3;
-    std::string line;
-    while (std::getline(vtkFile, line)) 
-    {
-        //if the "POINTS" string is read, read the following data
-        if(line.find("POINTS")!=std::string::npos) 
-        {
-            // get the number of points in the file
-            const size_t firstSpace(line.find(' '));
-            const size_t secondSpace(line.find(' ', firstSpace+1));
-            const size_t numOfPoints = std::atoi(line.substr(firstSpace+1, secondSpace-firstSpace-1).c_str());
-            // data structure of ID points
-            // read the point coordinates
-            double x1, y1, z1, x2, y2, z2, x3, y3, z3;
-            for(size_t n=0; n<numOfPoints/numOfPointsPerLine; ++n)
-            {
-                std::getline(vtkFile, line);
-                std::stringstream ss(line);
-                ss >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> x3 >> y3 >> z3;
-                rawPoints.push_back((pointDim()<<x1,y1,z1).finished()); // second pair is CELLID
-                rawPoints.push_back((pointDim()<<x2,y2,z2).finished());
-                rawPoints.push_back((pointDim()<<x3,y3,z3).finished());
-            }
-        }
-    }
-
-    // Calculate the distance of the first nearest neighbor
-    pointDim refPoint = rawPoints[0];
-    double firstNeighborDistance = (rawPoints[1] - refPoint).norm();
-    //for (size_t i = 1; i < 2; ++i)
-    //{
-    //    double firstNeighborDistance = (rawPoints[i] - refPoint).norm();
-    //}
-    std::cout << "firstNeighborDistance = " << firstNeighborDistance << std::endl;
-
-    return Eigen::Array<double, 2, 1>(firstNeighborDistance, firstNeighborDistance);
-}
-
-typename GlidePlaneNoise::GridSizeType GlidePlaneNoise::initStackingFaultGridSize(const char *fname)
-{
-    int NX, NY, NZ;
-    char line[200];
-    FILE *InFile=fopen(fname,"r");
-
-    if (InFile == NULL)
-    {
-        fprintf(stderr, "Can't open stacking fault correlation VTK file %s\n",fname);
-        exit(1);
-    }
-    // return the 5th line of the vtk file
-    for(int i=0;i<4;i++)
-    {
-        fgets(line, 200, InFile);
-    }
-    // scan the returned line
-    fscanf(InFile, "%s %d %d %d\n", line, &(NX), &(NY), &(NZ));
-    return (GridSizeType()<<NX,NY).finished();
-}
-
- GlidePlaneNoise::GlidePlaneNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat) :
-    /* init */solidSolutionNoiseMode(TextFileParser(noiseFile).readScalar<int>("solidSolutionNoiseMode"))
-    /* init */,stackingFaultNoiseMode(TextFileParser(noiseFile).readScalar<int>("stackingFaultNoiseMode"))
-    /* init */,solidSolution(solidSolutionNoiseMode? new SolidSolutionNoise(noiseFile,mat,gridSize,this->gridSpacing*mat.b_SI*1.0e10,solidSolutionNoiseMode) : nullptr)
-    /* init */,isfVtkFileName(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
-    /* init */,basisTransformMatrix(initTransformBasis(isfVtkFileName,mat))
-    /* init */,stackingFaultGridInfo(initStackingFaultGridSize(isfVtkFileName.c_str()), initStackingFaultGridSpacing(isfVtkFileName))
-    /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,stackingFaultGridInfo.first, stackingFaultGridInfo.second*mat.b_SI) : nullptr)
-    /* init */,UniformPeriodicGrid<2>(TextFileParser(noiseFile).readMatrix<int,1,2>("gridSize",true),
-                                                  TextFileParser(noiseFile).readMatrix<double,1,2>("gridSpacing_SI",true)/mat.b_SI,
-                                                  stackingFaultGridInfo.first,
-                                                  stackingFaultGridInfo.second*mat.b_SI)
-    
-{
-    //std::cout << "noiseFile = " << noiseFile << std::endl;
-    //std::cout << "UniformPeriodicGrid<2>::gridSize.transpose() = " << UniformPeriodicGrid<2>::gridSize.transpose() << std::endl;
-    //std::cout << "UniformPeriodicGrid<2>::gridSpacing_SI.transpose() = " << UniformPeriodicGrid<2>::gridSpacing.transpose() << std::endl;
-    //std::cout << "isfVtkFileName = " << isfVtkFileName << std::endl;
-    //std::cout << "stackingFaultGridSize.transpose() = " << stackingFaultGridSize.transpose() << std::endl;
     if(solidSolution)
     {
         Eigen::VectorXd rowsAvr0( Eigen::VectorXd::Zero(solidSolution->gridSize(0)) );

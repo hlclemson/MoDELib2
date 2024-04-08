@@ -32,9 +32,12 @@ class PolyCrystalFile(dict):
     X0=np.array([0,0,0])
     periodicFaceIDs=np.array([0,1,2,3,4,5])
     solidSolutionNoiseMode=0
-    gridSize=np.array([256,256])
-    gridSpacing_SI=np.array([1e-10,1e-10])
-    
+    solidSolutionGridSize=np.array([256,256])
+    solidSolutionGridSpacing_SI=np.array([1e-10,1e-10])
+    stackingFaultGridSize=np.array([])
+    stackingFaultGridSpacing_SI=np.array([])
+    stackingFaultCorrelationFile=''
+    stackingFaultNoiseFile=''
     def __init__(self, materialFile):
         self.materialFile = materialFile
         self.crystalStructure = getStringInFile(materialFile,'crystalStructure')
@@ -100,17 +103,48 @@ class PolyCrystalFile(dict):
         polyFile.write('X0='+' '.join(map(str, self.X0))+'; # mesh shift. Mesh nodes X are mapped to x=F*(X-X0) \n')
         polyFile.write('periodicFaceIDs='+' '.join(map(str, self.periodicFaceIDs))+'; # IDs of faces labelled as periodic \n')
 
-        polyFile.write('gridSize='+' '.join(map(str, self.gridSize))+'; # size of grid on the glide plane\n');
-        polyFile.write('gridSpacing_SI='+' '.join(map(str, self.gridSpacing_SI))+'; # [m] spacing of grid on the glide plane\n');
+        polyFile.write('solidSolutionGridSize='+' '.join(map(str, self.solidSolutionGridSize))+'; # size of SS grid on the glide plane\n');
+        polyFile.write('solidSolutionGridSpacing_SI='+' '.join(map(str, self.solidSolutionGridSpacing_SI))+'; # [m] spacing of SS grid on the glide plane\n');
         polyFile.write('solidSolutionNoiseMode='+str(self.solidSolutionNoiseMode)+'; # 0=no noise, 1= read noise, 2=compute noise\n')
         polyFile.write('solidSolutionNoiseFile_xz=../../../NoiseLibrary/noise_xz.vtk;\n');
         polyFile.write('solidSolutionNoiseFile_yz=../../../NoiseLibrary/noise_yz.vtk;\n');
         polyFile.write('stackingFaultNoiseMode=0; # 0=no noise\n');
+        polyFile.write(f'stackingFaultCorrelationFile={self.stackingFaultCorrelationFile};\n');
+        polyFile.write(f'stackingFaultGridSize={self.readStackingFaultGridSize(self.stackingFaultCorrelationFile)}; # [m] size of SF grid on the glide plane\n');
+        polyFile.write(f'stackingFaultGridSpacing_SI={self.calcStackingFaultGridSpacing_SI(self.stackingFaultCorrelationFile)}; # [m] spacing of SF grid on the glide plane\n');
+        polyFile.write(f'stackingFaultNoiseFile={self.stackingFaultNoiseFile};\n');
         polyFile.write('spreadLstress_A=1; # add comment\n');
         polyFile.write('a_cai_A=1; # add comment\n');
         polyFile.write('seed=0; # add comment\n');
 
         polyFile.close()
+
+    def readStackingFaultGridSize(self, correlationVTKfile: str) -> np.ndarray:
+        with open(correlationVTKfile, 'r', encoding='utf-8') as f:
+            for line in f:
+                if 'DIMENSIONS' in line:
+                    dimension = np.array([int(s) for s in line.split() if s.isdigit()])
+                    dimensionXY = dimension[0:2]
+                    break;
+        return np.array2string(dimensionXY).strip('[]');
+    def calcStackingFaultGridSpacing_SI(self, correlationVTKfile: str) -> np.ndarray:
+        with open(correlationVTKfile, 'r', encoding='utf-8') as f:
+            copyFlag = False;
+            for line in f:
+                # if 'POINTS' string if found, continue to the next line
+                if 'POINTS' in line:
+                    copyFlag = True;
+                    continue;
+                if copyFlag:
+                    # one line after 'POINTS' string contains the first three points (3D)
+                    threePoints = np.array([float(s) for s in line.split()])
+                    refPoint = threePoints[0:3]
+                    firstNeighborPoint = threePoints[3:6]
+                    break;
+        firstNeighborDist = np.linalg.norm(firstNeighborPoint - refPoint)
+        angstromToMeter = 1e-10
+        gridSpacing = np.array([firstNeighborDist*angstromToMeter, firstNeighborDist*angstromToMeter])
+        return np.array2string(gridSpacing).strip('[]');
 
 def readEVLtxt(filename):
     evlFile = open(filename+'.txt', "r")

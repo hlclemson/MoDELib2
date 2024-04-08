@@ -199,9 +199,9 @@ struct GlidePlaneNoise : public UniformPeriodicGrid<2>
     const std::string  isfVtkFileName;
     const Eigen::Matrix<double,2,2> basisTransformMatrix; // A^-T matrix
     //const GridSizeType stackingFaultGridSize;
-    const std::pair<GridSizeType, GridSpacingType> stackingFaultGridInfo;
-    GridSizeType initStackingFaultGridSize(const char *fname);
-    GridSpacingType initStackingFaultGridSpacing(const std::string& fileName_vtk);
+    //const std::pair<GridSizeType, GridSpacingType> stackingFaultGridInfo;
+    //GridSizeType initStackingFaultGridSize(const char *fname);
+    //GridSpacingType initStackingFaultGridSpacing(const std::string& fileName_vtk);
     Eigen::Matrix<double,2,2> initTransformBasis(const std::string& fileName_vtk, const PolycrystallineMaterialBase& mat);
     //static GridSizeType Read_dimensions(const char *fname);
     ///////
