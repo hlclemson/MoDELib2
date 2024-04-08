@@ -17,6 +17,8 @@ pf.alignToSlipSystem0=1
 pf.boxScaling=np.array([1000,1000,1000]) # must be a vector of integers
 pf.X0=np.array([0.5,0.5,0.5]) # Centering unitCube mesh. Mesh nodes X are mapped to x=F*(X-X0)
 pf.periodicFaceIDs=np.array([0,1,2,3,4,5])
+pf.solidSolutionNoiseMode=2
+pf.stackingFaultNoiseMode=1
 pf.stackingFaultCorrelationFile='../../../NoiseLibrary/AlMg5_CxFFT_R100.vtk'
 pf.stackingFaultNoiseFile='../../../NoiseLibrary/noise_AlMg5.vtk'
 

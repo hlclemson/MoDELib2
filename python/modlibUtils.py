@@ -34,6 +34,7 @@ class PolyCrystalFile(dict):
     solidSolutionNoiseMode=0
     solidSolutionGridSize=np.array([256,256])
     solidSolutionGridSpacing_SI=np.array([1e-10,1e-10])
+    stackingFaultNoiseMode=0
     stackingFaultGridSize=np.array([])
     stackingFaultGridSpacing_SI=np.array([])
     stackingFaultCorrelationFile=''
@@ -108,7 +109,7 @@ class PolyCrystalFile(dict):
         polyFile.write('solidSolutionNoiseMode='+str(self.solidSolutionNoiseMode)+'; # 0=no noise, 1= read noise, 2=compute noise\n')
         polyFile.write('solidSolutionNoiseFile_xz=../../../NoiseLibrary/noise_xz.vtk;\n');
         polyFile.write('solidSolutionNoiseFile_yz=../../../NoiseLibrary/noise_yz.vtk;\n');
-        polyFile.write('stackingFaultNoiseMode=0; # 0=no noise\n');
+        polyFile.write(f'stackingFaultNoiseMode={self.stackingFaultNoiseMode}; # 0=no noise\n');
         polyFile.write(f'stackingFaultCorrelationFile={self.stackingFaultCorrelationFile};\n');
         polyFile.write(f'stackingFaultGridSize={self.readStackingFaultGridSize(self.stackingFaultCorrelationFile)}; # [m] size of SF grid on the glide plane\n');
         polyFile.write(f'stackingFaultGridSpacing_SI={self.calcStackingFaultGridSpacing_SI(self.stackingFaultCorrelationFile)}; # [m] spacing of SF grid on the glide plane\n');
