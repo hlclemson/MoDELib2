@@ -195,6 +195,12 @@ struct GlidePlaneNoise : public UniformPeriodicGrid<2>
     typedef typename NoiseTraitsBase::GridSizeType GridSizeType;
     typedef typename NoiseTraitsBase::GridSpacingType GridSpacingType;
 
+    const int solidSolutionNoiseMode;
+    const int stackingFaultNoiseMode;
+
+    const std::shared_ptr<SolidSolutionNoise> solidSolution;
+    const std::shared_ptr<StackingFaultNoise> stackingFault;
+
     //added
     const std::string  isfVtkFileName;
     const Eigen::Matrix<double,2,2> basisTransformMatrix; // A^-T matrix
@@ -205,12 +211,6 @@ struct GlidePlaneNoise : public UniformPeriodicGrid<2>
     Eigen::Matrix<double,2,2> initTransformBasis(const std::string& fileName_vtk, const PolycrystallineMaterialBase& mat);
     //static GridSizeType Read_dimensions(const char *fname);
     ///////
-
-    const int solidSolutionNoiseMode;
-    const int stackingFaultNoiseMode;
-
-    const std::shared_ptr<SolidSolutionNoise> solidSolution;
-    const std::shared_ptr<StackingFaultNoise> stackingFault;
 
     GlidePlaneNoise(const std::string& noiseFile,const PolycrystallineMaterialBase& mat);
 

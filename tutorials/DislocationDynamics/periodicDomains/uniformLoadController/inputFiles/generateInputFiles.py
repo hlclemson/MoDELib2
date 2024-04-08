@@ -6,7 +6,7 @@ from modlibUtils import *
 DDfile='DD.txt'
 shutil.copy2('../../'+DDfile, '.') 
 
-pf=PolyCrystalFile('../../../MaterialsLibrary/AlMg5.txt');
+pf=PolyCrystalFile('../../../MaterialsLibrary/Cu.txt');
 pf.absoluteTemperature=0;
 pf.dislocationMobilityType='default'
 pf.meshFile='../../../MeshLibrary/unitCube.msh'
