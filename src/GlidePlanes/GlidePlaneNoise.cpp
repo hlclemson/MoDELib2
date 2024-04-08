@@ -808,8 +808,8 @@ typename GlidePlaneNoise::GridSizeType GlidePlaneNoise::initStackingFaultGridSiz
     /* init */,stackingFault(stackingFaultNoiseMode? new StackingFaultNoise(noiseFile,mat,stackingFaultGridInfo.first, stackingFaultGridInfo.second*mat.b_SI) : nullptr)
     /* init */,UniformPeriodicGrid<2>(TextFileParser(noiseFile).readMatrix<int,1,2>("gridSize",true),
                                                   TextFileParser(noiseFile).readMatrix<double,1,2>("gridSpacing_SI",true)/mat.b_SI,
-                                                  TextFileParser(noiseFile).readMatrix<int,1,2>("stackingFaultGridSize",true),
-                                                  TextFileParser(noiseFile).readMatrix<double,1,2>("stackingFaultGridSpacing_SI",true)/mat.b_SI )
+                                                  stackingFaultGridInfo.first,
+                                                  stackingFaultGridInfo.second*mat.b_SI)
     
 {
     //std::cout << "noiseFile = " << noiseFile << std::endl;

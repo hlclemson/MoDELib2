@@ -8,6 +8,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -march=native -Ofast")
 set(MoDELibRootDir "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 
+### fftw3 ### find_package is currently broken. Workaround using find_library
+find_library(FFTW3_LIBRARIES fftw3)  
+if(FFTW3_LIBRARIES)
+	cmake_path(GET FFTW3_LIBRARIES PARENT_PATH FFTW3_LIBRARY_DIRS)
+	set(FFTW3_INCLUDE_DIRS ${FFTW3_LIBRARY_DIRS}/../include)
+	message(STATUS "FFTW3_LIBRARIES:" ${FFTW3_LIBRARIES})
+	message(STATUS "FFTW3_LIBRARY_DIRS:" ${FFTW3_LIBRARY_DIRS})
+	message(STATUS "FFTW3_INCLUDE_DIRS:" ${FFTW3_INCLUDE_DIRS})
+	include_directories(${BOOST_INCLUDE_DIRS})
+	include_directories(${FFTW3_INCLUDE_DIRS})
+	add_definitions(-D _MODEL_GLIDE_PLANE_NOISE_GENERATOR_)
+else()
+  message(WARNING "library ${FFTW3_LIBRARIES} not found, noise generator is disabled")
+endif()
+
+
 add_executable(microstructureGenerator microstructureGenerator.cpp)
 
 include_directories ( ${EIGEN3_INCLUDE_DIRS} )
@@ -35,3 +51,6 @@ add_subdirectory(${MoDELibRootDir}/src/DislocationDynamicsIO DDDIO)
 add_subdirectory(${MoDELibRootDir}/src/DislocationDynamicsBase DDDbase)
 add_subdirectory(${MoDELibRootDir}/src/PolycrystallineMaterials PolyMaterials)
 add_subdirectory(${MoDELibRootDir}/src/DislocationMicrostructure Microstructure)
+
+target_link_libraries(${PROJECT_NAME} ${FFTW3_LIBRARIES})
+
