@@ -810,7 +810,7 @@ typename GlidePlaneNoise::GridSizeType GlidePlaneNoise::initStackingFaultGridSiz
                                                   TextFileParser(noiseFile).readMatrix<double,1,2>("gridSpacing_SI",true)/mat.b_SI,
                                                   TextFileParser(noiseFile).readMatrix<int,1,2>("stackingFaultGridSize",true),
                                                   TextFileParser(noiseFile).readMatrix<double,1,2>("stackingFaultGridSpacing_SI",true)/mat.b_SI )
-    {
+    
 {
     //std::cout << "noiseFile = " << noiseFile << std::endl;
     //std::cout << "UniformPeriodicGrid<2>::gridSize.transpose() = " << UniformPeriodicGrid<2>::gridSize.transpose() << std::endl;
