@@ -130,13 +130,6 @@ namespace model
 
     Eigen::Matrix<double,2,1> SlipSystem::globalToLocal(const VectorDim& x) const
     {
-        //std::cout << std::endl << "globalTolocal" << std::endl;
-        //std::cout << "G2Lfull = " << G2Lfull << std::endl;
-        //std::cout << "x = " << x << std::endl;
-        //std::cout << "(G2Lfull*x) = " << (G2Lfull*x) << std::endl;
-        //std::cout << "(G2Lfull*x).template segment<2>(0) = " << (G2Lfull*x).template segment<2>(0) << std::endl;
-        //std::cout << "(G2Lfull*x).template segment<2>(1) = " << (G2Lfull*x).template segment<2>(1) << std::endl;
-        //exit(1);
         return (G2Lfull*x).template segment<2>(0);
     }
 
@@ -145,6 +138,7 @@ namespace model
         return (G2Lfull.transpose()).template block<3,2>(0,0)*x;
     }
 
+    // interpolate the influence of the noise at a given gauss quadrature point with bilinear interpolation algo
     std::tuple<Eigen::Matrix<double,3,3>,double,double> SlipSystem::gridInterp(const VectorDim& x) const
     {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
         if(planeNoise)
@@ -162,6 +156,7 @@ namespace model
         }
     }
 
+// return the noise value of a given grid index, it is for visualization. (src/vtk/GlidePlaneActor.cpp)
 std::tuple<Eigen::Matrix<double,3,3>,double,double> SlipSystem::gridVal(const Eigen::Array<int,2,1>& idx) const
 {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
     

@@ -6,7 +6,7 @@ from modlibUtils import *
 DDfile='DD.txt'
 shutil.copy2('../../'+DDfile, '.') 
 
-pf=PolyCrystalFile('../../../MaterialsLibrary/Cu.txt');
+pf=PolyCrystalFile('../../../MaterialsLibrary/AlMg5.txt');
 pf.absoluteTemperature=0;
 pf.dislocationMobilityType='default'
 pf.meshFile='../../../MeshLibrary/unitCube.msh'
@@ -19,6 +19,7 @@ pf.X0=np.array([0.5,0.5,0.5]) # Centering unitCube mesh. Mesh nodes X are mapped
 pf.periodicFaceIDs=np.array([0,1,2,3,4,5])
 pf.solidSolutionNoiseMode=2
 pf.stackingFaultNoiseMode=1
+pf.stackingFaultGridSize=np.array([500,500])
 pf.stackingFaultCorrelationFile='../../../NoiseLibrary/AlMg5_CxFFT_R100.vtk'
 pf.stackingFaultNoiseFile='../../../NoiseLibrary/noise_AlMg5.vtk'
 

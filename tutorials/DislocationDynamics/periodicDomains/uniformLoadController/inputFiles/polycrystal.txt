@@ -1,4 +1,4 @@
-materialFile=../../../MaterialsLibrary/Cu.txt;
+materialFile=../../../MaterialsLibrary/AlMg5.txt;
 absoluteTemperature=0; # [K] simulation temperature 
 dislocationMobilityType=default; # default or FCC,BCC,HEXbasal,HEXprismatic,HEXpyramidal 
 meshFile=../../../MeshLibrary/unitCube.msh; # mesh file 
@@ -17,7 +17,7 @@ solidSolutionNoiseFile_xz=../../../NoiseLibrary/noise_xz.vtk;
 solidSolutionNoiseFile_yz=../../../NoiseLibrary/noise_yz.vtk;
 stackingFaultNoiseMode=1; # 0=no noise
 stackingFaultCorrelationFile=../../../NoiseLibrary/AlMg5_CxFFT_R100.vtk;
-stackingFaultGridSize=30 27; # [m] size of SF grid on the glide plane
+stackingFaultGridSize=500 500; # [m] size of SF grid on the glide plane
 stackingFaultGridSpacing_SI=2.86e-10 2.86e-10; # [m] spacing of SF grid on the glide plane
 stackingFaultNoiseFile=../../../NoiseLibrary/noise_AlMg5.vtk;
 spreadLstress_A=1; # add comment

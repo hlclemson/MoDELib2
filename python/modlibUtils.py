@@ -111,23 +111,22 @@ class PolyCrystalFile(dict):
         polyFile.write('solidSolutionNoiseFile_yz=../../../NoiseLibrary/noise_yz.vtk;\n');
         polyFile.write(f'stackingFaultNoiseMode={self.stackingFaultNoiseMode}; # 0=no noise\n');
         polyFile.write(f'stackingFaultCorrelationFile={self.stackingFaultCorrelationFile};\n');
-        polyFile.write(f'stackingFaultGridSize={self.readStackingFaultGridSize(self.stackingFaultCorrelationFile)}; # [m] size of SF grid on the glide plane\n');
+        polyFile.write(f'stackingFaultGridSize={np.array2string(self.stackingFaultGridSize).strip("[]")}; # [m] size of SF grid on the glide plane\n');
         polyFile.write(f'stackingFaultGridSpacing_SI={self.calcStackingFaultGridSpacing_SI(self.stackingFaultCorrelationFile)}; # [m] spacing of SF grid on the glide plane\n');
         polyFile.write(f'stackingFaultNoiseFile={self.stackingFaultNoiseFile};\n');
         polyFile.write('spreadLstress_A=1; # add comment\n');
         polyFile.write('a_cai_A=1; # add comment\n');
         polyFile.write('seed=0; # add comment\n');
-
         polyFile.close()
 
-    def readStackingFaultGridSize(self, correlationVTKfile: str) -> np.ndarray:
-        with open(correlationVTKfile, 'r', encoding='utf-8') as f:
-            for line in f:
-                if 'DIMENSIONS' in line:
-                    dimension = np.array([int(s) for s in line.split() if s.isdigit()])
-                    dimensionXY = dimension[0:2]
-                    break;
-        return np.array2string(dimensionXY).strip('[]');
+    #def readStackingFaultGridSize(self, correlationVTKfile: str) -> np.ndarray:
+    #    with open(correlationVTKfile, 'r', encoding='utf-8') as f:
+    #        for line in f:
+    #            if 'DIMENSIONS' in line:
+    #                dimension = np.array([int(s) for s in line.split() if s.isdigit()])
+    #                dimensionXY = dimension[0:2]
+    #                break;
+    #    return np.array2string(dimensionXY).strip('[]');
     def calcStackingFaultGridSpacing_SI(self, correlationVTKfile: str) -> np.ndarray:
         with open(correlationVTKfile, 'r', encoding='utf-8') as f:
             copyFlag = False;

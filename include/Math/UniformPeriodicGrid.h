@@ -43,21 +43,6 @@ struct UniformPeriodicGrid
 
     }
 
-    // Dynamic choose
-    //void selectValues(bool SF) const
-    //{
-    //    if (SF) 
-    //    {
-    //        gridSize = gridSize_sf;
-    //        gridSpacing = gridSpacing_sf;
-    //    }
-    //     else 
-    //     {
-    //        gridSize = gridSize_ss;
-    //        gridSpacing = gridSpacing_ss;
-    //    }
-    //}
-
     // Dynamically choose grid size and spacing based on noise type
     void selectGridSizeAndSpace(const std::string& noiseType) const
     {
