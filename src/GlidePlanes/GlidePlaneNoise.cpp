@@ -615,8 +615,7 @@ StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& nois
     COMPLEX *frHat = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
     REAL_SCALAR *fr = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
 
-    // read stacking fault correlation
-    //StackingFaultCorrelationReader(fileName_vtk, Rr_xy);
+
     // read the dimension of the original correlation
     const auto originalDimensions(readVTKfileDimension(fileName_vtk.c_str()));
     const double originalNX = originalDimensions(0);
@@ -625,9 +624,17 @@ StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& nois
     // populate Rr_xy_original with the correlation data
     StackingFaultCorrelationReader(fileName_vtk, Rr_xy_original);
     // populate the correlation data padded with zeros with the original correlation data
-    for(int i=0; i<originalNY; ++i) {
-        for(int j=0; j<originalNX; ++j) {
-            Rr_xy[i*NX + j] = Rr_xy_original[i*NX + j];
+    // memset(Rr_xy, 0, sizeof(REAL_SCALAR) * NX * NY);
+    int original_ny = static_cast<int>(std::floor(originalNY));
+    int original_nx = static_cast<int>(std::floor(originalNX));
+
+    int start_y = (NY - original_ny) / 2;
+    int start_x = (NX - original_nx) / 2;
+
+    // 0-pading from centere
+    for (int i = 0; i < original_ny; ++i) {
+        for (int j = 0; j < original_nx; ++j) {
+            Rr_xy[(start_y + i) * NX + (start_x + j)] = Rr_xy_original[i * original_nx + j];
         }
     }
 
