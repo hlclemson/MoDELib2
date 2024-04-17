@@ -341,9 +341,6 @@ void GlidePlaneActor::updateConfiguration()
                                     }
                                 }
 
-                                std::cout<<"Noise limits: "<<noiseLimits<<std::endl;
-
-
                                 ssNoiseMin->setText(QString::number(noiseLimits(0,0)));
                                 ssNoiseMax->setText(QString::number(noiseLimits(0,1)));
                                 sfNoiseMin->setText(QString::number(noiseLimits(1,0)));
