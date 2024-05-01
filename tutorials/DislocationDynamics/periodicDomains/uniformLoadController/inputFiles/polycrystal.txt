@@ -1,13 +1,13 @@
 materialFile=../../../MaterialsLibrary/AlMg5.txt;
-absoluteTemperature=0; # [K] simulation temperature 
+absoluteTemperature=1; # [K] simulation temperature 
 dislocationMobilityType=default; # default or FCC,BCC,HEXbasal,HEXprismatic,HEXpyramidal 
 meshFile=../../../MeshLibrary/unitCube.msh; # mesh file 
 C2G1=0.0 0.7071067811865475 0.7071067811865475
      0.816496580927726 0.408248290463863 -0.408248290463863
      -0.5773502691896258 0.5773502691896258 -0.5773502691896258; # crystal rotation matrix 
-F=999.9999999999998 0.0 -4.440892098500626e-13
-  0.0 1732.0508075688772 -2.220446049250313e-13
-  0.0 0.0 7348.469228349536; # mesh deformation gradient. Mesh nodes X are mapped to x=F*(X-X0) 
+F=299.99999999999994 0.0 -1.3322676295501878e-12
+  0.0 519.6152422706632 -6.661338147750939e-13
+  0.0 0.0 22045.40768504861; # mesh deformation gradient. Mesh nodes X are mapped to x=F*(X-X0) 
 X0=0.5 0.5 0.5; # mesh shift. Mesh nodes X are mapped to x=F*(X-X0) 
 periodicFaceIDs=0 1 2 3 4 5; # IDs of faces labelled as periodic 
 solidSolutionGridSize=256 256; # size of SS grid on the glide plane

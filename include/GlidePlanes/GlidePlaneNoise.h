@@ -168,6 +168,7 @@ struct StackingFaultNoiseGenerator: public NoiseTraits<1>::NoiseContainerType
     static double ReverseDouble( const double inDouble );
 
     GridSizeType readVTKfileDimension(const char *fname);
+    StackingFaultNoiseGeneratorTestDistribution(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing);
     StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing);
     void StackingFaultCorrelationReader(const std::string& fileName_vtk, REAL_SCALAR *Rr_xy);
     void Write_field_slice(REAL_SCALAR *F, const char *fname);

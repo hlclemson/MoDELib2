@@ -592,6 +592,95 @@ void StackingFaultNoiseGenerator::Write_field_slice(REAL_SCALAR *F, const char *
     fclose(OutFile);
 }
 
+StackingFaultNoiseGenerator::StackingFaultNoiseGeneratorTestDistribution(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing):
+    /*init*/seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
+    /*init*/,fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
+    /*init*/,NX(_gridSize(0))
+    /*init*/,NY(_gridSize(1))
+    /*init*/,NZ(1)
+    /*init*/,DX(_gridSpacing(0))
+    /*init*/,DY(_gridSpacing(1))
+    /*init*/,DZ(_gridSpacing(1))
+    /*init*/,NR(NX*NY*NZ)
+    /*init*/,NK(NX*NY*(NZ/2+1))
+{
+    std::cout<<"Generating StackingFaultNoise..."<<std::endl;
+
+    // fft plans
+    fftw_plan plan_R_xy_r2c, plan_R_xy_noise_c2r;
+
+    // allocate
+    REAL_SCALAR *Rr_xy = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space
+    COMPLEX *Rk_xy = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
+    COMPLEX *frHat = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*NK); //correlation in fourier space
+    REAL_SCALAR *fr = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR); //correlation in real space with noise
+
+
+    // read the dimension of the original correlation
+    const auto originalDimensions(readVTKfileDimension(fileName_vtk.c_str()));
+    const double originalNX = originalDimensions(0);
+    const double originalNY = originalDimensions(1);
+    REAL_SCALAR *Rr_xy_original = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*originalNX*originalNY); //correlation in real space
+    // populate Rr_xy_original with the correlation data
+    //StackingFaultCorrelationReader(fileName_vtk, Rr_xy_original);
+    StackingFaultCorrelationReader(fileName_vtk, Rr_xy);
+    // populate the correlation data padded with zeros with the original correlation data
+    // memset(Rr_xy, 0, sizeof(REAL_SCALAR) * NX * NY);
+    int original_ny = static_cast<int>(std::floor(originalNY));
+    int original_nx = static_cast<int>(std::floor(originalNX));
+
+    int start_y = (NY - original_ny) / 2;
+    int start_x = (NX - original_nx) / 2;
+
+    // 0-pading from centere
+    for (int i = 0; i < original_ny; ++i) {
+        for (int j = 0; j < original_nx; ++j) {
+            Rr_xy[(start_y + i) * NX + (start_x + j)] = Rr_xy_original[i * original_nx + j];
+        }
+    }
+
+    std::default_random_engine generator(seed);
+    std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
+
+    plan_R_xy_r2c = fftw_plan_dft_r2c_2d(NY, NX, Rr_xy, reinterpret_cast<fftw_complex*>(Rk_xy), FFTW_ESTIMATE);
+    plan_R_xy_noise_c2r = fftw_plan_dft_c2r_2d(NY, NX, reinterpret_cast<fftw_complex*>(frHat), fr, FFTW_ESTIMATE);
+
+    std::cout<<greenBoldColor<<"Creating StackingFaultNoise"<<defaultColor<<std::endl;
+
+    // FFT to fourier space
+    fftw_execute(plan_R_xy_r2c);
+
+    // introduce noise to correlation in fourier space
+    for (int i=0; i<NK; ++i) 
+    {
+        // random numbers
+        REAL_SCALAR Nk_xy = distribution(generator);
+        REAL_SCALAR Mk_xy = distribution(generator);
+        frHat[i] = std::sqrt(Rk_xy[i])*((Nk_xy+Mk_xy*COMPLEX(0.0,1.0))/std::sqrt(2.0));
+    }
+
+    // take inverse fourier transform on the sampled random function (frHat -> ft)
+    fftw_execute(plan_R_xy_noise_c2r);
+
+    // normalize the sampled random function
+    for (int i=0; i<NR; ++i) 
+    {
+        fr[i] = fr[i]/static_cast<double>(NR);
+    }
+
+    //const size_t N(NR.array());
+    this->reserve(NR);
+    for(int k=0;k<NR;++k)
+    {
+        this->push_back(fr[k]/(mat.b_SI*mat.mu_SI)); // unit conversion
+    }
+
+    // ouput vtk files
+    const std::string fileName_SFEnoise(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultNoiseFile",true));
+    std::cout<<"Writing noise file "<<fileName_SFEnoise<<std::endl;
+    Write_field_slice(fr, fileName_SFEnoise.c_str());
+}
+
 StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& noiseFile, const PolycrystallineMaterialBase& mat, const GridSizeType& _gridSize, const GridSpacingType& _gridSpacing):
     /*init*/seed(TextFileParser(noiseFile).readScalar<double>("seed",true))  // random seed
     /*init*/,fileName_vtk(std::filesystem::path(noiseFile).parent_path().string()+"/"+TextFileParser(noiseFile).readString("stackingFaultCorrelationFile",true))
@@ -622,7 +711,8 @@ StackingFaultNoiseGenerator::StackingFaultNoiseGenerator(const std::string& nois
     const double originalNY = originalDimensions(1);
     REAL_SCALAR *Rr_xy_original = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*originalNX*originalNY); //correlation in real space
     // populate Rr_xy_original with the correlation data
-    StackingFaultCorrelationReader(fileName_vtk, Rr_xy_original);
+    //StackingFaultCorrelationReader(fileName_vtk, Rr_xy_original);
+    StackingFaultCorrelationReader(fileName_vtk, Rr_xy);
     // populate the correlation data padded with zeros with the original correlation data
     // memset(Rr_xy, 0, sizeof(REAL_SCALAR) * NX * NY);
     int original_ny = static_cast<int>(std::floor(originalNY));

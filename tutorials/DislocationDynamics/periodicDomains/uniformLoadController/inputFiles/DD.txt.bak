@@ -3,7 +3,7 @@
 simulationType=2; # 0=finite sample no FEM, 1=finite sample with FEM, 2=periodic images, 3=periodic fem
 useDislocations=1;
 useCracks=0;
-Nsteps=100000;
+Nsteps=400000;		# total number of simulation steps
 startAtTimeStep = -1;  # time step for restart. -1 means last available step in file F/F_0.txt
 
 ######################################
@@ -28,7 +28,7 @@ EwaldLengthFactor=0;
 ######################################
 # TIME STEPPING
 # Maximum nodal displacement per time step (this controls time step size) 
-timeIntegrationMethod=0; # 0 for constant time integration 
+timeIntegrationMethod=1; # 0 for constant time integration 
 capMaxVelocity=1;
 timeStep=200; #Max time step is used in two way...1) If time integration method is 0, then this is the time step used, and (2) If the time step method is 1, this is used to cap the velocity when capMaxVelocity=1
 dxMax=10; # max modal step for timeIntegrationMethod=1
@@ -46,13 +46,13 @@ pyModuleName=../../../../../python/MLglideSolver.py; # relative path to Python m
 # DISLOCATION ELASTIC FIELDS
 quadPerLength=0.1; # number of quadrature points per unit length (in Burgers vector units)
 coreSize=2.0; # The dislocation core width, used in the non-singular expression of the dislocation stress field
-alphaLineTension=15.0; # dimensionless scale factor in for line tension forces
+alphaLineTension=1.0; # dimensionless scale factor in for line tension forces
 
 ######################################
 # NETWORK REMESHING
 remeshFrequency=1; # Enable/disable node redistribution 
-Lmin=15; # min segment length (in Burgers vector units)
-Lmax=30; # max segment length (in Burgers vector units)
+Lmin=25; # min segment length (in Burgers vector units)
+Lmax=100; # max segment length (in Burgers vector units)
 relativeAreaThreshold=0.001;
 
 ######################################

@@ -1,4 +1,4 @@
-
+enablePartials=1;
 materialName=AlMg15;
 crystalStructure=FCC;
 enabledSlipSystems=full; # types of slip systems enabled e.g. enabledSlipSystems=full Shockley Kear;
