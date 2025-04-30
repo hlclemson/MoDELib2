@@ -27,6 +27,9 @@ namespace model
     /* init */,velocity(V)
     /* init */,vOld(velocity)
     /* init */,velocityReductionCoeff(vrc)
+    /* init */,projectNodalVelocityToX(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("projectNodalVelocityToX",true))
+    /* init */,projectNodalVelocityToY(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("projectNodalVelocityToY",true))
+    /* init */,projectNodalVelocityToZ(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("projectNodalVelocityToZ",true))
     {
         VerboseDislocationNode(1, "  Creating Network Node " << this->tag() <<" @ "<<this->get_P().transpose() << std::endl;);        
     }
@@ -120,15 +123,28 @@ typename DislocationNode<dim,corder>::VectorDim DislocationNode<dim,corder>::cli
         return temp.second;
     }
 
-    
+
     template <int dim, short unsigned int corder>
     void DislocationNode<dim,corder>::projectVelocity(const bool& isClimbingStep)
     {
-        
         VectorOfNormalsType temp;
-//        temp.push_back(VectorDim::UnitZ());
+        /*
+        Projects nodal velocity onto a specified axis.
+        This constraint limits the degrees of freedom of nodes,
+        ensuring they can only move perpendicular to the glide plane's normal direction.
+        @param projectNodalVelocityToX If true, projects nodal velocity onto the X-axis.
+        @param projectNodalVelocityToY If true, projects nodal velocity onto the Y-axis.
+        @param projectNodalVelocityToZ If true, projects nodal velocity onto the Z-axis.
+        */
+        if (projectNodalVelocityToX || projectNodalVelocityToY || projectNodalVelocityToZ)
+        {
+            temp.push_back(
+                projectNodalVelocityToX ? VectorDim::UnitX() :
+                projectNodalVelocityToY ? VectorDim::UnitY() :
+                VectorDim::UnitZ()  // Default to Z if none of X/Y are true
+            );
+        }
 
-        
         for(const auto& loopNode : this->loopNodes())
         {
             const auto& loop(loopNode->loop());
