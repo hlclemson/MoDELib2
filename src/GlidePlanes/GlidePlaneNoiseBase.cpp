@@ -166,8 +166,13 @@ namespace model
                     Mk_xz = -Mk_yz;
                 }
                 
+                std::cout << "NZ = " << NZ << std::endl;
                 const double kCorrFactor(NZ>1 ? ((k==0 || k==NZ/2)? 1.0 : 2.0) : ((j==0 || j==NY/2)? 1.0 : 2.0)); // /!\ special case for k=0 and k==NZ/2 because of folding of C2R Fourier transform
+                std::cout << "kCorrFactor =  " << kCorrFactor << std::endl;
+                std::cout << "kv =  " << kv << std::endl;
+                std::cout << "kvID =  " << kvID << std::endl;
                 const auto kCorr(kCorrelations(kv,kvID));
+                std::cout << "kCorr =  " << kvID << std::endl;
                 for(int n=0;n<N;++n)
                 {
                     kNoisyCorrelations[n][ind]=sqrt(kCorr[n]/kCorrFactor)*(Nk_yz+Mk_yz*COMPLEX(0.0,1.0));
@@ -231,7 +236,25 @@ namespace model
         std::cout<<"noiseAverage="<<ave*mat.mu_SI<<" [Pa]"<<std::endl;
         std::cout<<"noiseVariance="<<var*std::pow(mat.mu_SI,2)<<" [Pa^2]"<<std::endl;
     }
-        
+
+    // specialization for N=1
+    //template <>
+    //Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<1>::initInvTransitionMatrix() const
+    // general N dimension
+    //template <int N>
+    //typename Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<N>::InitInvTransitionMatrix()
+    //{
+    //    const Eigen::Matrix<double,2,2> invTransitionMat(invTransitionMatrix());
+    //    return invTransitionMat;
+    //}
+
+    //template <int N>
+    ////Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<N>::invTransitionMatrix() const
+    //void GlidePlaneNoiseBase<N>::invTransitionMatrix() const
+    //{
+    //}
+
+
         //    void AnalyticalSolidSolutionNoise::Write_field_slice(REAL_SCALAR *F, const char *fname)
         //    {
         //        FILE *OutFile=fopen(fname,"w");

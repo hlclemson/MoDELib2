@@ -60,6 +60,12 @@ coreSize=2.0; # The dislocation core width, used in the non-singular expression 
 alphaLineTension=1.0; # dimensionless scale factor in for line tension forces
 
 ######################################
+# NODE CONSTRAINTS
+setNodalVelocityBaseX=0;
+setNodalVelocityBaseY=0;
+setNodalVelocityBaseZ=0;
+
+######################################
 # NETWORK REMESHING
 remeshFrequency=1; # Enable/disable node redistribution 
 Lmin=25; # min segment length (in Burgers vector units)

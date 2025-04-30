@@ -12,6 +12,7 @@
 
 #include <DislocationDynamicsModule.h>
 #include <PlaneLineIntersection.h>
+#include <DislocationNetwork.h>
 #ifndef NDEBUG
 #define VerboseDislocationNode(N,x) if(this->network().verboseDislocationNode>=N){std::cout<<x;}
 #else
@@ -20,14 +21,12 @@
 
 namespace model
 {
-    
     template <int dim, short unsigned int corder>
     class DislocationNode : public NetworkNode<DislocationNode<dim,corder>>
     /*                   */,public SplineNode<DislocationNode<dim,corder>,dim,corder,Hermite>
     {
         
         public:
-        
         typedef TypeTraits<DislocationLoop<dim,corder>> TraitsType;
         typedef typename TraitsType::LoopNetworkType LoopNetworkType;
         typedef typename TraitsType::LoopType LoopType;
@@ -54,6 +53,11 @@ namespace model
         VectorDim velocity;
         VectorDim vOld;         //! The previous velocity vector of *this PlanarDislocationNode
         double velocityReductionCoeff;
+
+        bool setNodalVelocityBaseX;
+        bool setNodalVelocityBaseY;
+        bool setNodalVelocityBaseZ;
+
 //        std::shared_ptr<NetworkNodeType> virtualNode;
 //        NetworkNodeType* const masterNode;
         static int totalCappedNodes; //gives the fraction of the capped velocities

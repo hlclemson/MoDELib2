@@ -27,8 +27,11 @@ namespace model
     /* init */,velocity(V)
     /* init */,vOld(velocity)
     /* init */,velocityReductionCoeff(vrc)
+    /* init */,setNodalVelocityBaseX(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseX",false))
+    /* init */,setNodalVelocityBaseY(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseY",false))
+    /* init */,setNodalVelocityBaseZ(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseZ",false))
     {
-        VerboseDislocationNode(1, "  Creating Network Node " << this->tag() <<" @ "<<this->get_P().transpose() << std::endl;);        
+        VerboseDislocationNode(1, "  Creating Network Node " << this->tag() <<" @ "<<this->get_P().transpose() << std::endl;);
     }
 
 template <int dim, short unsigned int corder>
@@ -120,15 +123,25 @@ typename DislocationNode<dim,corder>::VectorDim DislocationNode<dim,corder>::cli
         return temp.second;
     }
 
-    
+
     template <int dim, short unsigned int corder>
     void DislocationNode<dim,corder>::projectVelocity(const bool& isClimbingStep)
     {
-        
         VectorOfNormalsType temp;
-//        temp.push_back(VectorDim::UnitZ());
+        /*
+        Projects nodal velocity onto a specified axis.
+        This constraint limits the degrees of freedom of nodes,
+        ensuring they can only move perpendicular to the glide plane's normal direction.
+        */
+        if (setNodalVelocityBaseX || setNodalVelocityBaseY || setNodalVelocityBaseZ)
+        {
+            temp.push_back(
+                setNodalVelocityBaseX ? VectorDim::UnitX() :
+                setNodalVelocityBaseY ? VectorDim::UnitY() :
+                VectorDim::UnitZ()  // Default to Z if none of X/Y are true
+            );
+        }
 
-        
         for(const auto& loopNode : this->loopNodes())
         {
             const auto& loop(loopNode->loop());
