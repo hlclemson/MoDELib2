@@ -44,19 +44,15 @@ namespace model
                 }
                 if(type=="MDSolidSolutionNoise")
                 {
-                    //                    const double a(parser.readScalar<double>("spreadLstress_SI",true)/mat.b_SI);      // spreading length for stresses [AA]
                     const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
-                    //                    const double MSSS(parser.readScalar<double>("MSSS_SI",true)/std::pow(mat.mu_SI,2));
-                    // const std::string fileName_vtk_xz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("fileName_vtk_xz",true)));
-                    // const std::string fileName_vtk_yz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("fileName_vtk_yz",true)));
-                    
-                    const std::string correlationFile_L(parser.readString("correlationFile_L",true));
-                    const std::string correlationFile_T(parser.readString("correlationFile_T",true));
-                    
-                    // std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
-                    //std::filesystem::current_path(std::filesystem::path(noiseFileName).parent_path());
-                    // std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
-                    
+
+                    //const std::string correlationFile_L(parser.readString("correlationFile_L",true));
+                    //const std::string correlationFile_T(parser.readString("correlationFile_T",true));
+
+                    // parse the absolute paths of the correlation files based on the relative paths declared in the noise txt files
+                    const std::string correlationFile_L(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_L",true)));
+                    const std::string correlationFile_T(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_T",true)));
+
                     const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_L,correlationFile_T,seed,gridSize,gridSpacing,a_Cai)));
                     // std::cout<<"MDSolidSolutionNoise inserted"<<std::endl;
                     if(!success.second)
@@ -66,15 +62,15 @@ namespace model
                 }
                 if(type=="MDStackingFaultNoise")
                 {
-                    
+
                 }
                 if(type=="MDShortRangeOrderNoise")
                 {
-                    
+
                 }
             }
-            
-            
+
+
         }
         for(auto& pair : solidSolutionNoise())
         {
