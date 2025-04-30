@@ -299,20 +299,6 @@ def main() -> int:
         for f in folders:
             shutil.move(f, targetDir)
 
-    #X=np.linspace(0, 101, num=101)
-    #print(f"x.shape = {X.shape}")
-    #F,Flabels=readFfile('./F')
-    #E=getFarray(F,Flabels,'dislocation elastic energy [mu b^3]')
-    #data=np.empty([np.size(X),8])
-    #data[:,0]=X
-    #data[:,1]=E
-    #data[:,2]=S11
-    #data[:,3]=S22
-    #data[:,4]=S33
-    #data[:,5]=S23
-    #data[:,6]=S13
-    #data[:,7]=S12
-
     return 0
 
 if __name__ == "__main__":
