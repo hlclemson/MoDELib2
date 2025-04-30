@@ -47,12 +47,13 @@ namespace model
         /* init */,frameIDedit(new QLineEdit("0"))
         /* init */,plusFrameButton(new QPushButton(">"))
         /* init */,playFrameButton(new QPushButton(">>"))
+        /* init */,stopFrameButton(new QPushButton("x"))
         /* init */,minusFrameButton(new QPushButton("<"))
         /* init */,frameIncrementEdit(new QLineEdit("1"))
         /* init */,saveImage(new QCheckBox(this))
         /* init */,tabWidget(new QTabWidget())
         {
-            
+
             tabWidget->addTab(nodes, tr(std::string("Nodes").c_str()));
             tabWidget->addTab(segments, tr(std::string("Segments").c_str()));
             tabWidget->addTab(loops, tr(std::string("Loops").c_str()));
@@ -69,7 +70,8 @@ namespace model
             mainLayout->addWidget(minusFrameButton,0,1,1,1);
             mainLayout->addWidget(plusFrameButton,0,2,1,1);
             mainLayout->addWidget(playFrameButton,0,3,1,1);
-            mainLayout->addWidget(frameIncrementEdit,0,4,1,1);
+            mainLayout->addWidget(stopFrameButton,0,4,1,1);
+            mainLayout->addWidget(frameIncrementEdit,0,5,1,1);
             mainLayout->addWidget(saveImage,1,0,1,1);
 
 
@@ -80,11 +82,13 @@ namespace model
             connect(plusFrameButton,SIGNAL(pressed()), this, SLOT(nextConfiguration()));
             connect(minusFrameButton,SIGNAL(pressed()), this, SLOT(prevConfiguration()));
             connect(playFrameButton,SIGNAL(pressed()), this, SLOT(playConfigurations()));
+            connect(stopFrameButton,SIGNAL(pressed()), this, SLOT(stopConfigurations()));
 
             connect(frameIDedit,SIGNAL(returnPressed()), ddField, SLOT(compute()));
             connect(plusFrameButton,SIGNAL(pressed()), ddField, SLOT(compute()));
             connect(minusFrameButton,SIGNAL(pressed()), ddField, SLOT(compute()));
             connect(playFrameButton,SIGNAL(pressed()), ddField, SLOT(compute()));
+            connect(stopFrameButton,SIGNAL(pressed()), ddField, SLOT(compute()));
 
             
             QApplication::processEvents();
@@ -111,8 +115,8 @@ namespace model
             return *this;
         }
 
-        void DefectiveCrystalActor::playConfigurations()
-        {
+//        void DefectiveCrystalActor::playConfigurations()
+//        {
 //            bool updated(true);
 //            while (updated)
 //            {
@@ -126,6 +130,45 @@ namespace model
 ////                std::this_thread::sleep_for( dura );
 ////                pause(1);
 //            }
+//        }
+//
+
+        /*
+        stop animation play button
+        private class definition is added in the header file
+        */
+        void DefectiveCrystalActor::stopConfigurations()
+        {
+            m_stopRequested = true;
+        }
+
+        /*
+        The timer's timeout() signal calls the lambda repeatedly
+        and each call executes nextConfiguration(). When nextConfiguration()
+        returns false, the timer deletes itself (deleteLater)
+        */
+        void DefectiveCrystalActor::playConfigurations()
+        {
+            m_stopRequested = false;
+
+            // Get target frame rate (hardcoded, maybe implement a slider in the UI)
+            const int fps = 10;
+            const int delayMs = 1000 / std::max(1, fps);
+
+            // Timer Setup
+            QTimer* timer = new QTimer(this);
+            // Lambda Connection
+            connect(timer, &QTimer::timeout, [this, timer]() {
+                // also, stops the iteration if stop is requested (m_stopRequested)
+                if (m_stopRequested || !nextConfiguration()) {
+                    timer->deleteLater();
+                    return;
+                }
+                // Let VTK handle rendering at its own pace
+                qvtkGLwidget->update(); // Queues a paint event (non-blocking)
+            });
+            // Triggers timeout() signal after event processing and wait for delayMs
+            timer->start(delayMs); 
         }
 
         bool DefectiveCrystalActor::nextConfiguration()
@@ -195,6 +238,10 @@ namespace model
                 
                 if(saveImage->isChecked())
                 {
+                    //qDebug() << "Saving frame:" << frameID 
+                    //<< "| UI shows:" << frameIDedit->text();
+                    //qvtkGLwidget->repaint(); // Force render update
+                    //QCoreApplication::processEvents(); // Ensure paint completes
                     QImage img=qvtkGLwidget->grabFramebuffer();
                     img.save(QString::fromStdString(ddBase.simulationParameters.traitsIO.evlFolder+"/img_"+std::to_string(frameID)+".png"), "PNG", -1);
                 }
