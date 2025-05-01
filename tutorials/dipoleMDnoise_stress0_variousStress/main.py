@@ -23,6 +23,9 @@ file_templates = {
 
 DD_parameters = {
     'variables': {
+        'setNodalVelocityBaseX': '0',
+        'setNodalVelocityBaseY': '0',
+        'setNodalVelocityBaseZ': '1',
         'useFEM': '0',
         'useDislocations': '1',
         'useInclusions': '0',
@@ -45,7 +48,7 @@ DD_parameters = {
         'computeElasticEnergyPerLength': '1',  # output energy data
         'glideSolverType': 'Galerkin',  # solver type ('Galerkin' or 'none')
         'climbSolverType': 'none', # type of clim solver, or none 
-        'Nsteps': '100001' # number of simulation steps 
+        'Nsteps': '10001' # number of simulation steps 
     },
     'copy_to': 'inputFiles/DD.txt'
 }
@@ -224,7 +227,7 @@ def main() -> int:
     elasticDeformationFile=str(file_templates['elastic_deformation_file']).split('/')[-1]
 
     # initial stresses to test in MPa
-    stressToTests = [5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110]
+    stressToTests = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 900]
     for stress in stressToTests:
         # Preparing input files
         folders=['evl','F', 'inputFiles']
@@ -281,7 +284,7 @@ def main() -> int:
         #spec.dipoleCenters=np.array(xCenter)
         spec.dipoleCenters=np.array(xCenter)
         spec.dipoleHeights=[600]
-        spec.nodesPerLine=[10]
+        spec.nodesPerLine=[80]
         spec.glideSteps=[10]
         microstructureGenerator=pyMoDELib.MicrostructureGenerator(ddBase)
         microstructureGenerator.writeConfigFiles(0) # write evl_0.txt (optional)
@@ -289,6 +292,7 @@ def main() -> int:
         microstructureGenerator.addPeriodicDipoleIndividual(spec)
         defectiveCrystal=pyMoDELib.DefectiveCrystal(ddBase)
         defectiveCrystal.initializeConfiguration(microstructureGenerator.configIO)
+        exit()
         defectiveCrystal.runSteps()
 
         if not os.path.exists(dataStorageDir):
@@ -298,6 +302,20 @@ def main() -> int:
         os.makedirs(targetDir, exist_ok=True)
         for f in folders:
             shutil.move(f, targetDir)
+
+    #X=np.linspace(0, 101, num=101)
+    #print(f"x.shape = {X.shape}")
+    #F,Flabels=readFfile('./F')
+    #E=getFarray(F,Flabels,'dislocation elastic energy [mu b^3]')
+    #data=np.empty([np.size(X),8])
+    #data[:,0]=X
+    #data[:,1]=E
+    #data[:,2]=S11
+    #data[:,3]=S22
+    #data[:,4]=S33
+    #data[:,5]=S23
+    #data[:,6]=S13
+    #data[:,7]=S12
 
     return 0
 
