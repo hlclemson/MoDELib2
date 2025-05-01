@@ -27,9 +27,9 @@ namespace model
     /* init */,velocity(V)
     /* init */,vOld(velocity)
     /* init */,velocityReductionCoeff(vrc)
-    /* init */,setNodalVelocityBaseX(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseX",true))
-    /* init */,setNodalVelocityBaseY(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseY",true))
-    /* init */,setNodalVelocityBaseZ(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseZ",true))
+    /* init */,setNodalVelocityBaseX(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseX",false))
+    /* init */,setNodalVelocityBaseY(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseY",false))
+    /* init */,setNodalVelocityBaseZ(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseZ",false))
     {
         VerboseDislocationNode(1, "  Creating Network Node " << this->tag() <<" @ "<<this->get_P().transpose() << std::endl;);
     }
