@@ -27,11 +27,11 @@ namespace model
     /* init */,velocity(V)
     /* init */,vOld(velocity)
     /* init */,velocityReductionCoeff(vrc)
-    /* init */,projectNodalVelocityToX(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("projectNodalVelocityToX",true))
-    /* init */,projectNodalVelocityToY(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("projectNodalVelocityToY",true))
-    /* init */,projectNodalVelocityToZ(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("projectNodalVelocityToZ",true))
+    /* init */,setNodalVelocityBaseX(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseX",true))
+    /* init */,setNodalVelocityBaseY(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseY",true))
+    /* init */,setNodalVelocityBaseZ(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseZ",true))
     {
-        VerboseDislocationNode(1, "  Creating Network Node " << this->tag() <<" @ "<<this->get_P().transpose() << std::endl;);        
+        VerboseDislocationNode(1, "  Creating Network Node " << this->tag() <<" @ "<<this->get_P().transpose() << std::endl;);
     }
 
 template <int dim, short unsigned int corder>
@@ -132,15 +132,12 @@ typename DislocationNode<dim,corder>::VectorDim DislocationNode<dim,corder>::cli
         Projects nodal velocity onto a specified axis.
         This constraint limits the degrees of freedom of nodes,
         ensuring they can only move perpendicular to the glide plane's normal direction.
-        @param projectNodalVelocityToX If true, projects nodal velocity onto the X-axis.
-        @param projectNodalVelocityToY If true, projects nodal velocity onto the Y-axis.
-        @param projectNodalVelocityToZ If true, projects nodal velocity onto the Z-axis.
         */
-        if (projectNodalVelocityToX || projectNodalVelocityToY || projectNodalVelocityToZ)
+        if (setNodalVelocityBaseX || setNodalVelocityBaseY || setNodalVelocityBaseZ)
         {
             temp.push_back(
-                projectNodalVelocityToX ? VectorDim::UnitX() :
-                projectNodalVelocityToY ? VectorDim::UnitY() :
+                setNodalVelocityBaseX ? VectorDim::UnitX() :
+                setNodalVelocityBaseY ? VectorDim::UnitY() :
                 VectorDim::UnitZ()  // Default to Z if none of X/Y are true
             );
         }
