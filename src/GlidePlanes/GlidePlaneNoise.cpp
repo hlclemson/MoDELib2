@@ -8,6 +8,7 @@
 #ifndef model_GlidePlaneNoise_cpp
 #define model_GlidePlaneNoise_cpp
 
+#include <algorithm>
 #include <filesystem>
 #include <GlidePlaneNoise.h>
 
@@ -62,7 +63,19 @@ namespace model
                 }
                 if(type=="MDStackingFaultNoise")
                 {
+                    // parse the absolute paths of the correlation files based on the relative paths declared in the noise txt files
+                    const std::string correlationFile_stackingFault(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile",true)));
 
+                    // option to transform the basis of the system
+                    // use this option when your MD system is non-orthogonal
+                    const int transformBasis(parser.readScalar<int>("transformBasis",true));      // spreading length for stresses [AA]
+
+                    const auto success(stackingFaultNoise().emplace(tag,new MDStackingFaultNoise(mat,tag,correlationFile_stackingFault,transformBasis,seed,gridSize,gridSpacing)));
+
+                    if(!success.second)
+                    {
+                        throw std::runtime_error("Could not insert noise "+tag);
+                    }
                 }
                 if(type=="MDShortRangeOrderNoise")
                 {
@@ -77,18 +90,17 @@ namespace model
             pair.second->computeRealNoise();
             pair.second->computeRealNoiseStatistics(mat);
         }
-        
+
         for(auto& pair : stackingFaultNoise())
         {
             pair.second->computeRealNoise();
             pair.second->computeRealNoiseStatistics(mat);
         }
-        
+
     }
 
     std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos) const
     {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
-        
         double effsolNoiseXZ(0.0);
         double effsolNoiseYZ(0.0);
         for(const auto& noise : solidSolutionNoise())
@@ -101,11 +113,23 @@ namespace model
                 effsolNoiseYZ+=noise.second->operator[](storageID)(1)*idxAndWeights.second[p];
             }
         }
-        
+
         double effsfNoise(0.0);
         for(const auto& noise : stackingFaultNoise())
         {
-            const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
+            // ugly dyanamic cast.. what is the solution?
+            const auto sfNoiseMembers = std::dynamic_pointer_cast<MDStackingFaultNoise>(noise.second);
+            const int transformBasis = sfNoiseMembers->transformBasis;
+            //if (transformBasis)
+            //{
+            //   const Eigen::Matrix<double,2,2> invTransitionMatrix = noise.second->initInvTransitionMatrix();
+            //   // tranform orthogonal basis to non-orthogonal
+            //   const Eigen::Matrix<double,2,1> localPosT = invTransitionMatrix*localPos;
+            //}
+
+            //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
+            const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(transformBasis ? noise.second->initInvTransitionMatrix()*localPos : localPos));
+
             for(size_t p=0;p<idxAndWeights.first.size();++p)
             {
                 const int storageID(noise.second->storageIndex(idxAndWeights.first[p](0),idxAndWeights.first[p](1)));

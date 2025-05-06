@@ -231,6 +231,14 @@ namespace model
         std::cout<<"noiseAverage="<<ave*mat.mu_SI<<" [Pa]"<<std::endl;
         std::cout<<"noiseVariance="<<var*std::pow(mat.mu_SI,2)<<" [Pa^2]"<<std::endl;
     }
+
+    // specialization for N=1
+    template <>
+    Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<1>::initInvTransitionMatrix() const
+    {
+        const Eigen::Matrix<double,2,2> invTransitionMat(invTransitionMatrix());
+        return invTransitionMat;
+    }
         
         //    void AnalyticalSolidSolutionNoise::Write_field_slice(REAL_SCALAR *F, const char *fname)
         //    {

@@ -17,6 +17,7 @@
 #include <PolycrystallineMaterialBase.h>
 #include <AnalyticalSolidSolutionNoise.h>
 #include <MDSolidSolutionNoise.h>
+#include <MDStackingFaultNoise.h>
 
 namespace model
 {

@@ -131,15 +131,15 @@ namespace model
         return temp;
     }
 
-    void MDSolidSolutionNoise::SolidSolutionCorrelationReader(const std::string& correlationFile, REAL_SCALAR *Rr_xz)
+    void MDSolidSolutionNoise::SolidSolutionCorrelationReader(const std::string& correlationFile, REAL_SCALAR *Rr)
     {
-        std::cout << "Reading solid solution correlation (xz)" << std::endl;
+        std::cout << "Reading solid solution correlation" << std::endl;
         
         std::ifstream vtkFile(correlationFile); //access vtk file
         // error check
         if (!vtkFile.is_open())
         {
-            throw std::runtime_error("Error opening solid solution VTK Sxz correlation file!");
+            throw std::runtime_error("Error opening solid solution VTK correlation file!");
         }
         
         std::string line;
@@ -163,7 +163,25 @@ namespace model
                         continue;
                     const int ind = n-numOfHeaders;
                     //correlationCoeffs.push_back(std::atoi(line.c_str()));
-                    Rr_xz[ind] = std::atof(line.c_str());
+                    Rr[ind] = std::atof(line.c_str());
+                    //if (ind >= NR) 
+                    //{
+                    //  throw std::runtime_error("Index out of bounds while populating the original correlation array.");
+                    //}
+
+                    //try
+                    //{
+                    //  double value = std::stod(line);
+                    //  Rr[ind] = value;
+                    //}
+                    //catch(const std::invalid_argument& e) 
+                    //{
+                    //  std::cerr << "Invalid correlation data in line: " << line << std::endl;
+                    //}
+                    //catch(const std::out_of_range& e)
+                    //{
+                    //  std::cerr << "Out of range correlation value in line: " << line << std::endl;
+                    //}
                 }
             }
         }
