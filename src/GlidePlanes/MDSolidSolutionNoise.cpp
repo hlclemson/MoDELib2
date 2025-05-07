@@ -85,7 +85,8 @@ namespace model
                 Rr_yz[(start_y + i) * this->NX + (start_x + j)] = Rr_yz_original[i * originalNX + j];
             }
         }
-                
+        
+        // redefinition of fftw plan, I think this is a bug...
         plan_R_xz_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr_xz_original, reinterpret_cast<fftw_complex*>(Rk_xz), FFTW_ESTIMATE);
         plan_R_yz_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr_yz_original, reinterpret_cast<fftw_complex*>(Rk_yz), FFTW_ESTIMATE);
                 
@@ -208,7 +209,5 @@ namespace model
         fscanf(InFile, "%s %d %d %d\n", line, &(NXX), &(NYY), &(NZZ));
         return (GridSizeType()<<NXX,NYY,NZZ).finished();
     }
-
-    Eigen::Matrix<double,2,2> test(){return Eigen::Matrix2d::Identity();};
 }
 #endif

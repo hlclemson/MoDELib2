@@ -30,22 +30,20 @@ namespace model
         typedef typename NoiseTraits<1>::NoiseContainerType NoiseContainerType;
 
         COMPLEX *Rk;
-        const int transformBasis;
         const std::string correlationFile;
 
         MDStackingFaultNoise(const PolycrystallineMaterialBase& mat,
                              const std::string &tag,
-                             const std::string &correlationFile,
-                             const int &transformBasis_in,
+                             const std::string &correlationFile_in,
                              const int &seed,
                              const GridSizeType &gridSize,
                              const GridSpacingType &gridSpacing);
 
-        std::array<COMPLEX,1> kCorrelations(const Eigen::Matrix<double, 3, 1> &kv, const Eigen::Matrix<int, 3, 1> &kvID) const override;
+        std::array<COMPLEX,1> kCorrelations(const Eigen::Matrix<double, 3, 1> &kv, const Eigen::Matrix<int, 3, 1> &index) const override;
         //Eigen::Matrix<double,2,2> invTransitionMatrix() const;
         Eigen::Matrix<double,2,2> nonOrthogonalBasisReader(const std::string& fileName_vtk) const;
         GridSizeType readVTKfileDimension(const char *fname);
-        void StackingFaultCorrelationReader(const std::string &fileName_vtk, REAL_SCALAR *Rr_xy);
+        void StackingFaultCorrelationReader(const std::string &fileName_vtk, REAL_SCALAR *Rr);
         //int testVec() const override;
         //Eigen::Matrix<double,2,2> nonOrthogonalBasis() const override;
         //Eigen::Matrix<double,2,2> invTransitionMatrix() const override;

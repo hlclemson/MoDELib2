@@ -70,9 +70,13 @@ namespace model
                     const int transformBasis(parser.readScalar<int>("transformBasis",true));
 
                     // Create the noise object
+                    //auto noisePtr = std::make_shared<MDStackingFaultNoise>(
+                    //    mat, tag, correlationFile_stackingFault, transformBasis, seed, gridSize, gridSpacing
+                    //);
                     auto noisePtr = std::make_shared<MDStackingFaultNoise>(
-                        mat, tag, correlationFile_stackingFault, transformBasis, seed, gridSize, gridSpacing
+                        mat, tag, correlationFile_stackingFault, seed, gridSize, gridSpacing
                     );
+
                     //Extract and store specific data
                     //noiseDataCache_.emplace(tag, noisePtr->invTransitionMatrix());
                     // first : do you want to transform basis or not?
@@ -105,8 +109,6 @@ namespace model
 
         for(auto& pair : stackingFaultNoise())
         {
-            // added initialize transition matrix before the constructor gets destoryed 
-            //invTransitionMatrix = pair.second->initInvTransitionMatrix();
             pair.second->computeRealNoise();
             pair.second->computeRealNoiseStatistics(mat);
         }
@@ -143,6 +145,8 @@ namespace model
             //}
             const int transformBasis = basisTransformPair_SF.first;
             const Eigen::Matrix<double,2,2> invTransitionMatrix = basisTransformPair_SF.second;
+            std::cout << "invTransitionMatrix" << invTransitionMatrix << std::endl;
+            std::cout << "transformBasis" << transformBasis << std::endl;
 
             //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
             // transform the basis to non-orthogonal if enabled

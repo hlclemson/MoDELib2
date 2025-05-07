@@ -17,25 +17,25 @@ namespace model
 MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& mat,
                                            const std::string &tag,
                                            const std::string &correlationFile_in,
-                                           const int &transformBasis_in,
                                            const int &seed,
                                            const GridSizeType &gridSize,
                                            const GridSpacingType &gridSpacing
                                            ) :
   /* init */ GlidePlaneNoiseBase<1>("MDStackingFaultNoise"+tag,seed,gridSize,gridSpacing)
-  /* init */,transformBasis(transformBasis_in)
   /* init */,correlationFile(correlationFile_in)
 {
-  // fft plans
-  fftw_plan plan_R_xy_r2c;
-
   // allocate correlation array with zero padding in real space
   REAL_SCALAR *Rr = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*this->NR);
 
   // allocate correlation array in fourier space
-  COMPLEX *Rk = (COMPLEX *)fftw_malloc(sizeof(COMPLEX)*this->NK);
+  //COMPLEX *Rk = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*this->NK);
+  Rk = (COMPLEX*) fftw_malloc(sizeof(COMPLEX)*this->NK);
 
+  //fftw_plan plan_R_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr, reinterpret_cast<fftw_complex*>(Rk), FFTW_ESTIMATE);
+  // fft plans
+  //fftw_plan plan_R_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr, reinterpret_cast<fftw_complex*>(Rk), FFTW_ESTIMATE);
   fftw_plan plan_R_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr, reinterpret_cast<fftw_complex*>(Rk), FFTW_ESTIMATE);
+
 
   // read the dimension of the original correlation
   const auto originalDimensions(readVTKfileDimension(correlationFile.c_str()));
@@ -46,13 +46,15 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
       throw std::runtime_error("vtk correlationFiles 'DIMENSIONS' should have 3rd component == 1.");
   }
 
-  std::cout << "original NX = " << originalNX << std::endl;
-  std::cout << "origianl NY = " << originalNY << std::endl;
+  //std::cout << "original NX = " << originalNX << std::endl;
+  //std::cout << "origianl NY = " << originalNY << std::endl;
 
-  REAL_SCALAR *Rr_original = (REAL_SCALAR *)fftw_malloc(sizeof(REAL_SCALAR) * originalNX*originalNY); // correlation in real space
+  REAL_SCALAR *Rr_original = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*originalNX*originalNY); // correlation in real space
 
   // populate Rr_original with the correlation data
   StackingFaultCorrelationReader(correlationFile, Rr_original);
+
+  std::cout << "read sf correlation file." << std::endl;
 
   // initialize with zeros
   for (int i = 0; i < this->NY; ++i)
@@ -75,6 +77,9 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
     }
   }
 
+
+  std::cout << "padded with zeros" << std::endl;
+
   // unit conversion (from J^2/m^4 to unitless)
   for (int i = 0; i < NR; ++i)
   {
@@ -83,10 +88,16 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
     Rr[i] /= (unitconvert*unitconvert);
   }
 
-  plan_R_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr_original, reinterpret_cast<fftw_complex*>(Rk), FFTW_ESTIMATE);
+  std::cout << "convert unit" << std::endl;
+
+  //plan_R_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr_original, reinterpret_cast<fftw_complex*>(Rk), FFTW_ESTIMATE);
+  //plan_R_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr, reinterpret_cast<fftw_complex*>(Rk), FFTW_ESTIMATE);
+  //fftw_plan plan_R_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr, reinterpret_cast<fftw_complex*>(Rk), FFTW_ESTIMATE);
 
   // Execute FFTW plans to populate Rk_xz and Rk_yz
   fftw_execute(plan_R_r2c);
+
+  std::cout << "fftw" << std::endl;
 
   // Normalize the FFT output
   for (int i = 0; i < this->NX; ++i)
@@ -97,6 +108,15 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
       }
   }
 
+  std::cout << "normalize fftw output" << std::endl;
+
+  std::cout << "Rk[0] = " << Rk[0] << std::endl;
+
+  //for (int i=0; i<NK; ++i) 
+  //{
+  //  std::cout << "Rk[i] = " << Rk[i] << std::endl;
+  //}
+
   // correct the standard deviation (this should be done after the noise is sampled and ifft back to real space)
   //const double NRO = static_cast<double>(originalNX)*static_cast<double>(originalNY);
   //for (int i=0; i<NR; ++i) 
@@ -106,10 +126,10 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
 
   // Destroy FFTW plans
   fftw_destroy_plan(plan_R_r2c);
-  
+
   // Free allocated memory
   fftw_free(Rr_original);
-  
+
   // Free allocated memory
   fftw_free(Rr);
 }
@@ -118,8 +138,13 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
 std::array<MDStackingFaultNoise::COMPLEX,1> MDStackingFaultNoise::kCorrelations(const Eigen::Matrix<double, 3, 1> &kv, const Eigen::Matrix<int, 3, 1> &index) const
 {
     std::array<MDStackingFaultNoise::COMPLEX,1> temp;
+    std::cout << "temp " << std::endl;
     int idx=(this->NY/2+1)*NZ*index(0) + index(1)*NZ + index(2);
+    std::cout << "idx = " << idx << std::endl;
+    std::cout << "trying to grep Rk[idx]" << std::endl;
+    std::cout << "Rk[idx]" << Rk[0] << std::endl;
     temp[0] = Rk[idx];
+    std::cout << "correlation " << std::endl;
     return temp;
 }
 

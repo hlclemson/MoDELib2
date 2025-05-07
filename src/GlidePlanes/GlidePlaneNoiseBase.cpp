@@ -166,8 +166,13 @@ namespace model
                     Mk_xz = -Mk_yz;
                 }
                 
+                std::cout << "NZ = " << NZ << std::endl;
                 const double kCorrFactor(NZ>1 ? ((k==0 || k==NZ/2)? 1.0 : 2.0) : ((j==0 || j==NY/2)? 1.0 : 2.0)); // /!\ special case for k=0 and k==NZ/2 because of folding of C2R Fourier transform
+                std::cout << "kCorrFactor =  " << kCorrFactor << std::endl;
+                std::cout << "kv =  " << kv << std::endl;
+                std::cout << "kvID =  " << kvID << std::endl;
                 const auto kCorr(kCorrelations(kv,kvID));
+                std::cout << "kCorr =  " << kvID << std::endl;
                 for(int n=0;n<N;++n)
                 {
                     kNoisyCorrelations[n][ind]=sqrt(kCorr[n]/kCorrFactor)*(Nk_yz+Mk_yz*COMPLEX(0.0,1.0));
