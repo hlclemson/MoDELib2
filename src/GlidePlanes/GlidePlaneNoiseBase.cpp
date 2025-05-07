@@ -233,13 +233,23 @@ namespace model
     }
 
     // specialization for N=1
-    template <>
-    Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<1>::initInvTransitionMatrix() const
-    {
-        const Eigen::Matrix<double,2,2> invTransitionMat(invTransitionMatrix());
-        return invTransitionMat;
-    }
-        
+    //template <>
+    //Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<1>::initInvTransitionMatrix() const
+    // general N dimension
+    //template <int N>
+    //typename Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<N>::InitInvTransitionMatrix()
+    //{
+    //    const Eigen::Matrix<double,2,2> invTransitionMat(invTransitionMatrix());
+    //    return invTransitionMat;
+    //}
+
+    //template <int N>
+    ////Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<N>::invTransitionMatrix() const
+    //void GlidePlaneNoiseBase<N>::invTransitionMatrix() const
+    //{
+    //}
+
+
         //    void AnalyticalSolidSolutionNoise::Write_field_slice(REAL_SCALAR *F, const char *fname)
         //    {
         //        FILE *OutFile=fopen(fname,"w");

@@ -17,7 +17,6 @@ namespace model
 
     GlidePlaneNoise::GlidePlaneNoise(const PolycrystallineMaterialBase& mat)
     {
-        
         const auto noiseFiles(TextFileParser(mat.materialFile).readStringVector("glidePlaneNoise"));
         for(const auto& pair : noiseFiles)
         {
@@ -68,9 +67,22 @@ namespace model
 
                     // option to transform the basis of the system
                     // use this option when your MD system is non-orthogonal
-                    const int transformBasis(parser.readScalar<int>("transformBasis",true));      // spreading length for stresses [AA]
+                    const int transformBasis(parser.readScalar<int>("transformBasis",true));
 
-                    const auto success(stackingFaultNoise().emplace(tag,new MDStackingFaultNoise(mat,tag,correlationFile_stackingFault,transformBasis,seed,gridSize,gridSpacing)));
+                    // Create the noise object
+                    auto noisePtr = std::make_shared<MDStackingFaultNoise>(
+                        mat, tag, correlationFile_stackingFault, transformBasis, seed, gridSize, gridSpacing
+                    );
+                    //Extract and store specific data
+                    //noiseDataCache_.emplace(tag, noisePtr->invTransitionMatrix());
+                    // first : do you want to transform basis or not?
+                    basisTransformPair_SF.first = transformBasis;
+                    // second : inverse transition matrix
+                    basisTransformPair_SF.second = noisePtr->invTransitionMatrix();
+
+                    //const auto success(stackingFaultNoise().emplace(tag,new MDStackingFaultNoise(mat,tag,correlationFile_stackingFault,transformBasis,seed,gridSize,gridSpacing)));
+                    // Insert into the base container
+                    const auto success = stackingFaultNoise().emplace(tag, noisePtr);
 
                     if(!success.second)
                     {
@@ -93,6 +105,8 @@ namespace model
 
         for(auto& pair : stackingFaultNoise())
         {
+            // added initialize transition matrix before the constructor gets destoryed 
+            //invTransitionMatrix = pair.second->initInvTransitionMatrix();
             pair.second->computeRealNoise();
             pair.second->computeRealNoiseStatistics(mat);
         }
@@ -118,17 +132,21 @@ namespace model
         for(const auto& noise : stackingFaultNoise())
         {
             // ugly dyanamic cast.. what is the solution?
-            const auto sfNoiseMembers = std::dynamic_pointer_cast<MDStackingFaultNoise>(noise.second);
-            const int transformBasis = sfNoiseMembers->transformBasis;
+            //const auto sfNoiseMembers = std::dynamic_pointer_cast<MDStackingFaultNoise>(noise.second);
+            //const int transformBasis = sfNoiseMembers->transformBasis;
+            //const int transformBasis = noise.second->getTransformBasisOption();
             //if (transformBasis)
             //{
             //   const Eigen::Matrix<double,2,2> invTransitionMatrix = noise.second->initInvTransitionMatrix();
             //   // tranform orthogonal basis to non-orthogonal
             //   const Eigen::Matrix<double,2,1> localPosT = invTransitionMatrix*localPos;
             //}
+            const int transformBasis = basisTransformPair_SF.first;
+            const Eigen::Matrix<double,2,2> invTransitionMatrix = basisTransformPair_SF.second;
 
             //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
-            const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(transformBasis ? noise.second->initInvTransitionMatrix()*localPos : localPos));
+            // transform the basis to non-orthogonal if enabled
+            const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(transformBasis ? invTransitionMatrix*localPos : localPos));
 
             for(size_t p=0;p<idxAndWeights.first.size();++p)
             {

@@ -209,5 +209,6 @@ namespace model
         return (GridSizeType()<<NXX,NYY,NZZ).finished();
     }
 
+    Eigen::Matrix<double,2,2> test(){return Eigen::Matrix2d::Identity();};
 }
 #endif

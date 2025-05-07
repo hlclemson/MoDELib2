@@ -44,6 +44,7 @@ namespace model
         std::array<COMPLEX,2> kCorrelations(const Eigen::Matrix<double,3,1>& kv,const Eigen::Matrix<int,3,1>& kvID) const override;
         static GridSizeType readVTKfileDimension(const char *fname);
         static void SolidSolutionCorrelationReader(const std::string& correlationFile, REAL_SCALAR *Rr_xz);
+        //test
     };
 
 }

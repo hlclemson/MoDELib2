@@ -125,7 +125,7 @@ std::array<MDStackingFaultNoise::COMPLEX,1> MDStackingFaultNoise::kCorrelations(
 
 //int MDStackingFaultNoise::testVec() const
 //Eigen::Matrix<double,2,2> MDStackingFaultNoise::nonOrthogonalBasis()
-Eigen::Matrix<double,2,2> MDStackingFaultNoise::invTransitionMatrix()
+Eigen::Matrix<double,2,2> MDStackingFaultNoise::invTransitionMatrix() 
 {
     Eigen::Matrix<double,2,2> transitionMatrix = nonOrthogonalBasisReader(correlationFile);
     // Check for singularity before inversion
@@ -142,7 +142,7 @@ Eigen::Matrix<double,2,2> MDStackingFaultNoise::invTransitionMatrix()
     //return nonOrthogonalBasisReader(correlationFile);
 }
 
-Eigen::Matrix<double,2,2> MDStackingFaultNoise::nonOrthogonalBasisReader(const std::string& fileName_vtk)
+Eigen::Matrix<double,2,2> MDStackingFaultNoise::nonOrthogonalBasisReader(const std::string& fileName_vtk) const
 {
     typedef Eigen::Matrix<double,2,1> VectorDimD;
     std::deque<VectorDimD> basis1;
