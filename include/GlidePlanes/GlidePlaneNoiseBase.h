@@ -73,19 +73,12 @@ namespace model
         virtual ~GlidePlaneNoiseBase(){};
         void computeRealNoise();
         void computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const;
+        //void Write_field_slice_MD(REAL_SCALAR *F, const char *fname) const;
         GridSizeType rowAndColIndices(const int& storageIndex) const;
         int storageIndex(const int& i,const int& j) const;
         const NoiseContainerType& noiseVector() const;
         NoiseContainerType& noiseVector();
         virtual std::array<COMPLEX,N> kCorrelations(const Eigen::Matrix<double,3,1>& k,const Eigen::Matrix<int,3,1>& kID) const = 0;
-        //virtual int getTransformBasisOption() const { return 0; }
-        //virtual Eigen::Matrix<double,2,2> getInvTransitionMatrix() const { Eigen::Matrix2d::Identity(); }
-        //virtual int testVec() const;
-        //virtual Eigen::Matrix<double,2,2> invTransitionMatrix() const = 0;
-        //virtual Eigen::Matrix<double,2,2> invTransitionMatrix();
-        //Eigen::Matrix<double,2,2> initInvTransitionMatrix() const;
-        //void invTransitionMatrix() const;
-        //virtual Eigen::Matrix<double,2,2> invTransitionMatrix() const;
     };
 }
 #endif

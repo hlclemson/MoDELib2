@@ -33,23 +33,20 @@ namespace model
         const std::string correlationFile;
 
         MDStackingFaultNoise(const PolycrystallineMaterialBase& mat,
-                             const std::string &tag,
-                             const std::string &correlationFile_in,
-                             const int &seed,
-                             const GridSizeType &gridSize,
-                             const GridSpacingType &gridSpacing);
+                             const std::string& tag,
+                             const std::string& correlationFile_in,
+                             const int& outputNoise,
+                             const std::string& noiseFile,
+                             const int& seed,
+                             const GridSizeType& gridSize,
+                             const GridSpacingType& gridSpacing);
 
         std::array<COMPLEX,1> kCorrelations(const Eigen::Matrix<double, 3, 1> &kv, const Eigen::Matrix<int, 3, 1> &index) const override;
-        //Eigen::Matrix<double,2,2> invTransitionMatrix() const;
-        Eigen::Matrix<double,2,2> nonOrthogonalBasisReader(const std::string& fileName_vtk) const;
-        GridSizeType readVTKfileDimension(const char *fname);
-        void StackingFaultCorrelationReader(const std::string &fileName_vtk, REAL_SCALAR *Rr);
-        //int testVec() const override;
-        //Eigen::Matrix<double,2,2> nonOrthogonalBasis() const override;
-        //Eigen::Matrix<double,2,2> invTransitionMatrix() const override;
         Eigen::Matrix<double,2,2> invTransitionMatrix();
-        //int getTransformBasisOption() const override { return transformBasis; }
-        //Eigen::Matrix<double,2,2> getInvTransitionMatrix() const override { return this->invTransitionMatrix(); }
+        Eigen::Matrix<double,2,2> nonOrthogonalBasisReader(const std::string& fileName_vtk) const;
+        void StackingFaultCorrelationReader(const std::string &fileName_vtk, REAL_SCALAR *Rr, int NR);
+        GridSizeType readVTKfileDimension(const char *fname);
+        void Write_field_slice(COMPLEX *Rk, const int& seed, const int& nx, const int& ny, const int& nz, const int& nk, const int& nr, const int& lx, const int& ly, const int& lz, GridSizeType gridSize, GridSpacingType gridSpacing, const char *fname);
     };
 
 }

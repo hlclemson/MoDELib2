@@ -166,13 +166,8 @@ namespace model
                     Mk_xz = -Mk_yz;
                 }
                 
-                std::cout << "NZ = " << NZ << std::endl;
                 const double kCorrFactor(NZ>1 ? ((k==0 || k==NZ/2)? 1.0 : 2.0) : ((j==0 || j==NY/2)? 1.0 : 2.0)); // /!\ special case for k=0 and k==NZ/2 because of folding of C2R Fourier transform
-                std::cout << "kCorrFactor =  " << kCorrFactor << std::endl;
-                std::cout << "kv =  " << kv << std::endl;
-                std::cout << "kvID =  " << kvID << std::endl;
                 const auto kCorr(kCorrelations(kv,kvID));
-                std::cout << "kCorr =  " << kvID << std::endl;
                 for(int n=0;n<N;++n)
                 {
                     kNoisyCorrelations[n][ind]=sqrt(kCorr[n]/kCorrFactor)*(Nk_yz+Mk_yz*COMPLEX(0.0,1.0));
@@ -185,8 +180,10 @@ namespace model
     for(int n=0;n<N;++n)
     {
         kNoisyCorrelations[n][0]=0;
+        //fftw_plan nPlan = (NZ>1 ? fftw_plan_dft_c2r_3d(NX, NY, NZ, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE)
+        //                        : fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE));
         fftw_plan nPlan = (NZ>1 ? fftw_plan_dft_c2r_3d(NX, NY, NZ, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE)
-                                : fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE));
+                                : fftw_plan_dft_c2r_2d(NY, NX, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE));
         fftw_execute(nPlan);
     }
     
@@ -237,23 +234,37 @@ namespace model
         std::cout<<"noiseVariance="<<var*std::pow(mat.mu_SI,2)<<" [Pa^2]"<<std::endl;
     }
 
-    // specialization for N=1
-    //template <>
-    //Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<1>::initInvTransitionMatrix() const
-    // general N dimension
+    // specialized function for N=1
     //template <int N>
-    //typename Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<N>::InitInvTransitionMatrix()
+    //void GlidePlaneNoiseBase<N>::Write_field_slice_MD(REAL_SCALAR *F, const char *fname) const
     //{
-    //    const Eigen::Matrix<double,2,2> invTransitionMat(invTransitionMatrix());
-    //    return invTransitionMat;
-    //}
+    //    FILE *OutFile=fopen(fname,"w");
 
-    //template <int N>
-    ////Eigen::Matrix<double,2,2> GlidePlaneNoiseBase<N>::invTransitionMatrix() const
-    //void GlidePlaneNoiseBase<N>::invTransitionMatrix() const
-    //{
-    //}
+    //    fprintf(OutFile,"# vtk DataFile Version 2.0\n");
+    //    fprintf(OutFile,"iter %d\n",0);
+    //    fprintf(OutFile,"BINARY\n");
+    //    fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
+    //    fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
+    //    fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
+    //    fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
+    //    fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
+    //    fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
+    //    fprintf(OutFile,"LOOKUP_TABLE \t default\n");
 
+    //    for(int i=0;i<NX;i++)
+    //    {
+    //        for(int j=0;j<NY;j++)
+    //        {
+    //            const int k=0;
+    //            const int ind = NY*NZ*i + j*NZ + k;
+    //            const double temp=noiseVector()[ind];
+    //            //const double temp=NoiseTraitsBase::ReverseDouble(double(F[ind]));
+    //            fwrite(&temp, sizeof(double), 1, OutFile);
+    //        }
+    //    }
+
+    //    fclose(OutFile);
+    //}
 
         //    void AnalyticalSolidSolutionNoise::Write_field_slice(REAL_SCALAR *F, const char *fname)
         //    {

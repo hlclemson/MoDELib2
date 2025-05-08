@@ -53,7 +53,14 @@ namespace model
                     const std::string correlationFile_L(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_L",true)));
                     const std::string correlationFile_T(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_T",true)));
 
-                    const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_L,correlationFile_T,seed,gridSize,gridSpacing,a_Cai)));
+                    // option to print sampled noise (1: output noise patch, 0: don't)
+                    const int outputNoise(parser.readScalar<int>("outputNoise",true));
+
+                    // output noise file names
+                    const std::string noiseFile_L(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("noiseFile_L",true)));
+                    const std::string noiseFile_T(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("noiseFile_T",true)));
+
+                    const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_L,correlationFile_T,outputNoise,noiseFile_L,noiseFile_T,seed,gridSize,gridSpacing,a_Cai)));
                     // std::cout<<"MDSolidSolutionNoise inserted"<<std::endl;
                     if(!success.second)
                     {
@@ -69,16 +76,18 @@ namespace model
                     // use this option when your MD system is non-orthogonal
                     const int transformBasis(parser.readScalar<int>("transformBasis",true));
 
+                    // option to print sampled noise (1: output noise patch, 0: don't)
+                    const int outputNoise(parser.readScalar<int>("outputNoise",true));
+
+                    // output noise file name
+                    const std::string noiseFile(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("noiseFile",true)));
+
                     // Create the noise object
-                    //auto noisePtr = std::make_shared<MDStackingFaultNoise>(
-                    //    mat, tag, correlationFile_stackingFault, transformBasis, seed, gridSize, gridSpacing
-                    //);
                     auto noisePtr = std::make_shared<MDStackingFaultNoise>(
-                        mat, tag, correlationFile_stackingFault, seed, gridSize, gridSpacing
+                        mat, tag, correlationFile_stackingFault, outputNoise, noiseFile, seed, gridSize, gridSpacing
                     );
 
                     //Extract and store specific data
-                    //noiseDataCache_.emplace(tag, noisePtr->invTransitionMatrix());
                     // first : do you want to transform basis or not?
                     basisTransformPair_SF.first = transformBasis;
                     // second : inverse transition matrix
@@ -133,20 +142,8 @@ namespace model
         double effsfNoise(0.0);
         for(const auto& noise : stackingFaultNoise())
         {
-            // ugly dyanamic cast.. what is the solution?
-            //const auto sfNoiseMembers = std::dynamic_pointer_cast<MDStackingFaultNoise>(noise.second);
-            //const int transformBasis = sfNoiseMembers->transformBasis;
-            //const int transformBasis = noise.second->getTransformBasisOption();
-            //if (transformBasis)
-            //{
-            //   const Eigen::Matrix<double,2,2> invTransitionMatrix = noise.second->initInvTransitionMatrix();
-            //   // tranform orthogonal basis to non-orthogonal
-            //   const Eigen::Matrix<double,2,1> localPosT = invTransitionMatrix*localPos;
-            //}
             const int transformBasis = basisTransformPair_SF.first;
             const Eigen::Matrix<double,2,2> invTransitionMatrix = basisTransformPair_SF.second;
-            std::cout << "invTransitionMatrix" << invTransitionMatrix << std::endl;
-            std::cout << "transformBasis" << transformBasis << std::endl;
 
             //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
             // transform the basis to non-orthogonal if enabled

@@ -1,0 +1,9 @@
+type=MDStackingFaultNoise;
+tag=1;
+seed=2;
+transformBasis=1;
+correlationFile=AlMg5_Cx_R100_ISF.vtk;
+gridSize=100 100 1; # number of grid points in each direction
+gridSpacing_SI=1e-10 1e-10 1e-10; # grid spacing in each direction
+outputNoise=1;
+noiseFile=AlMg5_ISF.vtk;
