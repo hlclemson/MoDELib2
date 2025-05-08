@@ -40,16 +40,10 @@ namespace model
                              const GridSpacingType &gridSpacing);
 
         std::array<COMPLEX,1> kCorrelations(const Eigen::Matrix<double, 3, 1> &kv, const Eigen::Matrix<int, 3, 1> &index) const override;
-        //Eigen::Matrix<double,2,2> invTransitionMatrix() const;
         Eigen::Matrix<double,2,2> nonOrthogonalBasisReader(const std::string& fileName_vtk) const;
         GridSizeType readVTKfileDimension(const char *fname);
-        void StackingFaultCorrelationReader(const std::string &fileName_vtk, REAL_SCALAR *Rr);
-        //int testVec() const override;
-        //Eigen::Matrix<double,2,2> nonOrthogonalBasis() const override;
-        //Eigen::Matrix<double,2,2> invTransitionMatrix() const override;
+        void StackingFaultCorrelationReader(const std::string &fileName_vtk, REAL_SCALAR *Rr, int NR);
         Eigen::Matrix<double,2,2> invTransitionMatrix();
-        //int getTransformBasisOption() const override { return transformBasis; }
-        //Eigen::Matrix<double,2,2> getInvTransitionMatrix() const override { return this->invTransitionMatrix(); }
     };
 
 }

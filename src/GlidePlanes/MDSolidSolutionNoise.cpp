@@ -53,8 +53,8 @@ namespace model
         REAL_SCALAR *Rr_yz_original = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*originalNX*originalNY); //correlation in real space
                 
         // populate Rr_xy_original with the correlation data
-        SolidSolutionCorrelationReader(correlationFile_L, Rr_xz_original);
-        SolidSolutionCorrelationReader(correlationFile_T, Rr_yz_original);
+        SolidSolutionCorrelationReader(correlationFile_L, Rr_xz_original, this->NR);
+        SolidSolutionCorrelationReader(correlationFile_T, Rr_yz_original, this->NR);
                 
         // Divide the values in Rr_xz_original and Rr_yz_original by mat.mu^2
         for (int i = 0; i < originalNX * originalNY; ++i)
@@ -85,10 +85,6 @@ namespace model
                 Rr_yz[(start_y + i) * this->NX + (start_x + j)] = Rr_yz_original[i * originalNX + j];
             }
         }
-        
-        // redefinition of fftw plan, I think this is a bug...
-        plan_R_xz_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr_xz_original, reinterpret_cast<fftw_complex*>(Rk_xz), FFTW_ESTIMATE);
-        plan_R_yz_r2c = fftw_plan_dft_r2c_2d(this->NY, this->NX, Rr_yz_original, reinterpret_cast<fftw_complex*>(Rk_yz), FFTW_ESTIMATE);
                 
         // Execute FFTW plans to populate Rk_xz and Rk_yz
         fftw_execute(plan_R_xz_r2c);
@@ -132,7 +128,7 @@ namespace model
         return temp;
     }
 
-    void MDSolidSolutionNoise::SolidSolutionCorrelationReader(const std::string& correlationFile, REAL_SCALAR *Rr)
+    void MDSolidSolutionNoise::SolidSolutionCorrelationReader(const std::string& correlationFile, REAL_SCALAR *Rr, int NR)
     {
         std::cout << "Reading solid solution correlation" << std::endl;
         
@@ -153,8 +149,6 @@ namespace model
                 // get the number of points in the file
                 const size_t firstSpace(line.find(' '));
                 const size_t numOfPoints = std::atoi(line.substr(firstSpace+1).c_str());
-                std::cout << "Number of points: " << numOfPoints << std::endl;
-                
                 // read the point coordinates
                 for(size_t n=0; n<numOfPoints+numOfHeaders; ++n)
                 {
@@ -163,26 +157,26 @@ namespace model
                     if(n<numOfHeaders)
                         continue;
                     const int ind = n-numOfHeaders;
-                    //correlationCoeffs.push_back(std::atoi(line.c_str()));
-                    Rr[ind] = std::atof(line.c_str());
-                    //if (ind >= NR) 
-                    //{
-                    //  throw std::runtime_error("Index out of bounds while populating the original correlation array.");
-                    //}
 
-                    //try
-                    //{
-                    //  double value = std::stod(line);
-                    //  Rr[ind] = value;
-                    //}
-                    //catch(const std::invalid_argument& e) 
-                    //{
-                    //  std::cerr << "Invalid correlation data in line: " << line << std::endl;
-                    //}
-                    //catch(const std::out_of_range& e)
-                    //{
-                    //  std::cerr << "Out of range correlation value in line: " << line << std::endl;
-                    //}
+                    //Rr[ind] = std::atof(line.c_str());
+                    if (ind >= NR)
+                    {
+                      throw std::runtime_error("Index out of bounds while populating the original correlation array.");
+                    }
+
+                    try
+                    {
+                      double value = std::stod(line);
+                      Rr[ind] = value;
+                    }
+                    catch(const std::invalid_argument& e) 
+                    {
+                      std::cerr << "Invalid correlation data in line: " << line << std::endl;
+                    }
+                    catch(const std::out_of_range& e)
+                    {
+                      std::cerr << "Out of range correlation value in line: " << line << std::endl;
+                    }
                 }
             }
         }

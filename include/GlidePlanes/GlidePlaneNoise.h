@@ -41,7 +41,6 @@ namespace model
         // added for basis transformation
         private:
           std::pair<int, Eigen::Matrix2d> basisTransformPair_SF;
-          //std::map<std::string, Eigen::Matrix<double,2,2>> noiseDataCache_;
     };
 
 }
