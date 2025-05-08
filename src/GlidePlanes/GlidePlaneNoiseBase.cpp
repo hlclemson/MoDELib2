@@ -180,8 +180,10 @@ namespace model
     for(int n=0;n<N;++n)
     {
         kNoisyCorrelations[n][0]=0;
+        //fftw_plan nPlan = (NZ>1 ? fftw_plan_dft_c2r_3d(NX, NY, NZ, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE)
+        //                        : fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE));
         fftw_plan nPlan = (NZ>1 ? fftw_plan_dft_c2r_3d(NX, NY, NZ, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE)
-                                : fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE));
+                                : fftw_plan_dft_c2r_2d(NY, NX, reinterpret_cast<fftw_complex*>(kNoisyCorrelations[n]), rNoisyCorrelations[n], FFTW_ESTIMATE));
         fftw_execute(nPlan);
     }
     
@@ -231,6 +233,38 @@ namespace model
         std::cout<<"noiseAverage="<<ave*mat.mu_SI<<" [Pa]"<<std::endl;
         std::cout<<"noiseVariance="<<var*std::pow(mat.mu_SI,2)<<" [Pa^2]"<<std::endl;
     }
+
+    // specialized function for N=1
+    //template <int N>
+    //void GlidePlaneNoiseBase<N>::Write_field_slice_MD(REAL_SCALAR *F, const char *fname) const
+    //{
+    //    FILE *OutFile=fopen(fname,"w");
+
+    //    fprintf(OutFile,"# vtk DataFile Version 2.0\n");
+    //    fprintf(OutFile,"iter %d\n",0);
+    //    fprintf(OutFile,"BINARY\n");
+    //    fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
+    //    fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
+    //    fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
+    //    fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
+    //    fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
+    //    fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
+    //    fprintf(OutFile,"LOOKUP_TABLE \t default\n");
+
+    //    for(int i=0;i<NX;i++)
+    //    {
+    //        for(int j=0;j<NY;j++)
+    //        {
+    //            const int k=0;
+    //            const int ind = NY*NZ*i + j*NZ + k;
+    //            const double temp=noiseVector()[ind];
+    //            //const double temp=NoiseTraitsBase::ReverseDouble(double(F[ind]));
+    //            fwrite(&temp, sizeof(double), 1, OutFile);
+    //        }
+    //    }
+
+    //    fclose(OutFile);
+    //}
 
         //    void AnalyticalSolidSolutionNoise::Write_field_slice(REAL_SCALAR *F, const char *fname)
         //    {

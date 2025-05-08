@@ -15,11 +15,13 @@ namespace model
 {
 
 MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& mat,
-                                           const std::string &tag,
-                                           const std::string &correlationFile_in,
-                                           const int &seed,
-                                           const GridSizeType &gridSize,
-                                           const GridSpacingType &gridSpacing
+                                           const std::string& tag,
+                                           const std::string& correlationFile_in,
+                                           const int& outputNoise,
+                                           const std::string& noiseFile,
+                                           const int& seed,
+                                           const GridSizeType& gridSize,
+                                           const GridSpacingType& gridSpacing
                                            ) :
   /* init */ GlidePlaneNoiseBase<1>("MDStackingFaultNoise"+tag,seed,gridSize,gridSpacing)
   /* init */,correlationFile(correlationFile_in)
@@ -38,9 +40,6 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
   {
       throw std::runtime_error("vtk correlationFiles 'DIMENSIONS' should have 3rd component == 1.");
   }
-
-  //std::cout << "original NX = " << originalNX << std::endl;
-  //std::cout << "origianl NY = " << originalNY << std::endl;
 
   REAL_SCALAR *Rr_original = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*originalNX*originalNY); // correlation in real space
 
@@ -88,6 +87,9 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
           Rk[i * (this->NY/2 + 1) + j] /= (this->NX * this->NY);
       }
   }
+
+  // noise output for debugging
+  if (outputNoise) { Write_field_slice(Rk, seed, this->NX, this->NY, this->NZ, this->NK, this->NR, this->LX, this->LY, this->LZ, gridSize, gridSpacing, noiseFile.c_str()); };
 
   // Destroy FFTW plans
   fftw_destroy_plan(plan_R_r2c);
@@ -242,6 +244,93 @@ typename MDStackingFaultNoise::GridSizeType MDStackingFaultNoise::readVTKfileDim
     int NXX, NYY, NZZ;
     fscanf(InFile, "%s %d %d %d\n", line, &(NXX), &(NYY), &(NZZ));
     return (GridSizeType()<<NXX,NYY,NZZ).finished();
+}
+
+void MDStackingFaultNoise::Write_field_slice(MDStackingFaultNoise::COMPLEX *Rk, 
+                                             const int& seed,
+                                             const int& nx,
+                                             const int& ny,
+                                             const int& nz,
+                                             const int& nk,
+                                             const int& nr,
+                                             const int& lx,
+                                             const int& ly,
+                                             const int& lz,
+                                             MDStackingFaultNoise::GridSizeType gridSize,
+                                             MDStackingFaultNoise::GridSpacingType gridSpacing,
+                                             const char *fname)
+{
+    const float dx = gridSpacing(0);
+    const float dy = gridSpacing(1);
+    const float dz = gridSpacing(2);
+    FILE *OutFile=fopen(fname,"w");
+
+    MDStackingFaultNoise::COMPLEX* kNoisyCorrelations = (MDStackingFaultNoise::COMPLEX*) fftw_malloc(sizeof(MDStackingFaultNoise::COMPLEX)*nk);
+    MDStackingFaultNoise::REAL_SCALAR* rNoisyCorrelations = (MDStackingFaultNoise::REAL_SCALAR*) fftw_malloc(sizeof(MDStackingFaultNoise::REAL_SCALAR)*nr);
+    
+    const int J_MAX = ny/2 + 1;
+    const int K_MAX = 1;
+
+    std::default_random_engine generator(seed);
+    std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
+    for(int i=0; i<nx; i++)
+    {
+        for(int j=0; j<J_MAX; j++)
+        {
+            for(int k=0; k<K_MAX; k++)
+            {
+                const int ind = J_MAX*K_MAX*i + j*K_MAX + k;
+
+                REAL_SCALAR kx = 2.*M_PI/lx*REAL_SCALAR(i);
+                if(i>nx/2)
+                {
+                    kx = 2.*M_PI/lx*REAL_SCALAR(i-nx);
+                }
+                
+                REAL_SCALAR ky = 2*M_PI/ly*REAL_SCALAR(j);
+                if(j>ny/2)
+                {
+                    ky = 2.*M_PI/ly*REAL_SCALAR(j-ny);
+                }
+                
+                REAL_SCALAR kz = 2.*M_PI/lz*REAL_SCALAR(k);
+                
+                // random numbers
+                REAL_SCALAR Nk = distribution(generator);
+                REAL_SCALAR Mk = distribution(generator);
+                
+                const double kCorrFactor((j==0 || j==ny/2)? 1.0 : 2.0); // /!\ special case for k=0 and k==NZ/2 because of folding of C2R Fourier transform
+                kNoisyCorrelations[ind]=sqrt(Rk[ind]/kCorrFactor)*(Nk+Mk*COMPLEX(0.0,1.0));
+            }
+        }
+    }
+
+    fftw_plan nPlan = fftw_plan_dft_c2r_2d(ny, nx, reinterpret_cast<fftw_complex*>(kNoisyCorrelations), rNoisyCorrelations, FFTW_ESTIMATE);
+    fftw_execute(nPlan);
+
+    fprintf(OutFile,"# vtk DataFile Version 2.0\n");
+    fprintf(OutFile,"iter %d\n",0);
+    fprintf(OutFile,"BINARY\n");
+    fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
+    fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
+    fprintf(OutFile,"SPACING \t %f %f %f\n", dx, dy, dz);
+    fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", nx, ny, 1);
+    fprintf(OutFile,"POINT_DATA \t %d\n",nx*ny);
+    fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
+    fprintf(OutFile,"LOOKUP_TABLE \t default\n");
+
+    for(int i=0;i<nx;i++)
+    {
+        for(int j=0;j<ny;j++)
+        {
+            const int k=0;
+            const int ind = ny*nz*i + j*nz + k;
+            //const double temp=NoiseTraitsBase::ReverseDouble(double(F[ind]));
+            const double temp=NoiseTraitsBase::ReverseDouble(double(rNoisyCorrelations[ind]));
+            fwrite(&temp, sizeof(double), 1, OutFile);
+        }
+    }
+    fclose(OutFile);
 }
 
 }

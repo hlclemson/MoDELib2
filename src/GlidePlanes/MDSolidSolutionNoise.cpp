@@ -17,6 +17,9 @@ namespace model
                                                const std::string& tag,
                                                const std::string& correlationFile_L,
                                                const std::string& correlationFile_T,
+                                               const int& outputNoise,
+                                               const std::string& noiseFile_L,
+                                               const std::string& noiseFile_T,
                                                const int& seed,
                                                const GridSizeType& gridSize,
                                                const GridSpacingType& gridSpacing,
@@ -99,6 +102,9 @@ namespace model
                 Rk_yz[i * (this->NY/2 + 1) + j] /= (this->NX * this->NY);
             }
         }
+
+        // noise output for debugging
+        if (outputNoise) { Write_field_slice(Rk_xz, Rk_yz, seed, this->NX, this->NY, this->NZ, this->NK, this->NR, this->LX, this->LY, this->LZ, gridSize, gridSpacing, noiseFile_L.c_str(), noiseFile_T.c_str()); };
         
         // Destroy FFTW plans
         fftw_destroy_plan(plan_R_xz_r2c);
@@ -202,6 +208,137 @@ namespace model
         int NXX, NYY, NZZ;
         fscanf(InFile, "%s %d %d %d\n", line, &(NXX), &(NYY), &(NZZ));
         return (GridSizeType()<<NXX,NYY,NZZ).finished();
+    }
+
+    void MDSolidSolutionNoise::Write_field_slice(MDSolidSolutionNoise::COMPLEX *Rk_xz, 
+                                                 MDSolidSolutionNoise::COMPLEX *Rk_yz,  
+                                                 const int& seed,
+                                                 const int& nx,
+                                                 const int& ny,
+                                                 const int& nz,
+                                                 const int& nk,
+                                                 const int& nr,
+                                                 const int& lx,
+                                                 const int& ly,
+                                                 const int& lz,
+                                                 MDSolidSolutionNoise::GridSizeType gridSize,
+                                                 MDSolidSolutionNoise::GridSpacingType gridSpacing,
+                                                 const char *fname_xz,
+                                                 const char *fname_yz)
+    {
+        const float dx = gridSpacing(0);
+        const float dy = gridSpacing(1);
+        const float dz = gridSpacing(2);
+        FILE *OutFile_xz=fopen(fname_xz,"w");
+        FILE *OutFile_yz=fopen(fname_yz,"w");
+
+        MDSolidSolutionNoise::COMPLEX* kNoisyCorrelations_xz = (MDSolidSolutionNoise::COMPLEX*) fftw_malloc(sizeof(MDSolidSolutionNoise::COMPLEX)*nk);
+        MDSolidSolutionNoise::COMPLEX* kNoisyCorrelations_yz = (MDSolidSolutionNoise::COMPLEX*) fftw_malloc(sizeof(MDSolidSolutionNoise::COMPLEX)*nk);
+        MDSolidSolutionNoise::REAL_SCALAR* rNoisyCorrelations_xz = (MDSolidSolutionNoise::REAL_SCALAR*) fftw_malloc(sizeof(MDSolidSolutionNoise::REAL_SCALAR)*nr);
+        MDSolidSolutionNoise::REAL_SCALAR* rNoisyCorrelations_yz = (MDSolidSolutionNoise::REAL_SCALAR*) fftw_malloc(sizeof(MDSolidSolutionNoise::REAL_SCALAR)*nr);
+        
+        const int J_MAX = ny/2 + 1;
+        const int K_MAX = 1;
+
+        std::default_random_engine generator(seed);
+        std::normal_distribution<REAL_SCALAR> distribution(0.0,1.0);
+        for(int i=0; i<nx; i++)
+        {
+            for(int j=0; j<J_MAX; j++)
+            {
+                for(int k=0; k<K_MAX; k++)
+                {
+                    const int ind = J_MAX*K_MAX*i + j*K_MAX + k;
+
+                    REAL_SCALAR kx = 2.*M_PI/lx*REAL_SCALAR(i);
+                    if(i>nx/2)
+                    {
+                        kx = 2.*M_PI/lx*REAL_SCALAR(i-nx);
+                    }
+                    
+                    REAL_SCALAR ky = 2*M_PI/ly*REAL_SCALAR(j);
+                    if(j>ny/2)
+                    {
+                        ky = 2.*M_PI/ly*REAL_SCALAR(j-ny);
+                    }
+                    
+                    REAL_SCALAR kz = 2.*M_PI/lz*REAL_SCALAR(k);
+                    
+                    // random numbers
+                    REAL_SCALAR Nk_yz = distribution(generator);
+                    REAL_SCALAR Mk_yz = distribution(generator);
+                    REAL_SCALAR Nk_xz, Mk_xz;
+                    if(kx*ky>=0)
+                    {
+                        Nk_xz = Nk_yz;
+                        Mk_xz = Mk_yz;
+                    }
+                    else
+                    {
+                        Nk_xz = -Nk_yz;
+                        Mk_xz = -Mk_yz;
+                    }
+                    
+                    const double kCorrFactor((j==0 || j==ny/2)? 1.0 : 2.0); // /!\ special case for k=0 and k==NZ/2 because of folding of C2R Fourier transform
+                    kNoisyCorrelations_xz[ind]=sqrt(Rk_xz[ind]/kCorrFactor)*(Nk_xz+Mk_xz*COMPLEX(0.0,1.0));
+                    kNoisyCorrelations_yz[ind]=sqrt(Rk_yz[ind]/kCorrFactor)*(Nk_yz+Mk_yz*COMPLEX(0.0,1.0));
+                }
+            }
+        }
+
+
+        fftw_plan nPlan_xz = fftw_plan_dft_c2r_2d(ny, nx, reinterpret_cast<fftw_complex*>(kNoisyCorrelations_xz), rNoisyCorrelations_xz, FFTW_ESTIMATE);
+        fftw_plan nPlan_yz = fftw_plan_dft_c2r_2d(ny, nx, reinterpret_cast<fftw_complex*>(kNoisyCorrelations_yz), rNoisyCorrelations_yz, FFTW_ESTIMATE);
+        fftw_execute(nPlan_xz);
+        fftw_execute(nPlan_yz);
+
+        fprintf(OutFile_xz,"# vtk DataFile Version 2.0\n");
+        fprintf(OutFile_xz,"iter %d\n",0);
+        fprintf(OutFile_xz,"BINARY\n");
+        fprintf(OutFile_xz,"DATASET STRUCTURED_POINTS\n");
+        fprintf(OutFile_xz,"ORIGIN \t %f %f %f\n",0.,0.,0.);
+        fprintf(OutFile_xz,"SPACING \t %f %f %f\n", dx, dy, dz);
+        fprintf(OutFile_xz,"DIMENSIONS \t %d %d %d\n", nx, ny, 1);
+        fprintf(OutFile_xz,"POINT_DATA \t %d\n",nx*ny);
+        fprintf(OutFile_xz,"SCALARS \t volume_scalars double 1\n");
+        fprintf(OutFile_xz,"LOOKUP_TABLE \t default\n");
+
+        for(int i=0;i<nx;i++)
+        {
+            for(int j=0;j<ny;j++)
+            {
+                const int k=0;
+                const int ind = ny*nz*i + j*nz + k;
+                //const double temp=NoiseTraitsBase::ReverseDouble(double(F[ind]));
+                const double temp=NoiseTraitsBase::ReverseDouble(double(rNoisyCorrelations_xz[ind]));
+                fwrite(&temp, sizeof(double), 1, OutFile_xz);
+            }
+        }
+        fclose(OutFile_xz);
+
+        fprintf(OutFile_yz,"# vtk DataFile Version 2.0\n");
+        fprintf(OutFile_yz,"iter %d\n",0);
+        fprintf(OutFile_yz,"BINARY\n");
+        fprintf(OutFile_yz,"DATASET STRUCTURED_POINTS\n");
+        fprintf(OutFile_yz,"ORIGIN \t %f %f %f\n",0.,0.,0.);
+        fprintf(OutFile_yz,"SPACING \t %f %f %f\n", dx, dy, dz);
+        fprintf(OutFile_yz,"DIMENSIONS \t %d %d %d\n", nx, ny, 1);
+        fprintf(OutFile_yz,"POINT_DATA \t %d\n",nx*ny);
+        fprintf(OutFile_yz,"SCALARS \t volume_scalars double 1\n");
+        fprintf(OutFile_yz,"LOOKUP_TABLE \t default\n");
+
+        for(int i=0;i<nx;i++)
+        {
+            for(int j=0;j<ny;j++)
+            {
+                const int k=0;
+                const int ind = ny*nz*i + j*nz + k;
+                //const double temp=NoiseTraitsBase::ReverseDouble(double(F[ind]));
+                const double temp=NoiseTraitsBase::ReverseDouble(double(rNoisyCorrelations_yz[ind]));
+                fwrite(&temp, sizeof(double), 1, OutFile_yz);
+            }
+        }
+        fclose(OutFile_yz);
     }
 }
 #endif

@@ -73,6 +73,7 @@ namespace model
         virtual ~GlidePlaneNoiseBase(){};
         void computeRealNoise();
         void computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const;
+        //void Write_field_slice_MD(REAL_SCALAR *F, const char *fname) const;
         GridSizeType rowAndColIndices(const int& storageIndex) const;
         int storageIndex(const int& i,const int& j) const;
         const NoiseContainerType& noiseVector() const;
