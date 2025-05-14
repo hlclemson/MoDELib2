@@ -42,10 +42,7 @@ MDStackingFault_parameters = {
     'vectors': {
         # Vector parameters with comments (use setInputVector)
         'gridSize': {
-            #'value': np.array([100, 100, 1]),
-            'value': np.array([60, 60, 1]),
-            #'value': np.array([80, 60, 1]),
-            #'value': np.array([30, 27, 1]),
+            'value': np.array([100, 100, 1]),
             'comment': 'number of grid points in each direction'
         },
         'gridSpacing_SI': {
