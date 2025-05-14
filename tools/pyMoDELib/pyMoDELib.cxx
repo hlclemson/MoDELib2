@@ -36,6 +36,7 @@
 #include <DislocationDynamicsBase.h>
 #include <DefectiveCrystal.h>
 #include <MicrostructureGenerator.h>
+#include <DD2OvitoVtk.h>
 
 
 using namespace model;
@@ -146,6 +147,10 @@ PYBIND11_MODULE(pyMoDELib,m)
     
     py::class_<MicrostructureContainer<3>,MicrostructureBase<3>>(m,"MicrostructureContainer",py::multiple_inheritance())
         .def(py::init<DislocationDynamicsBase<3>&>())
+    ;
+
+    py::class_<DD2OvitoVtk>(m,"DD2OvitoVtk")
+        .def(py::init<const std::string&>())
     ;
     
     // LoopNode

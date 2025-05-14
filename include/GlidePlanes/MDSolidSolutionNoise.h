@@ -37,17 +37,18 @@ namespace model
         MDSolidSolutionNoise(const PolycrystallineMaterialBase& mat,
                                     const std::string& tag, 
                                     const std::string& correlationFile_L, const std::string& correlationFile_T,
-                                    const int& outputNoise, const std::string& noiseFile_L, const std::string& noiseFile_T, 
+                                    const int& outputNoise, const int& testNoiseSampling, const std::string& noiseFile_L, const std::string& noiseFile_T, 
                                     const int& seed, const GridSizeType& gridSize, const GridSpacingType& gridSpacing,
                                     const double& a_Cai_in);
         
         
         std::array<COMPLEX,2> kCorrelations(const Eigen::Matrix<double,3,1>& kv,const Eigen::Matrix<int,3,1>& kvID) const override;
-        static GridSizeType readVTKfileDimension(const char *fname);
         static void SolidSolutionCorrelationReader(const std::string& correlationFile, REAL_SCALAR *Rr, int NR);
-        static void Write_field_slice(COMPLEX *Rk_xz, COMPLEX *Rk_yz, const int& seed, const int& nx, const int& ny, const int& nz,
-                                      const int& nk, const int& nr, const int& lx, const int& ly, const int& lz,
-                                      GridSizeType gridSize, GridSpacingType gridSpacing, const char *fname_xz, const char *fname_yz);
+        static GridSizeType readVTKfileDimension(const char *fname);
+        void sampleNoiseLocalInKspace(const PolycrystallineMaterialBase& mat, const int& localSeed, COMPLEX* localRk_xz, COMPLEX* localRk_yz);
+        void circularShift(REAL_SCALAR* rCorrelation);
+        void sampleNoiseRepeatedly(const PolycrystallineMaterialBase& mat, const int& realizationNum);
+        void Write_field_slice(const PolycrystallineMaterialBase& mat, const int& seed, const char *fname_L, const char *fname_T);
 
     };
 

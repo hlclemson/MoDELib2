@@ -7,5 +7,6 @@ gridSize=100 100;
 gridSpacing_SI=1e-9 1e-9;
 a_cai_SI=0;
 outputNoise=0;
+testNoiseSampling=0;
 noiseFile_L=noisePlaceHolder_L.vtk;
 noiseFile_T=noisePlaceHolder_T.vtk;

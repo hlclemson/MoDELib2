@@ -37,6 +37,7 @@ namespace model
                              const std::string& correlationFile_in,
                              const int& outputNoise,
                              const std::string& noiseFile,
+                             const int& testNoiseSampling,
                              const int& seed,
                              const GridSizeType& gridSize,
                              const GridSpacingType& gridSpacing);
@@ -46,8 +47,13 @@ namespace model
         Eigen::Matrix<double,2,2> nonOrthogonalBasisReader(const std::string& fileName_vtk) const;
         void StackingFaultCorrelationReader(const std::string &fileName_vtk, REAL_SCALAR *Rr, int NR);
         GridSizeType readVTKfileDimension(const char *fname);
-        void Write_field_slice(COMPLEX *Rk, const int& seed, const int& nx, const int& ny, const int& nz, const int& nk, const int& nr, const int& lx, const int& ly, const int& lz, GridSizeType gridSize, GridSpacingType gridSpacing, const char *fname);
+
+        void sampleNoiseLocalInKspace(const PolycrystallineMaterialBase& mat, const int& localSeed, COMPLEX* localRk);
+        void circularShift(REAL_SCALAR* rCorrelation);
+        void sampleNoiseRepeatedly(const PolycrystallineMaterialBase& mat, const int& realizationNum);
+        void Write_field_slice(const PolycrystallineMaterialBase& mat, const int& seed, const char *fname);
     };
+
 
 }
 #endif

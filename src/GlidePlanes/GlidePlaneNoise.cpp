@@ -60,7 +60,10 @@ namespace model
                     const std::string noiseFile_L(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("noiseFile_L",true)));
                     const std::string noiseFile_T(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("noiseFile_T",true)));
 
-                    const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_L,correlationFile_T,outputNoise,noiseFile_L,noiseFile_T,seed,gridSize,gridSpacing,a_Cai)));
+                    // option to test sampling
+                    const int testNoiseSampling(parser.readScalar<int>("testNoiseSampling",true));
+
+                    const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_L,correlationFile_T,outputNoise,testNoiseSampling,noiseFile_L,noiseFile_T,seed,gridSize,gridSpacing,a_Cai)));
                     // std::cout<<"MDSolidSolutionNoise inserted"<<std::endl;
                     if(!success.second)
                     {
@@ -81,10 +84,13 @@ namespace model
 
                     // output noise file name
                     const std::string noiseFile(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("noiseFile",true)));
+                    
+                    // option to test sampling
+                    const int testNoiseSampling(parser.readScalar<int>("testNoiseSampling",true));
 
                     // Create the noise object
                     auto noisePtr = std::make_shared<MDStackingFaultNoise>(
-                        mat, tag, correlationFile_stackingFault, outputNoise, noiseFile, seed, gridSize, gridSpacing
+                        mat, tag, correlationFile_stackingFault, outputNoise, noiseFile, testNoiseSampling, seed, gridSize, gridSpacing
                     );
 
                     //Extract and store specific data

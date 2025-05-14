@@ -27,9 +27,9 @@ namespace model
     /* init */,velocity(V)
     /* init */,vOld(velocity)
     /* init */,velocityReductionCoeff(vrc)
-    /* init */,setNodalVelocityBaseX(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseX",false))
-    /* init */,setNodalVelocityBaseY(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseY",false))
-    /* init */,setNodalVelocityBaseZ(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityBaseZ",false))
+    /* init */,setNodalVelocityToZeroInX(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityToZeroInX",false))
+    /* init */,setNodalVelocityToZeroInY(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityToZeroInY",false))
+    /* init */,setNodalVelocityToZeroInZ(TextFileParser(this->network().ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("setNodalVelocityToZeroInZ",false))
     {
         VerboseDislocationNode(1, "  Creating Network Node " << this->tag() <<" @ "<<this->get_P().transpose() << std::endl;);
     }
@@ -133,11 +133,11 @@ typename DislocationNode<dim,corder>::VectorDim DislocationNode<dim,corder>::cli
         This constraint limits the degrees of freedom of nodes,
         ensuring they can only move perpendicular to the glide plane's normal direction.
         */
-        if (setNodalVelocityBaseX || setNodalVelocityBaseY || setNodalVelocityBaseZ)
+        if (setNodalVelocityToZeroInX || setNodalVelocityToZeroInY || setNodalVelocityToZeroInZ)
         {
             temp.push_back(
-                setNodalVelocityBaseX ? VectorDim::UnitX() :
-                setNodalVelocityBaseY ? VectorDim::UnitY() :
+                setNodalVelocityToZeroInX ? VectorDim::UnitX() :
+                setNodalVelocityToZeroInY ? VectorDim::UnitY() :
                 VectorDim::UnitZ()  // Default to Z if none of X/Y are true
             );
         }

@@ -54,9 +54,9 @@ namespace model
         VectorDim vOld;         //! The previous velocity vector of *this PlanarDislocationNode
         double velocityReductionCoeff;
 
-        bool setNodalVelocityBaseX;
-        bool setNodalVelocityBaseY;
-        bool setNodalVelocityBaseZ;
+        bool setNodalVelocityToZeroInX;
+        bool setNodalVelocityToZeroInY;
+        bool setNodalVelocityToZeroInZ;
 
 //        std::shared_ptr<NetworkNodeType> virtualNode;
 //        NetworkNodeType* const masterNode;

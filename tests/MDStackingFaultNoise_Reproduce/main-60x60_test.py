@@ -227,7 +227,7 @@ def plotComparisonCorrelation(realizationNum: int):
     fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 8.6), dpi=500)
 
     axes[0].set_title("Input Correlation")
-    axes[0].scatter(dotGrid_i[:,0], dotGrid_i[:,1], c=color_i, s=10)
+    axes[0].scatter(dotGrid_i[:,0], dotGrid_i[:,1], c=color_i, s=30)
     axes[1].set_title(f"Sampled R{realizationNum}")
     axes[1].scatter(dotGrid_s[:,0], dotGrid_s[:,1], c=color, s=10)
     fig.colorbar(plt.cm.ScalarMappable(norm=Normalize(np.min(inputCorrelationField), np.max(inputCorrelationField)), cmap=color_map), ax=axes[0])

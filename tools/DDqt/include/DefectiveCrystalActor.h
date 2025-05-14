@@ -37,9 +37,6 @@
 #include <ChartActor.h>
 #include <QCheckBox>
 
-// added std library
-#include <atomic>
-
 namespace model
 {
     struct DefectiveCrystalActor : public QWidget
@@ -64,15 +61,12 @@ namespace model
         QuadratureActor* quadrature;
         ChartActor* chartActor;
         DDFieldWidget* ddField;
-    private:
-        std::atomic<bool> m_stopRequested{false};
 
         private slots:
         bool updateConfiguration();
         bool nextConfiguration();
         bool prevConfiguration();
         void playConfigurations();
-        void stopConfigurations();
 
         public:
         
@@ -80,7 +74,6 @@ namespace model
         QLineEdit* frameIDedit;
         QPushButton* plusFrameButton;
         QPushButton* playFrameButton;
-        QPushButton* stopFrameButton;
         QPushButton* minusFrameButton;
         QLineEdit* frameIncrementEdit;
         QCheckBox* saveImage;
