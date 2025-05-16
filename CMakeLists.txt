@@ -10,7 +10,12 @@ project(MoDELib VERSION 2.0.0 LANGUAGES C CXX)
 option(USE_PYBIND11 "enables pybind11" ON)
 option(BUILD_TOOLS "builds tools" ON)
 #set(EIGEN3_INCLUDE_DIRS /opt/local/include/eigen3)
-list(APPEND CMAKE_PREFIX_PATH "/Users/Giacomo/Applications/Qt/6.5.2/macos/lib/cmake")
+#list(APPEND CMAKE_PREFIX_PATH "/Users/Giacomo/Applications/Qt/6.5.2/macos/lib/cmake")
+list(APPEND CMAKE_PREFIX_PATH "/Users/anon/Programs/Qt/6.9.0/macos/lib/cmake")
+set(VTK_DIR "/Users/anon/Programs/VTK/vtk/build")
+#list(APPEND CMAKE_MODULE_PATH "/home/anon/Programs/VTK-9.4.1/build/")
+
+
 set(RPATH "/opt/local/lib/libgcc")
 list(APPEND CMAKE_BUILD_RPATH ${RPATH})
 

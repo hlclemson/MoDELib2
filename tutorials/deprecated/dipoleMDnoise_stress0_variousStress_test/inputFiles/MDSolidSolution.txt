@@ -1,0 +1,11 @@
+type=MDSolidSolutionNoise;
+tag=1;
+seed=1;
+correlationFile_L=MoDELCompatible_FeCr8_xz.vtk;
+correlationFile_T=MoDELCompatible_FeCr8_yz.vtk;
+gridSize=100 100 1; # number of grid points in each direction
+gridSpacing_SI=1e-10 1e-10 1e-10; # grid spacing in each direction
+a_cai_SI=0.0;
+outputNoise=1;
+noiseFile_L=noisePlaceHolder_L.vtk;
+noiseFile_T=noisePlaceHolder_T.vtk;

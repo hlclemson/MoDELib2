@@ -1,0 +1,1 @@
+appendVariable function needs to be implemented in the python tool code
