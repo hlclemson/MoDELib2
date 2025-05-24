@@ -140,9 +140,10 @@ namespace model
                 }
                 // Let VTK handle rendering at its own pace
                 qvtkGLwidget->update(); // Queues a paint event (non-blocking)
-                // Triggers timeout() signal after event processing and wait for delayMs
                 timer->start(delayMs); 
             });
+            // Triggers timeout() signal after event processing and wait for delayMs
+            timer->start(delayMs); 
         }
 
         /*
