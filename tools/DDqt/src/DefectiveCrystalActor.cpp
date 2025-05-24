@@ -115,33 +115,6 @@ namespace model
             return *this;
         }
 
-//        void DefectiveCrystalActor::playConfigurations()
-//        {
-//            bool updated(true);
-//            while (updated)
-//            {
-//                updated=nextConfiguration();
-////                QFuture<bool> future = QtConcurrent::run(&DefectiveCrystalActor::nextConfiguration,this);
-////                QFuture<bool> future = QtConcurrent::run(nextConfiguration);
-////                future.waitForFinished();
-////                updated=future.result();
-////                QApplication::processEvents();
-////                std::chrono::seconds dura( 1);
-////                std::this_thread::sleep_for( dura );
-////                pause(1);
-//            }
-//        }
-//
-
-        /*
-        stop animation play button
-        private class definition is added in the header file
-        */
-        void DefectiveCrystalActor::stopConfigurations()
-        {
-            m_stopRequested = true;
-        }
-
         /*
         The timer's timeout() signal calls the lambda repeatedly
         and each call executes nextConfiguration(). When nextConfiguration()
@@ -161,14 +134,25 @@ namespace model
             connect(timer, &QTimer::timeout, [this, timer]() {
                 // also, stops the iteration if stop is requested (m_stopRequested)
                 if (m_stopRequested || !nextConfiguration()) {
+                    timer->stop();
                     timer->deleteLater();
                     return;
                 }
                 // Let VTK handle rendering at its own pace
                 qvtkGLwidget->update(); // Queues a paint event (non-blocking)
+                timer->start(delayMs); 
             });
             // Triggers timeout() signal after event processing and wait for delayMs
             timer->start(delayMs); 
+        }
+
+        /*
+        stop animation play button
+        private class definition is added in the header file
+        */
+        void DefectiveCrystalActor::stopConfigurations()
+        {
+            m_stopRequested = true;
         }
 
         bool DefectiveCrystalActor::nextConfiguration()
