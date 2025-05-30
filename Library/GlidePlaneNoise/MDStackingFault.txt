@@ -1,10 +1,6 @@
 type=MDStackingFaultNoise;
 tag=1;
 seed=0;
-transformBasis=1;
 correlationFile=placeHolder.vtk;
 gridSize=100 100;
 gridSpacing_SI=1e-9 1e-9;
-outputNoise=0;
-testNoiseSampling=0;
-noiseFile=noisePlaceHolder.vtk;

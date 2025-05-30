@@ -36,7 +36,8 @@
 #include <DislocationDynamicsBase.h>
 #include <DefectiveCrystal.h>
 #include <MicrostructureGenerator.h>
-#include <DD2OvitoVtk.h>
+#include <MoDELib2Vtk.h>
+#include <GlidePlaneNoiseBase.h>
 
 
 using namespace model;
@@ -56,10 +57,75 @@ typedef typename TypeTraits<DislocationNetworkType>::NetworkNodeType NetworkNode
 PYBIND11_MAKE_OPAQUE(std::map<typename LoopNodeType::KeyType,const std::weak_ptr<LoopNodeType>>);
 PYBIND11_MAKE_OPAQUE(std::map<typename LoopType::KeyType,const std::weak_ptr<LoopType>>);
 PYBIND11_MAKE_OPAQUE(std::vector<MeshedDislocationLoop>);
+PYBIND11_MAKE_OPAQUE(GlidePlaneNoiseBase<1>); // opaque: pybind11 is not going to try to guess the data type for python
+PYBIND11_MAKE_OPAQUE(GlidePlaneNoiseBase<2>);
 
 PYBIND11_MODULE(pyMoDELib,m)
 {
     namespace py=pybind11;
+
+    // N=1 explicit
+    py::class_<GlidePlaneNoiseBase<1>, std::shared_ptr<GlidePlaneNoiseBase<1>>>(m, "GlidePlaneNoiseBase1")
+      .def(py::init<const std::string&, const int&,
+                    const NoiseTraitsBase::GridSizeType&,
+                    const NoiseTraitsBase::GridSpacingType&,
+                    const Eigen::Matrix<double,2,2>&>())
+      .def("averageNoiseCorrelation", &GlidePlaneNoiseBase<1>::averageNoiseCorrelation)
+      .def("sampleAverageNoise", &GlidePlaneNoiseBase<1>::sampleAverageNoise)
+    ;
+
+    // Bind MDStackingFaultNoise
+    py::class_<MDStackingFaultNoise, GlidePlaneNoiseBase<1>, std::shared_ptr<MDStackingFaultNoise>>(m, "MDStackingFaultNoise")
+      .def(py::init<
+          const model::PolycrystallineMaterialBase&,
+          const std::string&,
+          const std::string&,
+          const int&,
+          const model::NoiseTraitsBase::GridSizeType&,
+          const model::NoiseTraitsBase::GridSpacingType&,
+          const Eigen::Matrix<double, 2, 2>&
+      >())
+    ;
+
+    // N=2 explicit
+    py::class_<GlidePlaneNoiseBase<2>, std::shared_ptr<GlidePlaneNoiseBase<2>>>(m, "GlidePlaneNoiseBase2")
+      .def(py::init<const std::string&, const int&,
+                    const NoiseTraitsBase::GridSizeType&,
+                    const NoiseTraitsBase::GridSpacingType&,
+                    const Eigen::Matrix<double,2,2>&>())
+      .def("averageNoiseCorrelation", &GlidePlaneNoiseBase<2>::averageNoiseCorrelation)
+      .def("sampleAverageNoise", &GlidePlaneNoiseBase<2>::sampleAverageNoise)
+    ;
+
+    // Bind MDSolidSolutionNoise
+    py::class_<MDSolidSolutionNoise, GlidePlaneNoiseBase<2>, std::shared_ptr<MDSolidSolutionNoise>>(m, "MDSolidSolutionNoise")
+      .def(py::init<
+          const model::PolycrystallineMaterialBase&,
+          const std::string&,
+          const std::string&,
+          const std::string&,
+          const int&,
+          const model::NoiseTraitsBase::GridSizeType&,
+          const model::NoiseTraitsBase::GridSpacingType&,
+          const Eigen::Matrix<double, 2, 2>&,
+          const double&
+      >())
+    ;
+
+    // Bind AnalyticalSolidSolutionNoise
+    py::class_<AnalyticalSolidSolutionNoise, GlidePlaneNoiseBase<2>,std::shared_ptr<AnalyticalSolidSolutionNoise>>(m, "AnalyticalSolidSolutionNoise")
+      // Constructor
+      .def(py::init<
+          const std::string&,
+          const int&,
+          const model::NoiseTraitsBase::GridSizeType&,
+          const model::NoiseTraitsBase::GridSpacingType&,
+          const Eigen::Matrix<double, 2, 2>&,
+          const double&,
+          const double&,
+          const double&
+      >())
+    ;
 
     py::class_<DDtraitsIO>(m,"DDtraitsIO")
         .def(py::init<const std::string&>())
@@ -148,6 +214,14 @@ PYBIND11_MODULE(pyMoDELib,m)
     py::class_<MicrostructureContainer<3>,MicrostructureBase<3>>(m,"MicrostructureContainer",py::multiple_inheritance())
         .def(py::init<DislocationDynamicsBase<3>&>())
     ;
+
+    //py::class_<GlidePlaneNoiseBase<1>>(m,"GlidePlaneNoiseBase")
+    //    .def(py::init<const std::string&>())
+    //;
+
+    //py::class_<GlidePlaneNoiseBase<2>>(m,"GlidePlaneNoiseBase")
+    //    .def(py::init<const std::string&>())
+    //;
 
     py::class_<DD2OvitoVtk>(m,"DD2OvitoVtk")
         .def(py::init<const std::string&>())

@@ -62,8 +62,8 @@ MDSolidSolution_parameters = {
         'seed': 1,
         'a_cai_SI': 0.0,
         # File paths (convert to absolute paths)
-        'correlationFile_L': Path('../../Library/GlidePlaneNoise/MoDELCompatible_FeCr8_xz.vtk').resolve(),
-        'correlationFile_T': Path('../../Library/GlidePlaneNoise/MoDELCompatible_FeCr8_yz.vtk').resolve(),
+        'correlationFile_xz': Path('../../Library/GlidePlaneNoise/MoDELCompatible_FeCr8_xz.vtk').resolve(),
+        'correlationFile_yz': Path('../../Library/GlidePlaneNoise/MoDELCompatible_FeCr8_yz.vtk').resolve(),
     },
     'vectors': {
         # Vector parameters with comments (use setInputVector)
@@ -160,8 +160,8 @@ def process_configurations() -> None:
 
     print("\033[1;32mCreating  noiseFile\033[0m")
     # copy noise file into inputFiles
-    shutil.copy2(MDSolidSolution_parameters['variables']['correlationFile_L'], 'inputFiles/')
-    shutil.copy2(MDSolidSolution_parameters['variables']['correlationFile_T'], 'inputFiles/')
+    shutil.copy2(MDSolidSolution_parameters['variables']['correlationFile_xz'], 'inputFiles/')
+    shutil.copy2(MDSolidSolution_parameters['variables']['correlationFile_yz'], 'inputFiles/')
     # copy declared variables to the configuration txt file
     for param, value in MDSolidSolution_parameters['variables'].items():
         if 'correlationFile' in param:

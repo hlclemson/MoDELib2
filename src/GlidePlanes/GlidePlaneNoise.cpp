@@ -36,7 +36,8 @@ namespace model
                     const double a(parser.readScalar<double>("spreadLstress_SI",true)/mat.b_SI);      // spreading length for stresses [AA]
                     const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
                     const double MSSS(parser.readScalar<double>("MSSS_SI",true)/std::pow(mat.mu_SI,2));
-                    const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionNoise(tag,seed,gridSize,gridSpacing,a,a_Cai,MSSS)));
+                    const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a,a_Cai,MSSS)));
+
                     if(!success.second)
                     {
                         throw std::runtime_error("Could not insert noise "+tag);
@@ -46,25 +47,11 @@ namespace model
                 {
                     const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
 
-                    //const std::string correlationFile_L(parser.readString("correlationFile_L",true));
-                    //const std::string correlationFile_T(parser.readString("correlationFile_T",true));
+                    // relative paths for correlation vtk files (easier to make everything self contained)
+                    const std::string correlationFile_xz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_xz",true)));
+                    const std::string correlationFile_yz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_yz",true)));
 
-                    // parse the absolute paths of the correlation files based on the relative paths declared in the noise txt files
-                    const std::string correlationFile_L(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_L",true)));
-                    const std::string correlationFile_T(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_T",true)));
-
-                    // option to print sampled noise (1: output noise patch, 0: don't)
-                    const int outputNoise(parser.readScalar<int>("outputNoise",true));
-
-                    // output noise file names
-                    const std::string noiseFile_L(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("noiseFile_L",true)));
-                    const std::string noiseFile_T(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("noiseFile_T",true)));
-
-                    // option to test sampling
-                    const int testNoiseSampling(parser.readScalar<int>("testNoiseSampling",true));
-
-                    const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_L,correlationFile_T,outputNoise,testNoiseSampling,noiseFile_L,noiseFile_T,seed,gridSize,gridSpacing,a_Cai)));
-                    // std::cout<<"MDSolidSolutionNoise inserted"<<std::endl;
+                    const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_xz,correlationFile_yz,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai)));
                     if(!success.second)
                     {
                         throw std::runtime_error("Could not insert noise "+tag);
@@ -72,36 +59,10 @@ namespace model
                 }
                 if(type=="MDStackingFaultNoise")
                 {
-                    // parse the absolute paths of the correlation files based on the relative paths declared in the noise txt files
+                    // relative paths for correlation vtk files (easier to make everything self contained)
                     const std::string correlationFile_stackingFault(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile",true)));
 
-                    // option to transform the basis of the system
-                    // use this option when your MD system is non-orthogonal
-                    const int transformBasis(parser.readScalar<int>("transformBasis",true));
-
-                    // option to print sampled noise (1: output noise patch, 0: don't)
-                    const int outputNoise(parser.readScalar<int>("outputNoise",true));
-
-                    // output noise file name
-                    const std::string noiseFile(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("noiseFile",true)));
-                    
-                    // option to test sampling
-                    const int testNoiseSampling(parser.readScalar<int>("testNoiseSampling",true));
-
-                    // Create the noise object
-                    auto noisePtr = std::make_shared<MDStackingFaultNoise>(
-                        mat, tag, correlationFile_stackingFault, outputNoise, noiseFile, testNoiseSampling, seed, gridSize, gridSpacing
-                    );
-
-                    //Extract and store specific data
-                    // first : do you want to transform basis or not?
-                    basisTransformPair_SF.first = transformBasis;
-                    // second : inverse transition matrix
-                    basisTransformPair_SF.second = noisePtr->invTransitionMatrix();
-
-                    //const auto success(stackingFaultNoise().emplace(tag,new MDStackingFaultNoise(mat,tag,correlationFile_stackingFault,transformBasis,seed,gridSize,gridSpacing)));
-                    // Insert into the base container
-                    const auto success = stackingFaultNoise().emplace(tag, noisePtr);
+                    const auto success(stackingFaultNoise().emplace(tag,new MDStackingFaultNoise(mat,tag,correlationFile_stackingFault,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity())));
 
                     if(!success.second)
                     {
@@ -148,12 +109,9 @@ namespace model
         double effsfNoise(0.0);
         for(const auto& noise : stackingFaultNoise())
         {
-            const int transformBasis = basisTransformPair_SF.first;
-            const Eigen::Matrix<double,2,2> invTransitionMatrix = basisTransformPair_SF.second;
-
+            // transform the basis if it is non-orthogonal
             //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
-            // transform the basis to non-orthogonal if enabled
-            const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(transformBasis ? invTransitionMatrix*localPos : localPos));
+            const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(noise.second->invTransposeLatticeBasis*localPos));
 
             for(size_t p=0;p<idxAndWeights.first.size();++p)
             {

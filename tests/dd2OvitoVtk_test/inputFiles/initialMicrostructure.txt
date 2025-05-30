@@ -1,1 +1,0 @@
-microstructureFile=periodicDipoleIndividual.txt;

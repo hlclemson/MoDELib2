@@ -6,7 +6,7 @@
  * GNU General Public License (GPL) v2 <http://www.gnu.org/licenses/>.
  */
 
-#include <DD2OvitoVtk.h>
+#include <MoDELib2Vtk.h>
 
 using namespace model;
 

@@ -1,4 +1,3 @@
-
 type=AnalyticalSolidSolutionNoise;
 tag=_0;
 gridSize=256 256 64; 			# number of grid points in each direction

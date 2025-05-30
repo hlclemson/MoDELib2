@@ -39,8 +39,8 @@ namespace model
         StackingFaultNoiseContainer& stackingFaultNoise();
 
         // added for basis transformation
-        private:
-          std::pair<int, Eigen::Matrix2d> basisTransformPair_SF;
+        //private:
+        //  std::pair<int, Eigen::Matrix2d> basisTransformPair_SF;
     };
 
 }
