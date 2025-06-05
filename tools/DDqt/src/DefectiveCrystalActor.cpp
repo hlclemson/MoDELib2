@@ -75,7 +75,8 @@ namespace model
             mainLayout->addWidget(saveImage,1,0,1,1);
 
 
-            mainLayout->addWidget(tabWidget,2,0,1,5);
+            //mainLayout->addWidget(tabWidget,2,0,1,5);
+            mainLayout->addWidget(tabWidget,2,0,1,6);
             this->setLayout(mainLayout);
 
             connect(frameIDedit,SIGNAL(returnPressed()), this, SLOT(updateConfiguration()));
