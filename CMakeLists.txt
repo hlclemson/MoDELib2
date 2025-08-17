@@ -4,14 +4,17 @@
 #export LDFLAGS="$LDFLAGS -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/system"
 # cmake .. -DCMAKE_CXX_COMPILER=clang++-mp-20 -DCMAKE_C_COMPILER=clang-mp-20
 
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(MoDELib VERSION 2.0.0 LANGUAGES C CXX)
 
 option(USE_PYBIND11 "enables pybind11" ON)
 option(BUILD_TOOLS "builds tools" ON)
 #set(EIGEN3_INCLUDE_DIRS /opt/local/include/eigen3)
-list(APPEND CMAKE_PREFIX_PATH "/Users/Giacomo/Applications/Qt/6.5.2/macos/lib/cmake")
-set(VTK_DIR "/Users/anon/Programs/VTK/vtk/build")
+#list(APPEND CMAKE_PREFIX_PATH "/Users/Giacomo/Applications/Qt/6.5.2/macos/lib/cmake")
+#set(VTK_DIR "/Users/anon/Programs/VTK/vtk/build")
+list(APPEND CMAKE_PREFIX_PATH "/home/anon/Programs/Qt/6.9.1/gcc_64/lib/cmake")
+set(VTK_DIR "/home/anon/Programs/VTK/build")
+
 set(RPATH "/opt/local/lib/gcc14")
 list(APPEND CMAKE_BUILD_RPATH ${RPATH})
 
