@@ -36,6 +36,7 @@ namespace model
                     const double a(parser.readScalar<double>("spreadLstress_SI",true)/mat.b_SI);      // spreading length for stresses [AA]
                     const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
                     const double MSSS(parser.readScalar<double>("MSSS_SI",true)/std::pow(mat.mu_SI,2));
+        
                     const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a,a_Cai,MSSS)));
 
                     if(!success.second)

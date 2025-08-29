@@ -87,7 +87,7 @@ namespace model
         void computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const;
         GridSizeType rowAndColIndices(const int& storageIndex) const;
         int storageIndex(const int& i,const int& j) const;
-        void writeFieldSlice() const;
+        void write_field_slice() const;
         const NoiseContainerType& noiseVector() const;
         NoiseContainerType& noiseVector();
         //virtual std::array<COMPLEX,N> kCorrelations(const Eigen::Matrix<double,3,1>& k,const Eigen::Matrix<int,3,1>& kID) const = 0;
