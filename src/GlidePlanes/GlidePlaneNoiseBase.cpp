@@ -408,106 +408,66 @@ void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMat
 template <int N>
 void GlidePlaneNoiseBase<N>::write_field_slice() const
 {
-  // Compute Statistics
-  ///NoiseType ave(NoiseTraits<N>::Zero());
-  //for(const auto& valArr: noiseVector())
-  //{
-  //  ave+=valArr;
-  //}
+  const double DX = gridSpacing(0);
+  const double DY = gridSpacing(1);
+  const double DZ = gridSpacing(2);
 
-  int8_t loopIdx = 0;
-  for(const NoiseType& noiseMatrix: noiseVector())
+  std::vector<std::vector<double>> noiseArrays(N, std::vector<double>(NR, 0.0));
+  //const int k=0;
+  for(int i=0;i<NX;i++)
   {
-    //NoiseType var(NoiseTraits<N>::Zero());
-    const REAL_SCALAR* noiseArr = noiseMatrix.data(); // pointer to contiguous storage
-
-    //std::string fname="noise"+loopIdx;
-    //FILE *OutFile=fopen(fname,"w");
-
-    //fprintf(OutFile,"# vtk DataFile Version 2.0\n");
-    //fprintf(OutFile,"iter %d\n",0);
-    //fprintf(OutFile,"BINARY\n");
-    //fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
-    //fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
-    //fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
-    //fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
-    //fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
-    //fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
-    //fprintf(OutFile,"LOOKUP_TABLE \t default\n");
-
-    //for(int i=0;i<NX;i++)
-    //{
-    //    for(int j=0;j<NY;j++)
-    //    {
-    //        const int k=0;
-    //        const int ind = NY*NZ*i + j*NZ + k;
-    //        //const double temp=NoiseTraitsBase::ReverseDouble(double(noise_array[ind]));
-    //        const double temp=noiseArr[ind];
-    //        fwrite(&temp, sizeof(double), 1, OutFile);
-    //    }
-    //}
-    //fclose(OutFile);
-    //++loopIdx;
+    for(int j=0;j<NY;j++)
+    {
+      // input array is 2D, so index calculation
+      // must be changed
+      //const int ind = NY*NZ*i + j*NZ + k;
+      const int ind = NY*i + j;
+      const NoiseType& row = noiseVector()[ind];
+      for(int n=0;n<N;++n)
+      {
+        if constexpr (N==1)
+        {
+          noiseArrays[n][ind] = row;
+        }
+        else
+        {
+          noiseArrays[n][ind] = row(n);
+        }
+      }
+    }
   }
 
-  //for(const auto& arr: noiseVector())
-  //{
-  //}
-  //ave/=noiseVector().size();
-  //FILE *OutFile=fopen(fname,"w");
+  for(int n=0;n<N;++n)
+  {
+    std::string fname="noise_patch_"+std::to_string(n)+".vtk";
+    FILE *OutFile=fopen(fname.c_str(),"w");
 
-  //fprintf(OutFile,"# vtk DataFile Version 2.0\n");
-  //fprintf(OutFile,"iter %d\n",0);
-  //fprintf(OutFile,"BINARY\n");
-  //fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
-  //fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
-  //fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
-  //fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
-  //fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
-  //fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
-  //fprintf(OutFile,"LOOKUP_TABLE \t default\n");
+    fprintf(OutFile,"# vtk DataFile Version 2.0\n");
+    fprintf(OutFile,"iter %d\n",0);
+    //fprintf(OutFile,"ASCII\n");
+    fprintf(OutFile,"BINARY\n");
+    fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
+    fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
+    fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
+    fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
+    fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
+    fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
+    fprintf(OutFile,"LOOKUP_TABLE \t default\n");
 
-  //for(int i=0;i<NX;i++)
-  //{
-  //    for(int j=0;j<NY;j++)
-  //    {
-  //        const int k=0;
-  //        const int ind = NY*NZ*i + j*NZ + k;
-  //        const double temp=NoiseTraitsBase::ReverseDouble(double(F[ind]));
-  //        fwrite(&temp, sizeof(double), 1, OutFile);
-  //    }
-  //}
-  //fclose(OutFile);
+    for(int i=0;i<NX;i++)
+    {
+      for(int j=0;j<NY;j++)
+      {
+        const int ind = NY*i + j;
+        //const double temp=noiseArrays[n][ind]; // for ascii
+        const double temp=NoiseTraitsBase::ReverseDouble(noiseArrays[n][ind]);
+        fwrite(&temp, sizeof(double), 1, OutFile);
+        //fprintf(OutFile, "%.18e ", temp); // for ascii
+      }
+    }
+    fclose(OutFile);
+  }
 }
-
-//    void AnalyticalSolidSolutionNoise::Write_field_slice(REAL_SCALAR *F, const char *fname)
-//    {
-//        FILE *OutFile=fopen(fname,"w");
-//
-//        fprintf(OutFile,"# vtk DataFile Version 2.0\n");
-//        fprintf(OutFile,"iter %d\n",0);
-//        fprintf(OutFile,"BINARY\n");
-//        fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
-//        fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
-//        fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
-//        fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
-//        fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
-//        fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
-//        fprintf(OutFile,"LOOKUP_TABLE \t default\n");
-//
-//        for(int i=0;i<NX;i++)
-//        {
-//            for(int j=0;j<NY;j++)
-//            {
-//                const int k=0;
-//                const int ind = NY*NZ*i + j*NZ + k;
-//                const double temp=NoiseTraitsBase::ReverseDouble(double(F[ind]));
-//                fwrite(&temp, sizeof(double), 1, OutFile);
-//            }
-//        }
-//
-//        fclose(OutFile);
-//    }
 
 template struct GlidePlaneNoiseBase<1>;
 template struct GlidePlaneNoiseBase<2>;

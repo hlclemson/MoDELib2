@@ -82,12 +82,14 @@ namespace model
         {
             pair.second->computeRealNoise();
             pair.second->computeRealNoiseStatistics(mat);
+            pair.second->write_field_slice();
         }
 
         for(auto& pair : stackingFaultNoise())
         {
             pair.second->computeRealNoise();
             pair.second->computeRealNoiseStatistics(mat);
+            pair.second->write_field_slice();
         }
 
     }
