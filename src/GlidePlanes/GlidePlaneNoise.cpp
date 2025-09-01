@@ -81,15 +81,17 @@ namespace model
         for(auto& pair : solidSolutionNoise())
         {
             pair.second->computeRealNoise();
-            pair.second->computeRealNoiseStatistics(mat);
-            pair.second->write_field_slice();
+            //pair.second->computeRealNoiseStatistics(mat);
+            pair.second->computeRealNoiseStatistics();
+            pair.second->write_field_slice(mat);
         }
 
         for(auto& pair : stackingFaultNoise())
         {
             pair.second->computeRealNoise();
-            pair.second->computeRealNoiseStatistics(mat);
-            pair.second->write_field_slice();
+            //pair.second->computeRealNoiseStatistics(mat);
+            pair.second->computeRealNoiseStatistics();
+            pair.second->write_field_slice(mat);
         }
 
     }

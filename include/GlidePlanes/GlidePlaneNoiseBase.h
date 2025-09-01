@@ -84,10 +84,11 @@ namespace model
                             const Eigen::Matrix<double,2,2>& latticeBasis);
         virtual ~GlidePlaneNoiseBase(){};
         void computeRealNoise();
-        void computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const;
+        //void computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const;
+        void computeRealNoiseStatistics() const;
         GridSizeType rowAndColIndices(const int& storageIndex) const;
         int storageIndex(const int& i,const int& j) const;
-        void write_field_slice() const;
+        void write_field_slice(const PolycrystallineMaterialBase& mat) const;
         const NoiseContainerType& noiseVector() const;
         NoiseContainerType& noiseVector();
         //virtual std::array<COMPLEX,N> kCorrelations(const Eigen::Matrix<double,3,1>& k,const Eigen::Matrix<int,3,1>& kID) const = 0;

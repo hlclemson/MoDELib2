@@ -378,7 +378,8 @@ std::vector<std::vector<double>> GlidePlaneNoiseBase<N>::sampleAverageNoise(cons
 }
 
 template <int N>
-void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const
+//void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const
+void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics() const
 {
   // Compute Statistics
   NoiseType ave(NoiseTraits<N>::Zero());
@@ -406,8 +407,9 @@ void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMat
 }
 
 template <int N>
-void GlidePlaneNoiseBase<N>::write_field_slice() const
+void GlidePlaneNoiseBase<N>::write_field_slice(const PolycrystallineMaterialBase& mat) const
 {
+  const std::string matPath = std::filesystem::path(mat.materialFile).parent_path().string();
   const double DX = gridSpacing(0);
   const double DY = gridSpacing(1);
   const double DZ = gridSpacing(2);
@@ -440,7 +442,9 @@ void GlidePlaneNoiseBase<N>::write_field_slice() const
   for(int n=0;n<N;++n)
   {
     std::string fname="noise_patch_"+std::to_string(n)+".vtk";
-    FILE *OutFile=fopen(fname.c_str(),"w");
+    std::string fnamePath = matPath+"/"+fname;
+    //FILE *OutFile=fopen(fname.c_str(),"w");
+    FILE *OutFile=fopen(fnamePath.c_str(),"w");
 
     fprintf(OutFile,"# vtk DataFile Version 2.0\n");
     fprintf(OutFile,"iter %d\n",0);
