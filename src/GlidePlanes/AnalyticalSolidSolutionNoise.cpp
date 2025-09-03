@@ -99,18 +99,19 @@ namespace model
         // white noise implementation
         if(isWhite)
         {
+            return std::array<AnalyticalSolidSolutionNoise::COMPLEX,2> {100, 100};
             //double deltaX = 0.5;
             //double L = 500;
             //double temp_w = deltaX/L;
-            if (idx==65536)
-            {
-              //return std::array<AnalyticalSolidSolutionNoise::COMPLEX,2> {temp_w, temp_w};
-              return std::array<AnalyticalSolidSolutionNoise::COMPLEX,2> {100, 100};
-            }
-            else
-            {
-              return std::array<AnalyticalSolidSolutionNoise::COMPLEX,2> {0.0, 0.0};
-            }
+            //if (idx==65536)
+            //{
+            //  //return std::array<AnalyticalSolidSolutionNoise::COMPLEX,2> {temp_w, temp_w};
+            //  return std::array<AnalyticalSolidSolutionNoise::COMPLEX,2> {100, 100};
+            //}
+            //else
+            //{
+            //  return std::array<AnalyticalSolidSolutionNoise::COMPLEX,2> {0.0, 0.0};
+            //}
         }
 
         const double foldingFactor((kvID(2)==0 || kvID(2)==NZ/2)? 2.0 : 1.0);
