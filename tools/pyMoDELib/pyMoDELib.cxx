@@ -133,6 +133,7 @@ PYBIND11_MODULE(pyMoDELib,m)
           const model::NoiseTraitsBase::GridSizeType&,
           const model::NoiseTraitsBase::GridSpacingType&,
           const Eigen::Matrix<double, 2, 2>&,
+          const bool&,
           const double&,
           const double&,
           const double&
