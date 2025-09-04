@@ -141,6 +141,7 @@ namespace model
             }
         }
         return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
+        //return std::make_tuple(effsolNoiseYZ,effsolNoiseXZ,effsfNoise);
     }
 
     std::tuple<double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int,2,1>& idx) const

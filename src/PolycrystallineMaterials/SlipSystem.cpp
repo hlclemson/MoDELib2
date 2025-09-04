@@ -100,6 +100,8 @@ namespace model
             
             const Eigen::Matrix<double,3,3> ssStress( std::get<0>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(0)+G2Lfull.row(0).transpose()*G2Lfull.row(2))
                                                      +std::get<1>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(1)+G2Lfull.row(1).transpose()*G2Lfull.row(2)));
+            //const Eigen::Matrix<double,3,3> ssStress( std::get<0>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(1)+G2Lfull.row(1).transpose()*G2Lfull.row(2))
+            //                                         +std::get<1>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(0)+G2Lfull.row(0).transpose()*G2Lfull.row(2)));
             const double ssRSS((ssStress*unitSlip).dot(unitNormal));
             return std::make_tuple(ssStress,ssRSS,std::get<2>(gridNoise));
         }
@@ -118,6 +120,8 @@ namespace model
             
             const Eigen::Matrix<double,3,3> ssStress( std::get<0>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(0)+G2Lfull.row(0).transpose()*G2Lfull.row(2))
                                                      +std::get<1>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(1)+G2Lfull.row(1).transpose()*G2Lfull.row(2)));
+            //const Eigen::Matrix<double,3,3> ssStress( std::get<0>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(1)+G2Lfull.row(1).transpose()*G2Lfull.row(2))
+            //                                         +std::get<1>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(0)+G2Lfull.row(0).transpose()*G2Lfull.row(2)));
             const double ssRSS((ssStress*unitSlip).dot(unitNormal));
             return std::make_tuple(ssStress,ssRSS,std::get<2>(gridNoise));
         }
