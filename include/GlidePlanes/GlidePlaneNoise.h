@@ -16,6 +16,7 @@
 #include <GlidePlaneNoiseBase.h>
 #include <PolycrystallineMaterialBase.h>
 #include <AnalyticalSolidSolutionNoise.h>
+#include <AnalyticalSolidSolutionWhiteNoise.h>
 #include <MDSolidSolutionNoise.h>
 #include <MDStackingFaultNoise.h>
 

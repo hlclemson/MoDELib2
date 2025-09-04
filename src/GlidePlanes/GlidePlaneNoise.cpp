@@ -31,14 +31,29 @@ namespace model
                 const Eigen::Matrix<int,1,3> gridSize(parser.readMatrix<int,1,3>("gridSize",true));
                 const Eigen::Matrix<double,1,3> gridSpacing(parser.readMatrix<double,1,3>("gridSpacing_SI",true)/mat.b_SI);
                 
+                if(type=="AnalyticalSolidSolutionWhiteNoise")
+                {
+                    //const double a(parser.readScalar<double>("spreadLstress_SI",true)/mat.b_SI);      // spreading length for stresses [AA]
+                    const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
+                    const double dislocLength(parser.readScalar<double>("dislocation_length_SI",true)/mat.b_SI);
+                    const double MSSS(parser.readScalar<double>("MSSS_SI",true)/std::pow(mat.mu_SI,2));
+                    const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionWhiteNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai,dislocLength,MSSS)));
+
+                    if(!success.second)
+                    {
+                        throw std::runtime_error("Could not insert noise "+tag);
+                    }
+
+                }
                 if(type=="AnalyticalSolidSolutionNoise")
                 {
-                    const bool isWhite(parser.readScalar<int>("white",true));
+                    //const bool isWhite(parser.readScalar<int>("white",true));
                     const double a(parser.readScalar<double>("spreadLstress_SI",true)/mat.b_SI);      // spreading length for stresses [AA]
                     const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
                     const double MSSS(parser.readScalar<double>("MSSS_SI",true)/std::pow(mat.mu_SI,2));
         
-                    const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),isWhite,a,a_Cai,MSSS)));
+                    //const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),isWhite,a,a_Cai,MSSS)));
+                    const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a,a_Cai,MSSS)));
 
                     if(!success.second)
                     {

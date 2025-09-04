@@ -133,7 +133,22 @@ PYBIND11_MODULE(pyMoDELib,m)
           const model::NoiseTraitsBase::GridSizeType&,
           const model::NoiseTraitsBase::GridSpacingType&,
           const Eigen::Matrix<double, 2, 2>&,
-          const bool&,
+          //const bool&,
+          const double&,
+          const double&,
+          const double&
+      >())
+    ;
+
+    // Bind AnalyticalSolidSolutionWhiteNoise
+    py::class_<AnalyticalSolidSolutionWhiteNoise, GlidePlaneNoiseBase<2>,std::shared_ptr<AnalyticalSolidSolutionWhiteNoise>>(m, "AnalyticalSolidSolutionWhiteNoise")
+      // Constructor
+      .def(py::init<
+          const std::string&,
+          const int&,
+          const model::NoiseTraitsBase::GridSizeType&,
+          const model::NoiseTraitsBase::GridSpacingType&,
+          const Eigen::Matrix<double, 2, 2>&,
           const double&,
           const double&,
           const double&

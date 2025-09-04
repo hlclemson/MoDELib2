@@ -29,7 +29,7 @@ struct AnalyticalSolidSolutionNoise: public GlidePlaneNoiseBase<2>
   typedef typename NoiseTraits<2>::NoiseType NoiseType;
   typedef typename NoiseTraits<2>::NoiseContainerType NoiseContainerType;
 
-  const bool isWhite;
+  //const bool isWhite;
   const REAL_SCALAR a;
   const REAL_SCALAR a_cai;
   const double stressPrefactor;
@@ -53,7 +53,7 @@ struct AnalyticalSolidSolutionNoise: public GlidePlaneNoiseBase<2>
   AnalyticalSolidSolutionNoise(const std::string& tag, const int& seed,
                                const GridSizeType& gridSize, const GridSpacingType& gridSpacing,
                                const Eigen::Matrix<double,2,2>& latticeBasis,
-                               const bool& isWhite_in,
+                               //const bool& isWhite_in,
                                const double& a_in,const double& a_Cai_in,const double& MSSS);
 
   std::array<COMPLEX,2> kCorrelations(const Eigen::Matrix<double,3,1>& kv,const Eigen::Matrix<int,3,1>& kvID) const override;

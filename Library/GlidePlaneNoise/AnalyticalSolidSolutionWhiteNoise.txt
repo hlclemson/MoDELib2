@@ -1,0 +1,8 @@
+type=AnalyticalSolidSolutionWhiteNoise;
+tag=_0;
+gridSize=256 256 64; 			# number of grid points in each direction
+gridSpacing_SI=1e-10 1e-10 1e-10; 	# [m] spacing of grid on the glide plane
+a_cai_SI=1e-10; 			# non-singular core spreading
+seed=0; 				# noise field random seed
+dislocation_length_SI=100; # dislocation length in SI
+MSSS_SI=0.09e18;			# [Pa^2] Mean Square Shear Stress 
