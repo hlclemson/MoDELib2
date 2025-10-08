@@ -9,6 +9,7 @@
 #define model_PlaneSegmentIntersection_CPP_
 
 #include <tuple>
+#include <cassert>
 #include <Eigen/Dense>
 #include <Plane.h>
 #include <FiniteLineSegment.h>

@@ -8,6 +8,7 @@
 #ifndef model_RLLL_cpp_
 #define model_RLLL_cpp_
 
+#include <cassert>
 #include <RLLL.h>
 
 namespace model

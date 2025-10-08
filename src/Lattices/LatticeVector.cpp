@@ -8,6 +8,7 @@
 #ifndef model_LatticeVector_cpp_
 #define model_LatticeVector_cpp_
 
+#include <cassert>
 #include<LatticeModule.h>
 
 namespace model

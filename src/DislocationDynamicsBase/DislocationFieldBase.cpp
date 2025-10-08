@@ -8,6 +8,7 @@
 #ifndef _model_DislocationFieldBase_cpp_
 #define _model_DislocationFieldBase_cpp_
 
+#include <cassert>
 #include <DislocationFieldBase.h>
 #include <TextFileParser.h>
 

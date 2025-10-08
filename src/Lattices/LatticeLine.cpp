@@ -8,6 +8,7 @@
 #ifndef model_LatticeLine_cpp_
 #define model_LatticeLine_cpp_
 
+#include <cassert>
 #include <LatticeModule.h>
 #include <LatticeLine.h>
 #include <math.h> /* round, floor, ceil, trunc */

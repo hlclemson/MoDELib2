@@ -13,6 +13,9 @@
 #include <Eigen/Dense>
 #include <Plane.h>
 
+//added
+#include <cassert>
+
 namespace model
 {
 

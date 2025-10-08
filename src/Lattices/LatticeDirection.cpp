@@ -8,6 +8,7 @@
 #ifndef model_LatticeDirection_cpp_
 #define model_LatticeDirection_cpp_
 
+#include <cassert>
 #include <LatticeModule.h>
 namespace model
 {
