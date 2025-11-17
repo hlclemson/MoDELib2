@@ -1,0 +1,12 @@
+{
+  "data_path": "../../production_runs/partial_orient_615AA_crss_2-3_almg10_total/generatedData",
+  "output_path": "output/partial_orient_615AA_crss_2-3_almg10_total",
+  "alloy": "AlMg10",
+  "minimizationSteps": 100,
+  "xAxisData": "runID",
+  "yAxisData": "betaP_13",
+  "dislocChar": "edge",
+  "dislocType": "partial",
+  "dislocLength": 215,
+  "noiseType": "SF-noise"
+}
