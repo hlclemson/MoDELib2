@@ -483,7 +483,7 @@ PYBIND11_MODULE(pyMoDELib,m)
     
     py::class_<DislocationNetworkType
     /*      */,MicrostructureBase<3>
-    /*      */,LoopNetwork<DislocationNetworkType>>(m,"DislocationNetwork")
+    /*      */,LoopNetwork<DislocationNetworkType>>(m, "DislocationNetwork")
         .def(py::init<MicrostructureContainer<3>&>())
         .def("networkNodes", static_cast<const WeakPtrFactory<DislocationNetworkType, NetworkNodeType>& (DislocationNetworkType::*)() const>(&DislocationNetworkType::networkNodes), py::return_value_policy::reference)
         .def("networkLinks", static_cast<const WeakPtrFactory<DislocationNetworkType, NetworkLinkType>& (DislocationNetworkType::*)() const>(&DislocationNetworkType::networkLinks), py::return_value_policy::reference)
@@ -495,7 +495,7 @@ PYBIND11_MODULE(pyMoDELib,m)
     /*      */>(m,"DefectiveCrystal")
         .def(py::init<DislocationDynamicsBase<3>&>())
         .def("initializeConfiguration", static_cast<void (DefectiveCrystal<3>::*)(const DDconfigIO<3>&)>(&DefectiveCrystal<3>::initializeConfiguration))
-        .def("dislocationNetwork", &DefectiveCrystal<3>::dislocationNetwork,pybind11::return_value_policy::reference)
+        .def("dislocationNetwork", &DefectiveCrystal<3>::dislocationNetwork, pybind11::return_value_policy::reference)
         .def("runSingleStep",&DefectiveCrystal<3>::runSingleStep)
         .def("runSteps",&DefectiveCrystal<3>::runSteps)
     ;
@@ -508,6 +508,24 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def_readonly("climbVelocityScalar", &model::DislocationNodeIO<3>::climbVelocityScalar)
         .def_readonly("velocityReduction", &model::DislocationNodeIO<3>::velocityReduction)
         .def_readonly("meshLocation", &model::DislocationNodeIO<3>::meshLocation)
+    ;
+
+    py::class_<model::DislocationQuadraturePointIO<3>>(m, "DislocationQuadraturePointIO")
+        .def_readonly("sourceID", &model::DislocationQuadraturePointIO<3>::sourceID)
+        .def_readonly("sinkID", &model::DislocationQuadraturePointIO<3>::sinkID)
+        .def_readonly("qID", &model::DislocationQuadraturePointIO<3>::qID)
+        .def_readonly("r", &model::DislocationQuadraturePointIO<3>::r)
+        .def_readonly("j", &model::DislocationQuadraturePointIO<3>::j)
+        .def_readonly("rl", &model::DislocationQuadraturePointIO<3>::rl)
+        .def_readonly("stress", &model::DislocationQuadraturePointIO<3>::stress)
+        .def_readonly("pkForce", &model::DislocationQuadraturePointIO<3>::pkForce)
+        .def_readonly("stackingFaultForce", &model::DislocationQuadraturePointIO<3>::stackingFaultForce)
+        .def_readonly("lineTensionForce", &model::DislocationQuadraturePointIO<3>::lineTensionForce)
+        .def_readonly("velocity", &model::DislocationQuadraturePointIO<3>::velocity)
+        .def_readonly("elasticEnergyPerLength", &model::DislocationQuadraturePointIO<3>::elasticEnergyPerLength)
+        .def_readonly("coreEnergyPerLength", &model::DislocationQuadraturePointIO<3>::coreEnergyPerLength)
+        .def_readonly("cCD", &model::DislocationQuadraturePointIO<3>::cCD)
+        .def_readonly("cDD", &model::DislocationQuadraturePointIO<3>::cDD)
     ;
 
     py::class_<model::DislocationLoopIO<3>>(m, "DislocationLoopIO")
@@ -550,8 +568,7 @@ PYBIND11_MODULE(pyMoDELib,m)
         //.def_readonly("loopCounter", &model::DislocationSegmentIO<3>::loopCounter)
     ;
 
-    py::class_<DDconfigIO<3>
-    /*      */>(m,"DDconfigIO")
+    py::class_<DDconfigIO<3>>(m,"DDconfigIO")
         .def(py::init<const std::string&>())
         .def("readTxt", &model::DDconfigIO<3>::readTxt, py::arg("runID"))
         .def_property_readonly("nodes", static_cast<const std::vector<model::DislocationNodeIO<3>>& (model::DDconfigIO<3>::*)() const>(&model::DDconfigIO<3>::nodes))
@@ -560,7 +577,13 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def_property_readonly("loopNodes", static_cast<const std::vector<model::DislocationLoopNodeIO<3>>& (model::DDconfigIO<3>::*)() const>(&model::DDconfigIO<3>::loopNodes))
         .def("segments", &DDconfigIO<3>::segments)
     ;
-    
+
+    py::class_<DDauxIO<3>>(m,"DDauxIO")
+      .def(py::init<const std::string&>())
+      .def("readTxt", &model::DDauxIO<3>::readTxt, py::arg("runID"))
+      .def_property_readonly("quadraturePoints", static_cast<const std::vector<model::DislocationQuadraturePointIO<3>>& (model::DDauxIO<3>::*)() const>(&model::DDauxIO<3>::quadraturePoints))
+    ;
+
     py::class_<MicrostructureGenerator
     /*      */>(m,"MicrostructureGenerator")
         .def(py::init<DislocationDynamicsBase<3>&>())
