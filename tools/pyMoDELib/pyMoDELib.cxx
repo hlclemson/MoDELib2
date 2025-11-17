@@ -41,8 +41,9 @@
 #include <MicrostructureGenerator.h>
 #include <DislocationMobilityBCC.h>
 #include <DislocationMobilityPy.h>
+#include <DislocationMobilityHEXprismatic.h>
 #include <GlidePlaneNoiseBase.h>
-#include <PeriodicLatticeInterpolant.h>
+#include <DislocationSegmentIO.h>
 
 using namespace model;
 // https://pybind11.readthedocs.io/en/stable/advanced/cast/eigen.html
@@ -55,18 +56,27 @@ typedef DislocationNetwork<3,0> DislocationNetworkType;
 typedef typename TypeTraits<DislocationNetworkType>::LoopNodeType LoopNodeType;
 typedef typename TypeTraits<DislocationNetworkType>::LoopType LoopType;
 typedef typename TypeTraits<DislocationNetworkType>::NetworkNodeType NetworkNodeType;
+typedef typename TypeTraits<DislocationNetworkType>::NetworkLinkType NetworkLinkType;
+
+typedef PeriodicPlaneEdge<3> PeriodicPlaneEdgeType;
 
 #ifdef _MODEL_PYBIND11_
 
 PYBIND11_MAKE_OPAQUE(std::map<typename LoopNodeType::KeyType,const std::weak_ptr<LoopNodeType>>);
 PYBIND11_MAKE_OPAQUE(std::map<typename LoopType::KeyType,const std::weak_ptr<LoopType>>);
+PYBIND11_MAKE_OPAQUE(std::map<typename NetworkNodeType::KeyType,const std::weak_ptr<NetworkNodeType>>);
+PYBIND11_MAKE_OPAQUE(std::map<typename NetworkLinkType::KeyType,const std::weak_ptr<NetworkLinkType>>);
 PYBIND11_MAKE_OPAQUE(std::vector<MeshedDislocationLoop>);
 PYBIND11_MAKE_OPAQUE(GlidePlaneNoiseBase<1>); // opaque: pybind11 is not going to try to guess the data type for python
 PYBIND11_MAKE_OPAQUE(GlidePlaneNoiseBase<2>);
+PYBIND11_MAKE_OPAQUE(std::map<std::pair<size_t,size_t>,DislocationSegmentIO<3>>);
 
-//PYBIND11_MAKE_OPAQUE(std::vector<std::shared_ptr<GlidePlaneBase>>);
+
+PYBIND11_MAKE_OPAQUE(std::vector<std::shared_ptr<GlidePlaneBase>>);
 //PYBIND11_MAKE_OPAQUE(std::vector<std::shared_ptr<SlipSystem>>);
 //PYBIND11_MAKE_OPAQUE(std::map<size_t,std::shared_ptr<SecondPhase<3>>>);
+PYBIND11_MAKE_OPAQUE(std::vector<std::shared_ptr<PeriodicPlaneEdgeType>>);
+
 
 PYBIND11_MAKE_OPAQUE(typename TypeTraits<SingleCrystalBase<3>>::PlaneNormalContainerType);
 PYBIND11_MAKE_OPAQUE(typename TypeTraits<SingleCrystalBase<3>>::SlipSystemContainerType);
@@ -77,6 +87,43 @@ PYBIND11_MAKE_OPAQUE(typename TypeTraits<SingleCrystalBase<3>>::SecondPhaseConta
 PYBIND11_MODULE(pyMoDELib,m)
 {
     namespace py=pybind11;
+
+    // STUFF I HAVE ADDED 
+    py::class_<PeriodicPlaneEdgeType, std::shared_ptr<PeriodicPlaneEdgeType>>(m, "PeriodicPlaneEdge")
+        .def_property_readonly("P0", [](const PeriodicPlaneEdgeType& e){ return e.meshIntersection->P0; })
+        .def_property_readonly("P1", [](const PeriodicPlaneEdgeType& e){ return e.meshIntersection->P1; })
+        .def_readonly("deltaShift", &PeriodicPlaneEdgeType::deltaShift)  // handy to have
+    ;
+
+    py::class_<GlidePlane<3>, std::shared_ptr<GlidePlane<3>>>(m, "GlidePlane")
+        .def_property_readonly("unitNormal", [](const GlidePlane<3>& gp){ return gp.unitNormal; })
+        .def("localPosition",  &GlidePlane<3>::localPosition)
+        .def("globalPosition", &GlidePlane<3>::globalPosition)
+        .def("key_tuple", [](const GlidePlane<3>& gp){
+            const auto& k = gp.key;
+            const auto r  = k.reciprocalDirectionComponents(); // 3 ints
+            // tuple = (h, k, l, layer, latticeID)
+            return py::make_tuple(static_cast<long>(r(0)),
+                                  static_cast<long>(r(1)),
+                                  static_cast<long>(r(2)),
+                                  static_cast<long>(k.planeIndex()),
+                                  static_cast<long>(k.latticeID()));
+        })
+        .def("meshSegments",
+            [](GlidePlane<3>& gp)
+            {   py::list out;
+                for(const auto& seg : gp.meshIntersections)
+                {
+                    out.append(py::make_tuple(seg->P0, seg->P1));
+                }
+                return out;
+            })
+    ;
+
+   // #################################################################################################### //
+
+
+
 
     py::class_<GlidePlaneNoiseBase<1>, std::shared_ptr<GlidePlaneNoiseBase<1>>>(m, "GlidePlaneNoiseBase1")
       .def(py::init<const std::string&, const int&,
@@ -126,22 +173,6 @@ PYBIND11_MODULE(pyMoDELib,m)
 
     // Bind AnalyticalSolidSolutionNoise
     py::class_<AnalyticalSolidSolutionNoise, GlidePlaneNoiseBase<2>,std::shared_ptr<AnalyticalSolidSolutionNoise>>(m, "AnalyticalSolidSolutionNoise")
-      // Constructor
-      .def(py::init<
-          const std::string&,
-          const int&,
-          const model::NoiseTraitsBase::GridSizeType&,
-          const model::NoiseTraitsBase::GridSpacingType&,
-          const Eigen::Matrix<double, 2, 2>&,
-          //const bool&,
-          const double&,
-          const double&,
-          const double&
-      >())
-    ;
-
-    // Bind AnalyticalSolidSolutionWhiteNoise
-    py::class_<AnalyticalSolidSolutionWhiteNoise, GlidePlaneNoiseBase<2>,std::shared_ptr<AnalyticalSolidSolutionWhiteNoise>>(m, "AnalyticalSolidSolutionWhiteNoise")
       // Constructor
       .def(py::init<
           const std::string&,
@@ -250,22 +281,13 @@ PYBIND11_MODULE(pyMoDELib,m)
 //        .def(py::init<const typename LatticeVector<3>::LatticeType&>())
     ;
 
-
-    py::class_<PeriodicLatticeInterpolant<2>,std::shared_ptr<PeriodicLatticeInterpolant<2>>>(m,"PeriodicLatticeInterpolant")
-        .def_readonly("A", &PeriodicLatticeInterpolant<2>::A)
-        .def_readonly("B", &PeriodicLatticeInterpolant<2>::B)
-        .def_readonly("waveVectors", &PeriodicLatticeInterpolant<2>::waveVectors)
-        .def_readonly("points", &PeriodicLatticeInterpolant<2>::points)
-    ;
     
-    py::class_<GammaSurface,PeriodicLatticeInterpolant<2>,std::shared_ptr<GammaSurface>>(m,"GammaSurface")
+    py::class_<GammaSurface>(m,"GammaSurface")
         .def(py::init<const Eigen::Matrix<double,2,2>&,
              const Eigen::Matrix<double,Eigen::Dynamic,2>&,
              const Eigen::Matrix<double,Eigen::Dynamic,3>&,
              const int&,
              const std::vector<Eigen::Matrix<double,2,1>>&>())
-        .def("misfitEnergy", &GammaSurface::misfitEnergy)
-
     ;
     
     py::class_<GlidePlaneBase,std::shared_ptr<GlidePlaneBase>>(m,"GlidePlaneBase")
@@ -273,11 +295,10 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def("misfitEnergy", &GlidePlaneBase::misfitEnergy)
         .def("localSlipVector", &GlidePlaneBase::localSlipVector)
         .def_readonly("primitiveVectors", &GlidePlaneBase::primitiveVectors)
-        .def_readonly("gammaSurface", &GlidePlaneBase::gammaSurface)
     ;
 
     py::class_<SlipSystem,std::shared_ptr<SlipSystem>>(m,"SlipSystem")
-//        .def(py::init<const GlidePlaneBase&,const RationalLatticeDirection<3>&,const std::shared_ptr<DislocationMobilityBase>&,const std::shared_ptr<GlidePlaneNoise>&>())
+    //    .def(py::init<const GlidePlaneBase&,const RationalLatticeDirection<3>&,const std::shared_ptr<DislocationMobilityBase>&,const std::shared_ptr<GlidePlaneNoise>&>())
         .def_readonly("unitNormal", &SlipSystem::unitNormal)
         .def_readonly("unitSlip", &SlipSystem::unitSlip)
     ;
@@ -290,7 +311,7 @@ PYBIND11_MODULE(pyMoDELib,m)
 //        .def("misfitEnergy", static_cast<double (SecondPhase<3>::*)(Eigen::Ref<const Eigen::Matrix<double,3,1>>,const size_t&) const>(&SecondPhase<3>::misfitEnergy))
 //        .def_readonly("gsMap", &SecondPhase<3>::gsMap)
         .def("misfitEnergy",static_cast<double (SecondPhase<3>::*)(const Eigen::Matrix<double,3,1>&,const size_t&) const>(&SecondPhase<3>::misfitEnergy))
-        .def("gammaSurface", &SecondPhase<3>::gammaSurface)
+
     ;
 
     //    py::bind_vector<std::vector<std::shared_ptr<GlidePlaneBase>>>(m, "GlidePlaneBasePtrVector"); // THIS GIVES ERROR
@@ -335,6 +356,14 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def_readonly("mesh", &DislocationDynamicsBase<3>::mesh)
         .def_readonly("poly", &DislocationDynamicsBase<3>::poly)
         .def_readonly("simulationParameters", &DislocationDynamicsBase<3>::simulationParameters)
+        .def("glidePlanes",
+        [](DislocationDynamicsBase<3>& ddb) {
+            std::vector<std::shared_ptr<GlidePlane<3>>> out;
+            for (const auto& kv : ddb.glidePlaneFactory.glidePlanes()) {
+                if (!kv.second.expired()) out.push_back(kv.second.lock());
+            }
+            return out;
+        })
     ;
     
     py::class_<MicrostructureBase<3>>(m,"MicrostructureBase")
@@ -364,11 +393,11 @@ PYBIND11_MODULE(pyMoDELib,m)
              const typename TypeTraits<DislocationNetworkType>::VectorDim&,
              const std::shared_ptr<PeriodicPlanePatch<3>>&,
              const std::pair<const std::shared_ptr<PeriodicPlaneEdge<3>>,const std::shared_ptr<PeriodicPlaneEdge<3>>>&>())
+        // .def("position", [](const LoopNodeType& node) { return node.get_P(); })
     ;
     
     //Loop
     py::bind_vector<std::vector<MeshedDislocationLoop>>(m, "MeshedDislocationLoopVector");
-
     py::bind_map<std::map<typename LoopType::KeyType,const std::weak_ptr<LoopType>>>(m, "LoopWeakPtrMap");
 
     py::class_<WeakPtrFactory<DislocationNetworkType,LoopType>
@@ -385,6 +414,8 @@ PYBIND11_MODULE(pyMoDELib,m)
              const std::shared_ptr<GlidePlaneType>&>())
         .def("solidAngle",&LoopType::solidAngle)
         .def("meshed",&LoopType::meshed)
+        .def("burgers", &LoopType::burgers)
+        .def_readonly("glidePlane", &LoopType::glidePlane) 
     ;
     
     py::class_<MeshedDislocationLoop
@@ -408,13 +439,57 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def("loops", static_cast<const WeakPtrFactory<DislocationNetworkType,LoopType>& (LoopNetwork<DislocationNetworkType>::*)()const>(&LoopNetwork<DislocationNetworkType>::loops),pybind11::return_value_policy::reference)
         .def("loopNodes", static_cast<const WeakPtrFactory<DislocationNetworkType,LoopNodeType>& (LoopNetwork<DislocationNetworkType>::*)()const>(&LoopNetwork<DislocationNetworkType>::loopNodes),pybind11::return_value_policy::reference)
     ;
+
+    
+    // Network Node and Network Link
+    py::bind_map<std::map<typename NetworkNodeType::KeyType,const std::weak_ptr<NetworkNodeType>>>(m, "NetworkNodeWeakPtrMap");
+    py::bind_map<std::map<typename DislocationNetworkType::NetworkLinkType::KeyType,const std::weak_ptr<DislocationNetworkType::NetworkLinkType>>>(m, "NetworkLinkWeakPtrMap");
+
+    py::class_<WeakPtrFactory<DislocationNetworkType, NetworkNodeType>
+    /*      */,std::map<typename NetworkNodeType::KeyType,const std::weak_ptr<NetworkNodeType>>
+    /*      */>(m,"NetworkNodeWeakPtrFactory")
+            .def(py::init<>())
+            .def("getRef",&WeakPtrFactory<DislocationNetworkType,NetworkNodeType>::getRef,pybind11::return_value_policy::reference)
+    ;
+
+    py::class_<WeakPtrFactory<DislocationNetworkType, DislocationNetworkType::NetworkLinkType>
+    /*      */,std::map<typename DislocationNetworkType::NetworkLinkType::KeyType,const std::weak_ptr<DislocationNetworkType::NetworkLinkType>>
+    /*      */>(m,"NetworkLinkWeakPtrFactory")
+            .def(py::init<>())
+            .def("getRef",&WeakPtrFactory<DislocationNetworkType,DislocationNetworkType::NetworkLinkType>::getRef,pybind11::return_value_policy::reference)
+    ;
+
+    py::class_<NetworkNodeType, std::shared_ptr<NetworkNodeType>>(m, "NetworkNode")
+        .def("networkID", &NetworkNodeType::networkID)
+        .def("loopIDs", &NetworkNodeType::loopIDs)
+        .def("loops", &NetworkNodeType::loops)
+        .def("loopNodes", static_cast<const std::set<typename TypeTraits<DislocationNetworkType>::LoopNodeType*>& (NetworkNodeType::*)() const>(&NetworkNodeType::loopNodes))
+        .def("gID", &NetworkNodeType::gID)
+        .def("position", [](const NetworkNodeType& node) { return node.get_P(); })
+    ;
+
+    py::class_<DislocationNetworkType::NetworkLinkType, std::shared_ptr<DislocationNetworkType::NetworkLinkType>>(m, "NetworkLink")
+        .def_readonly("source", &DislocationNetworkType::NetworkLinkType::source)
+        .def_readonly("sink", &DislocationNetworkType::NetworkLinkType::sink)
+        .def("loopIDs", &DislocationNetworkType::NetworkLinkType::loopIDs)
+        .def("loops", &DislocationNetworkType::NetworkLinkType::loops)
+        .def("burgers", &DislocationNetworkType::NetworkLinkType::burgers)
+        .def("chord", &DislocationNetworkType::NetworkLinkType::chord)
+        .def("slipSystem", &DislocationNetworkType::NetworkLinkType::slipSystem)
+        .def("hasZeroBurgers", &DislocationNetworkType::NetworkLinkType::hasZeroBurgers)
+        .def("isBoundarySegment", &DislocationNetworkType::NetworkLinkType::isBoundarySegment)
+        .def("isGrainBoundarySegment", &DislocationNetworkType::NetworkLinkType::isGrainBoundarySegment);
+    ;
     
     py::class_<DislocationNetworkType
     /*      */,MicrostructureBase<3>
     /*      */,LoopNetwork<DislocationNetworkType>>(m,"DislocationNetwork")
         .def(py::init<MicrostructureContainer<3>&>())
+        .def("networkNodes", static_cast<const WeakPtrFactory<DislocationNetworkType, NetworkNodeType>& (DislocationNetworkType::*)() const>(&DislocationNetworkType::networkNodes), py::return_value_policy::reference)
+        .def("networkLinks", static_cast<const WeakPtrFactory<DislocationNetworkType, NetworkLinkType>& (DislocationNetworkType::*)() const>(&DislocationNetworkType::networkLinks), py::return_value_policy::reference)
     ;
     
+
     py::class_<DefectiveCrystal<3>
     /*      */,MicrostructureContainer<3>
     /*      */>(m,"DefectiveCrystal")
@@ -425,9 +500,65 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def("runSteps",&DefectiveCrystal<3>::runSteps)
     ;
 
+    // -------------------- IO Structs --------------------
+    py::class_<model::DislocationNodeIO<3>>(m, "DislocationNodeIO")
+        .def_readonly("sID", &model::DislocationNodeIO<3>::sID)
+        .def_readonly("P", &model::DislocationNodeIO<3>::P)
+        .def_readonly("V", &model::DislocationNodeIO<3>::V)
+        .def_readonly("climbVelocityScalar", &model::DislocationNodeIO<3>::climbVelocityScalar)
+        .def_readonly("velocityReduction", &model::DislocationNodeIO<3>::velocityReduction)
+        .def_readonly("meshLocation", &model::DislocationNodeIO<3>::meshLocation)
+    ;
+
+    py::class_<model::DislocationLoopIO<3>>(m, "DislocationLoopIO")
+        .def_readonly("sID", &model::DislocationLoopIO<3>::sID)
+        .def_readonly("B", &model::DislocationLoopIO<3>::B)
+        .def_readonly("N", &model::DislocationLoopIO<3>::N)
+        .def_readonly("P", &model::DislocationLoopIO<3>::P)
+        .def_readonly("grainID", &model::DislocationLoopIO<3>::grainID)
+        .def_readonly("loopType", &model::DislocationLoopIO<3>::loopType)
+        .def_readonly("loopLength", &model::DislocationLoopIO<3>::loopLength)
+        .def_readonly("slippedArea", &model::DislocationLoopIO<3>::slippedArea)
+    ;
+
+    py::class_<model::DislocationLoopLinkIO<3>>(m, "DislocationLoopLinkIO")
+        .def_readonly("loopID", &model::DislocationLoopLinkIO<3>::loopID)
+        .def_readonly("sourceID", &model::DislocationLoopLinkIO<3>::sourceID)
+        .def_readonly("sinkID", &model::DislocationLoopLinkIO<3>::sinkID)
+        .def_readonly("hasNetworkLink", &model::DislocationLoopLinkIO<3>::hasNetworkLink)
+        .def_readonly("meshLocation", &model::DislocationLoopLinkIO<3>::meshLocation)
+    ;
+
+    py::class_<model::DislocationLoopNodeIO<3>>(m, "DislocationLoopNodeIO")
+        .def_readonly("loopID", &model::DislocationLoopNodeIO<3>::loopID)
+        .def_readonly("sID", &model::DislocationLoopNodeIO<3>::sID)
+        .def_readonly("P", &model::DislocationLoopNodeIO<3>::P)
+        .def_readonly("networkNodeID", &model::DislocationLoopNodeIO<3>::networkNodeID)
+        .def_readonly("periodicShift", &model::DislocationLoopNodeIO<3>::periodicShift)
+        .def_readonly("edgeIDs", &model::DislocationLoopNodeIO<3>::edgeIDs)
+    ;
+
+    py::bind_map<std::map<std::pair<size_t,size_t>,DislocationSegmentIO<3>>>(m, "DislocationSegmentIOmap"); // THIS GIVES ERROR
+
+    py::class_<model::DislocationSegmentIO<3>>(m, "DislocationSegmentIO")
+        .def_readonly("sourceID", &model::DislocationSegmentIO<3>::sourceID)
+        .def_readonly("sinkID", &model::DislocationSegmentIO<3>::sinkID)
+        .def_readonly("b", &model::DislocationSegmentIO<3>::b)
+        .def_readonly("n", &model::DislocationSegmentIO<3>::n)
+        .def_readonly("meshLocation", &model::DislocationSegmentIO<3>::meshLocation)
+        .def_readonly("grainIDs", &model::DislocationSegmentIO<3>::grainIDs)
+        //.def_readonly("loopCounter", &model::DislocationSegmentIO<3>::loopCounter)
+    ;
+
     py::class_<DDconfigIO<3>
     /*      */>(m,"DDconfigIO")
         .def(py::init<const std::string&>())
+        .def("readTxt", &model::DDconfigIO<3>::readTxt, py::arg("runID"))
+        .def_property_readonly("nodes", static_cast<const std::vector<model::DislocationNodeIO<3>>& (model::DDconfigIO<3>::*)() const>(&model::DDconfigIO<3>::nodes))
+        .def_property_readonly("loops", static_cast<const std::vector<model::DislocationLoopIO<3>>& (model::DDconfigIO<3>::*)() const>(&model::DDconfigIO<3>::loops))
+        .def_property_readonly("loopLinks", static_cast<const std::vector<model::DislocationLoopLinkIO<3>>& (model::DDconfigIO<3>::*)() const>(&model::DDconfigIO<3>::loopLinks))
+        .def_property_readonly("loopNodes", static_cast<const std::vector<model::DislocationLoopNodeIO<3>>& (model::DDconfigIO<3>::*)() const>(&model::DDconfigIO<3>::loopNodes))
+        .def("segments", &DDconfigIO<3>::segments)
     ;
     
     py::class_<MicrostructureGenerator
@@ -701,21 +832,48 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def_readwrite("velocityReductionFactor", &PolyhedronInclusionIndividualSpecification::velocityReductionFactor)
         .def_readwrite("phaseID", &PolyhedronInclusionIndividualSpecification::phaseID)
     ;
-    
+
     py::class_<DislocationMobilityBCC>(m,"DislocationMobilityBCC")
         .def(py::init<const PolycrystallineMaterialBase&>())
-        .def("velocity", static_cast<double (DislocationMobilityBCC::*)(const Eigen::Matrix<double,3,3>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const double&)>(&DislocationMobilityBCC::velocity))
-    ;
+        .def("velocity", 
+             static_cast<double (DislocationMobilityBCC::*)(
+             const Eigen::Matrix<double,3,3>&,
+             const Eigen::Matrix<double,3,1>&,
+             const Eigen::Matrix<double,3,1>&,
+             const Eigen::Matrix<double,3,1>&,
+             const double&)>(&DislocationMobilityBCC::velocity)) ;
 
-//    py::class_<DislocationMobilityPy>(m,"DislocationMobilityPy")
-//        .def(py::init<const PolycrystallineMaterialBase&>())
-//        .def("velocity", static_cast<double (DislocationMobilityPy::*)(const Eigen::Matrix<double,3,3>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const double&)>(&DislocationMobilityPy::velocity))
-//    ;
+
+    py::class_<DislocationMobilityHEXprismatic>(m,
+                                              "DislocationMobilityHEXprismatic")
+      .def(py::init<const PolycrystallineMaterialBase&>())
+      .def("velocity",
+          static_cast<double (DislocationMobilityHEXprismatic::*)(
+              const Eigen::Matrix<double,3,3>&,
+              const Eigen::Matrix<double,3,1>&,
+              const Eigen::Matrix<double,3,1>&,
+              const Eigen::Matrix<double,3,1>&,
+              const double&,
+              const double&,
+              const double&,
+              const std::shared_ptr<StochasticForceGenerator>&
+           )>(&DislocationMobilityHEXprismatic::velocity));
 
 
-    
+    py::class_<DislocationMobilityPy>(m,"DislocationMobilityPy")
+        .def(py::init<const PolycrystallineMaterialBase&, const std::string&>())
+        .def("velocity", 
+             static_cast<double (DislocationMobilityPy::*)(
+             const Eigen::Matrix<double,3,3>&,
+             const Eigen::Matrix<double,3,1>&,
+             const Eigen::Matrix<double,3,1>&,
+             const Eigen::Matrix<double,3,1>&,
+             const double&,
+             const double&,
+             const double&,
+             const std::shared_ptr<StochasticForceGenerator>&
+             )>(&DislocationMobilityPy::velocity));
 
-    
 }
 #endif
 
