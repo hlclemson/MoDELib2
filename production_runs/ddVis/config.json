@@ -1,3 +1,5 @@
 {
-  "data_path": "../partial_orient_615AA_crss_2-3_almg5/generatedData/seed1/seed1/101MPa"
+  "data_path": "../partial_orient_615AA_crss_2-3_almg5_total/seed1/101MPa.tar.gz",
+  "evl_start_step": 0,
+  "evl_end_step": 10000
 }

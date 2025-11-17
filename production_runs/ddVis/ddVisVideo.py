@@ -1,4 +1,3 @@
-#!/opt/local/bin/python3.12
 import sys, os, math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,33 +6,47 @@ import matplotlib.cm as cm
 from matplotlib import animation
 import json
 from pathlib import Path
+import tarfile, tempfile, pathlib, shutil 
 
 plt.rcParams["text.usetex"] = True
 # ----- MoDELib / utils paths -----
 sys.path.append("../../python")
 sys.path.append("../../python/lib")
 from visUtils import *
-#from readFile import *
 from modlibUtils import *
 
 sys.path.append("../../build/tools/pyMoDELib")
 import pyMoDELib
 
 
-# ================== MAIN SCRIPT ==================
-if __name__ == "__main__":
-    # ------------- Setup MoDELib objects -------------
-    #simulationDir = os.path.join("../..", "tutorials", "prismaticDensityFCC")
 
+def main():
     with open("config.json", "r") as f:
         config = json.load(f)
     simulationDir = Path(config["data_path"])
-    #ddBase = pyMoDELib.DislocationDynamicsBase(simulationDir)
-    ddBase = pyMoDELib.DislocationDynamicsBase(str(simulationDir))
-    #ddio = pyMoDELib.DDconfigIO(simulationDir + "/evl")
-    ddio = pyMoDELib.DDconfigIO(str(simulationDir / "evl"))
-    evl_file = 500
 
+    # ------------- Setup MoDELib objects -------------
+    src = simulationDir          # could be dir or myfolder.tar.gz
+    tmp = None                                # will hold TemporaryDirectory handle
+    work_dir = None                         # will point to the folder we actually use
+    if src.is_dir():                    # already uncompressed
+        work_dir = src
+    elif src.suffixes == ['.tar', '.gz']:   # really a .tar.gz
+        tmp = tempfile.TemporaryDirectory()
+        with tarfile.open(src, 'r:gz') as tf:
+            tf.extractall(tmp.name)
+        work_dir = pathlib.Path(tmp.name) / src.name.removesuffix('.tar.gz')
+
+        #for item in work_dir.iterdir():
+        #    print(f"{'DIR ' if item.is_dir() else 'FILE'} {item.name}")
+    else:
+        raise FileNotFoundError('neither directory nor .tar.gz found')
+
+    # ----- use work_dir here -----
+        #for item in work_dir.iterdir():
+        #for print(item)
+    ddBase = pyMoDELib.DislocationDynamicsBase(str(work_dir))
+    ddio = pyMoDELib.DDconfigIO(str(work_dir / "evl"))
 
     # --- Box geometry ---
     xMin = np.array(ddBase.mesh.xMin(), dtype=float)
@@ -41,8 +54,8 @@ if __name__ == "__main__":
     xCenter = np.array(ddBase.mesh.xCenter(), dtype=float)
 
     # ------------- EVL range & discovery -------------
-    start_evl = 0
-    end_evl = 10_000
+    start_evl = config["evl_start_step"]
+    end_evl = config["evl_end_step"]
     evl_indices = []
     for i in range(start_evl, end_evl + 1):
         try:
@@ -132,7 +145,8 @@ if __name__ == "__main__":
     xmin, ymin = all_xy.min(axis=0)
     xmax, ymax = all_xy.max(axis=0)
     dx, dy = (xmax - xmin), (ymax - ymin)
-    pad = 0.05 * (max(dx, dy) if max(dx, dy) > 0 else 1.0)
+    #pad = 0.05 * (max(dx, dy) if max(dx, dy) > 0 else 1.0)
+    pad = 0.00 * (max(dx, dy) if max(dx, dy) > 0 else 1.0)
     xlim = (xmin - pad, xmax + pad)
     ylim = (ymin - pad, ymax + pad)
 
@@ -161,9 +175,9 @@ if __name__ == "__main__":
         ax.set_ylim(*ylim)
         ax.grid(True, ls=":", alpha=0.35)
 
-        # static plane outline
+        # static plane outline, glide plane edges
         for (x0, y0), (x1, y1) in plane_proj_edges.get(pk, []):
-            ax.plot([x0, x1], [y0, y1], lw=1.2, alpha=0.6, color="k")
+            ax.plot([x0, x1], [y0, y1], lw=1.0, alpha=0.6, color="k")
 
         ax.set_title(f"Plane pk={pk}", fontsize=9)
 
@@ -225,6 +239,9 @@ if __name__ == "__main__":
                 (ln,) = ax.plot([x0, x1], [y0, y1], lw=2.0, alpha=1.0, color=col)
                 segment_artists[pk].append(ln)
 
+        #ax.xlim([x0, x1])
+        #ax.ylim([y0, y1])
+
         # Show EVL index in a super-title or text
         fig2.suptitle(f"Glide planes segment – evolution ({evl_idx})", fontsize=14)
 
@@ -243,3 +260,10 @@ if __name__ == "__main__":
     writer = animation.FFMpegWriter(fps=5, bitrate=1800)
     ani.save("glide_planes_evolution.mp4", writer=writer, dpi=200)
     plt.close(fig2)
+
+
+    if tmp:               # automatically deletes the tmp tree
+        tmp.cleanup()
+
+if __name__ == "__main__":
+    main()
