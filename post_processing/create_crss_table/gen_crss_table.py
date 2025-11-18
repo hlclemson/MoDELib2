@@ -1,50 +1,18 @@
 # standard lib
 import re
-import sys
 import json
-import math
 import shutil
 import tarfile
-import pathlib
 import tempfile
 
 # 3rd party lib
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
-import matplotlib.cm as cm
-import matplotlib.pyplot as plt
 from pathlib import Path
-from matplotlib import rcParams
 from collections import defaultdict
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
-
-# ----- MoDELib / utils paths -----
-sys.path.append("../../python")
-sys.path.append("../../python/lib")
-from modlibUtils import *
-
-sys.path.append("../../build/tools/pyMoDELib")
-import pyMoDELib
-
-
-# Configure global plot settings (applies to all figures)
-rcParams.update(
-    {
-        "figure.dpi": 200,
-        # "figure.autolayout": True,  # Prevent label clipping
-        # "axes.grid": True,
-        # "grid.alpha": 0.6,
-        "text.usetex": False,
-        "font.size": 10,  # Default font size for text
-        "mathtext.fontset": "stix",  # Use STIX font for math text
-        "font.family": "serif",  # Use serif font (matches LaTeX default)
-    }
-)
 
 
 def readValFromMaterialFile(matDir: str, alloy: str, var: str) -> float:
-    # with open(f"{matDir}/{alloy}.txt", "r") as mFile:
     with open(matDir / alloy, "r") as mFile:
         for line in mFile:
             # strip down comments from the data
@@ -64,8 +32,9 @@ def main():
 
     data_paths = [p for pat in ("*MPa.tar.gz", "MPa") for p in simulationDir.rglob(pat)]
     # sort by seed number
-    # data_paths= sorted(data_paths, key=lambda p: int(re.search(r'seed(\d+)', str(p)).group(1)))
-    # print(data_paths)
+    data_paths = sorted(
+        data_paths, key=lambda p: int(re.search(r"seed(\d+)", str(p)).group(1))
+    )
 
     path_seed_dict = defaultdict(list)  # seed -> list of matching Paths
     for p in data_paths:
@@ -86,18 +55,11 @@ def main():
     data_frames = []
     # for dat in data_paths:
     for seed_num, paths in path_seed_dict.items():
-        ## seed number
-        # seed = int(re.search(r'seed(\d+)', str(dat)).group(1))
-        ## stress
-        # stress = int(re.search(r'(\d+)MPa', str(dat)).group(1))
         # sort by stress
         paths = sorted(
             paths, key=lambda p: int(re.search(r"(\d+)MPa", str(p)).group(1))
         )
-        print(paths)
-
         for path in paths:
-            print(path)
             # extract stress value
             stress = int(re.search(r"(\d+)MPa", str(path)).group(1))
 
@@ -111,11 +73,10 @@ def main():
                 tmp = tempfile.TemporaryDirectory()
                 with tarfile.open(src, "r:gz") as tf:
                     tf.extractall(tmp.name)
-                work_dir = pathlib.Path(tmp.name) / src.name.removesuffix(".tar.gz")
+                work_dir = Path(tmp.name) / src.name.removesuffix(".tar.gz")
             else:
                 raise FileNotFoundError("neither directory nor .tar.gz found")
 
-            # alloyMatch = re.search(r"AlMg(\d+)", dir)
             alloy = f"{config["alloy"]}.txt"
             matDir = work_dir / "inputFiles"
             # extract material info
@@ -126,34 +87,17 @@ def main():
             convertTimeUnit = b_SI / cs  # [sec]
             convertMPaToMu = 1 / (mu0_SI * 10 ** (-6))
 
-            copyFlag = False
-            counter = 0
+            # read deformation gradient tensor from poly file
             fTensor = np.zeros((3, 3))
-
-            with open(work_dir / "inputFiles" / "polycrystal.txt", "r") as poly:
-                for line in poly:
-                    line = line.strip("\n")
-                    if "F=" in line:
-                        copyFlag = True
-                    if copyFlag:
-                        if counter == 0:
-                            tensorLine = np.array(
-                                line.split("=")[1].split(" "), dtype=np.float64
-                            )
-                        elif counter == 1:
-                            tensorLine = np.array(
-                                line.strip().split(" "), dtype=np.float64
-                            )
-                        else:
-                            tensorLine = np.array(
-                                line.split(";")[0].strip().split(" "),
-                                dtype=np.float64,
-                            )
-                        fTensor[counter] += tensorLine
-                        counter += 1
-                    if counter == 3:
-                        copyFlag = False
+            with open(work_dir / "inputFiles" / "polycrystal.txt", "r") as fh:
+                mat = []
+                for line in fh:
+                    if "F=" in line:  # found header
+                        mat.append(line.strip("F=").strip("\n").strip())
+                        mat.append(fh.readline().strip("\n").strip())
+                        mat.append(fh.readline().strip().split(";")[0])
                         break
+                fTensor = np.loadtxt(mat, dtype=np.float64)
 
             V = np.linalg.det(fTensor)
             fDiag = np.diag(fTensor)
@@ -169,7 +113,6 @@ def main():
             lastCols = np.arange(-33, 0)
             # open F file
             fData = defaultdict(list)
-            # with open(f"{genDataDir}/{dir}/F/F_0.txt", "r") as f:
             with open(work_dir / "F/F_0.txt", "r") as f:
                 for line in f:
                     line = [float(x) for x in line.split(" ") if x and x != "\n"]
@@ -196,16 +139,10 @@ def main():
             xAxisData = np.delete(xAxisData, dup_idx)
             yAxisData = np.delete(yAxisData, dup_idx)
 
-            # minRunidIdx = np.squeeze(np.where(fData['runID']==np.float64(minimizationSteps)))
-            # min_id_idx = np.squeeze(
-            #    np.where(xAxisData == np.float64(config["minimizationSteps"]))
-            # )
             # assume the first step data is minimization
             min_id_idx = 1
             # calculate the absolute plastic distortion
-            # abs_betaP = np.abs(betaP_12 - betaP_12[0])
             abs_betaP = np.abs(yAxisData - yAxisData[min_id_idx])
-            # print("Duplicate values:", duplicates)
 
             dydx = np.gradient(abs_betaP, xAxisData)
             dydx_mean = np.mean(dydx[-3:])
@@ -235,33 +172,52 @@ def main():
 
     # save plastic strain rate data
     df = pd.concat(data_frames, ignore_index=True)
-    df.to_csv(output_dir/"all_rate_data.csv", index=False)
+    df.to_csv(output_dir / "all_rate_data.csv", index=False)
 
     # generate CRSS table
-    seeds = df['seed'].unique()
-    threshold = 1e-10 # set your cut-off
+    seeds = df["seed"].unique()
+    threshold = 1e-10  # set your cut-off
 
     data_frames = []
-    data_columns = ["d_type","noise_type","seed","d_char","alloy","length","str_step_size","crss"]
+    data_columns = [
+        "d_type",
+        "noise_type",
+        "seed",
+        "d_char",
+        "alloy",
+        "length",
+        "str_step_size",
+        "crss",
+    ]
     for seed in seeds:
-        local_df = df[df['seed']==seed]
-        high_df = local_df[local_df['dydx_mean'] > threshold] # 1. apply threshold
-        crss_above_row = high_df.loc[high_df['dydx_mean'].idxmin()]
-        crss_above = crss_above_row['stress']
+        local_df = df[df["seed"] == seed]
+        high_df = local_df[local_df["dydx_mean"] > threshold]  # 1. apply threshold
+        crss_above_row = high_df.loc[high_df["dydx_mean"].idxmin()]
+        crss_above = crss_above_row["stress"]
 
         # rows whose stress is below the CRSS
-        below = local_df[local_df['stress'] < crss_above]
+        below = local_df[local_df["stress"] < crss_above]
         # pick the one with the highest such stress
-        entry_below = below.loc[below['stress'].idxmax(), 'stress']
-        crss_search_step = crss_above-entry_below
-        crss = crss_above - (crss_search_step/2)
-        new_entry = [(crss_above_row["d_type"], crss_above_row["noise_type"], crss_above_row["seed"],crss_above_row["d_char"],crss_above_row["alloy"],crss_above_row["length"], crss_search_step, crss)]
+        entry_below = below.loc[below["stress"].idxmax(), "stress"]
+        crss_search_step = crss_above - entry_below
+        crss = crss_above - (crss_search_step / 2)
+        new_entry = [
+            (
+                crss_above_row["d_type"],
+                crss_above_row["noise_type"],
+                crss_above_row["seed"],
+                crss_above_row["d_char"],
+                crss_above_row["alloy"],
+                crss_above_row["length"],
+                crss_search_step,
+                crss,
+            )
+        ]
         data_frames.append(pd.DataFrame(new_entry, columns=data_columns))
 
     df_new = pd.concat(data_frames, ignore_index=True)
-    df_new = df_new.sort_values(by=['seed'])
-    df_new.to_csv(output_dir/"all_crss_data.csv", index=False)
-
+    df_new = df_new.sort_values(by=["seed"])
+    df_new.to_csv(output_dir / "all_crss_data.csv", index=False)
 
 
 if __name__ == "__main__":
