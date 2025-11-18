@@ -1,7 +1,8 @@
 {
-  "data_path": "../../production_runs/partial_orient_615AA_crss_2-3_almg10_total/seed12/56MPa.tar.gz",
+  "data_path": "../../production_runs/partial_orient_615AA_crss_2-3_almg10_total/generatedData/seed2/51MPa.tar.gz",
   "evl_start_step": 0,
-  "evl_end_step": 3000,
+  "evl_end_step": 100,
+  "node_velocity_arrow": true,
   "glide_plane_line_width": 3,
   "dislocation_line_width": 0.5,
   "FPS": 5

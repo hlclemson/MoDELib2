@@ -466,6 +466,7 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def("loopNodes", static_cast<const std::set<typename TypeTraits<DislocationNetworkType>::LoopNodeType*>& (NetworkNodeType::*)() const>(&NetworkNodeType::loopNodes))
         .def("gID", &NetworkNodeType::gID)
         .def("position", [](const NetworkNodeType& node) { return node.get_P(); })
+        .def("velocity", [](const NetworkNodeType& node) { return node.get_V(); })
     ;
 
     py::class_<DislocationNetworkType::NetworkLinkType, std::shared_ptr<DislocationNetworkType::NetworkLinkType>>(m, "NetworkLink")
@@ -478,7 +479,7 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def("slipSystem", &DislocationNetworkType::NetworkLinkType::slipSystem)
         .def("hasZeroBurgers", &DislocationNetworkType::NetworkLinkType::hasZeroBurgers)
         .def("isBoundarySegment", &DislocationNetworkType::NetworkLinkType::isBoundarySegment)
-        .def("isGrainBoundarySegment", &DislocationNetworkType::NetworkLinkType::isGrainBoundarySegment);
+        .def("isGrainBoundarySegment", &DislocationNetworkType::NetworkLinkType::isGrainBoundarySegment)
     ;
     
     py::class_<DislocationNetworkType
@@ -488,7 +489,7 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def("networkNodes", static_cast<const WeakPtrFactory<DislocationNetworkType, NetworkNodeType>& (DislocationNetworkType::*)() const>(&DislocationNetworkType::networkNodes), py::return_value_policy::reference)
         .def("networkLinks", static_cast<const WeakPtrFactory<DislocationNetworkType, NetworkLinkType>& (DislocationNetworkType::*)() const>(&DislocationNetworkType::networkLinks), py::return_value_policy::reference)
     ;
-    
+
 
     py::class_<DefectiveCrystal<3>
     /*      */,MicrostructureContainer<3>

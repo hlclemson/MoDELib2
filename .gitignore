@@ -82,3 +82,7 @@ Desktop.ini
 *.suo
 _ReSharper.*
 *.sln.cache
+
+
+deprecated
+output

@@ -31,8 +31,6 @@ rcParams.update(
     }
 )
 
-#plt.rcParams["text.usetex"] = True
-
 # ----- MoDELib / utils paths -----
 sys.path.append("../../python")
 sys.path.append("../../python/lib")
@@ -65,7 +63,7 @@ def main():
     # ----- use work_dir here -----
     ddBase = pyMoDELib.DislocationDynamicsBase(str(work_dir))
     ddio = pyMoDELib.DDconfigIO(str(work_dir / "evl"))
-    ddauxio = pyMoDELib.DDauxIO(str(work_dir)) 
+    ddauxio = pyMoDELib.DDauxIO(str(work_dir / "evl"))
 
     # --- Box geometry ---
     xMin = np.array(ddBase.mesh.xMin(), dtype=float)
@@ -85,6 +83,9 @@ def main():
     if not evl_indices:
         raise RuntimeError("No EVL files found in requested range.")
 
+    #ddBase.simulationParameters.traitsIO
+    #print(ddBase.simulationParameters.traitsIO)
+
     # ------------- First pass: find active planes over ALL EVLs -------------
     active_plane_keys_global = set()
     for evl_idx in evl_indices:
@@ -102,9 +103,14 @@ def main():
         DN = defectiveCrystal.dislocationNetwork()
         glidePlanes = ddBase.glidePlanes()
 
-        print(ddauxio)
-        print(dir(ddauxio.quadraturePoints))
-        print(ddauxio.quadraturePoints)
+        for qp in ddauxio.quadraturePoints:
+            print(qp.r)
+            print(qp.stackingFaultForce)
+            print(qp.lineTensionForce)
+            print(qp.velocity)
+            print(qp.pkForce)
+            exit()
+
         exit()
 
         planes = getattr(ddBase, "glidePlanes", lambda: [])()
