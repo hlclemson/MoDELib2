@@ -31,15 +31,20 @@ def build_plane_geometry_from_segments(plane_segments_by_key, eps=1e-10):
         plane_geometry[pk] = (n_hat, p0)
     return plane_geometry
 
-def build_plane_to_segments_geometric(DN, node_pos, plane_geometry, tol=1e-4):
+#def build_plane_to_segments_geometric(DN, node_pos, plane_geometry, tol=1e-4):
+def build_plane_to_segments_geometric(DN, node_pos, node_velocity, plane_geometry, tol=1e-4):
     plane_to_segments = {pk: [] for pk in plane_geometry.keys()}
+    plane_to_segments_velocity = {pk: [] for pk in plane_geometry.keys()}
     unassigned = []   # for debugging
+    unassigned_velocity = []   # for debugging
     for lkey in DN.networkLinks().keys():
         link = DN.networkLinks().getRef(lkey)
         if hasattr(link, "hasZeroBurgers") and link.hasZeroBurgers():
             continue
         a = node_pos[link.source.networkID()]
         b = node_pos[link.sink.networkID()]
+        av = node_velocity[link.source.networkID()]
+        bv = node_velocity[link.sink.networkID()]
         best_pk = None
         best_dist = float("inf")
         for pk, (n_hat, p0) in plane_geometry.items():
@@ -49,9 +54,13 @@ def build_plane_to_segments_geometric(DN, node_pos, plane_geometry, tol=1e-4):
                 best_pk = pk
         if best_pk is not None and best_dist < tol:
             plane_to_segments[best_pk].append((a, b))
+            plane_to_segments_velocity[best_pk].append((av, bv))
         else:
             unassigned.append((a, b))
-    return plane_to_segments, unassigned
+            unassigned_velocity.append((av, bv))
+
+    #return plane_to_segments, unassigned
+    return plane_to_segments, plane_to_segments_velocity
 
 def segment_plane_distance(a, b, n_hat, p0):
     da = np.dot(a - p0, n_hat)
