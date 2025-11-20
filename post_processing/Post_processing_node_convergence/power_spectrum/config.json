@@ -1,0 +1,27 @@
+{
+  "xAxisData": "runID",
+  "yAxisData": "betaP_13",
+  "minimizationSteps": 500,
+  "dislocTypes": {
+    "full": {
+      "noiseTypes": []
+    },
+    "partial": {
+      "noiseTypes": ["SF-noise","SS-C-noise", "SS-SF-noise","SS-W-noise","W-noise"]
+    }
+  },
+  "dislocCharacters": ["edge", "screw"],
+  "dislocGlideLineTangentIdx" : {
+    "edge": {
+      "lineTangentIdx": 1,
+      "glideDirectionIdx": 0
+    },
+    "screw": {
+      "lineTangentIdx": 0,
+      "glideDirectionIdx": 1
+    }
+  },
+  "alloys": ["AlMg5", "AlMg10", "AlMg15"],
+  "dislocLengths": [150],
+  "dataFolder": "/home/anon/Server/Sync/Documents/Research/DDD_Data/DDD_power_spectrum/200MPa"
+}

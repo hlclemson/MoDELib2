@@ -263,10 +263,24 @@ def main():
             if pk not in plane_frames:
                 continue
             origin, u, v, n = plane_frames[pk]
-            for a, b in plane_to_segments.get(pk, []):
+            #for a, b in plane_to_segments.get(pk, []):
+            #    x0, y0 = project(a, origin, u, v)
+            #    x1, y1 = project(b, origin, u, v)
+            #    (ln,) = ax.plot([x0, x1], [y0, y1], lw=config["dislocation_line_width"], alpha=1.0, color=col)
+            #    segment_artists[pk].append(ln)
+            for (a,b), (av,bv) in zip(plane_to_segments.get(pk, []), plane_to_segments_velocity.get(pk, [])):
                 x0, y0 = project(a, origin, u, v)
                 x1, y1 = project(b, origin, u, v)
+                xv0, yv0 = project(av, origin, u, v)
+                xv1, yv1 = project(bv, origin, u, v)
                 (ln,) = ax.plot([x0, x1], [y0, y1], lw=config["dislocation_line_width"], alpha=1.0, color=col)
+                ax.plot([x0, x1], [y0, y1], lw=config["dislocation_line_width"], alpha=1.0, color=col)
+                arrow_pos0 = (x0, y0)
+                arrow_vec0 = (xv0, yv0)
+                arrow_pos1 = (x1, y1)
+                arrow_vec1 = (xv1, yv1)
+                ax.quiver(*arrow_pos0, *arrow_vec0, scale=3, color='r')
+                ax.quiver(*arrow_pos1, *arrow_vec1, scale=3, color='r')
                 segment_artists[pk].append(ln)
 
         # Show EVL index in a super-title or text
