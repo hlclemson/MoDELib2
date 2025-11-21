@@ -501,7 +501,7 @@ namespace model
                                 double gammaNoise(0.0);
                                 if(slipSystem.planeNoise)
                                 {
-                                    gammaNoise=std::get<2>(slipSystem.gridInterp(qPoint.r-glidePlane.P));
+                                    gammaNoise=std::get<2>(slipSystem.gridInterp(qPoint.r-glidePlane.P, parentSegment.burgers()));
                                 }
                                 qPoint.stackingFaultForce+= -(gamma2-gamma1+gammaNoise)*outDir;
                             }
@@ -525,7 +525,7 @@ namespace model
                 {
                     for (auto& qPoint : quadraturePoints())
                     {
-                        const auto noiseVal(slipSystem.gridInterp(qPoint.r-glidePlane.P));
+                        const auto noiseVal(slipSystem.gridInterp(qPoint.r-glidePlane.P, parentSegment.burgers()));
                         qPoint.stress += std::get<0>(noiseVal);
                     }
                 }
