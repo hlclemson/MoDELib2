@@ -113,22 +113,25 @@ GlidePlaneNoise::GlidePlaneNoise(const PolycrystallineMaterialBase& mat)
 }
 
 //std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos) const
-std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos, const VectorDim& burgers) const
+std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos, const Eigen::Matrix<double,2,1>& burgers) const
 {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
   double effsolNoiseXZ(0.0);
   double effsolNoiseYZ(0.0);
   for(const auto& noise : solidSolutionNoise())
   {
     // rotate solid solution noise field
-    VectorDim ref_vec {1., 0., 0.};
-    double dot   = ref_vec.dot(burgers); // a·b
-    //double normX = .norm();// |a|
-    double normBurgers = burgers.norm();// |b|
-    double angle_rad = std::acos(dot / (normBurgers));  // θ in radians
-    // Build a 2-D rotation matrix (rad)
-    Eigen::Rotation2D<double> R(angle_rad);       // 2×2 rotation matrix
-    noise *= R; // rotate
+    //const Eigen::Matrix<double,2,1> ref_vec {1., 0.};
+    ////const double normBurgers = burgers.norm();// |b|
+    //const double dot = ref_vec.dot(burgers) / burgers.norm(); // a·b
+    ////double normX = .norm();// |a|
+    //const double angle_rad = std::acos(dot);  // θ in radians
+    ////// Build a 2-D rotation matrix (rad)
+    //const Eigen::Rotation2D<double> rotMat(angle_rad);       // 2×2 rotation matrix
+    //noise *= R; // rotate
+    //localPos = rotMat*localPos;
 
+    //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
+    //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(rotMat*localPos));
     const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
     for(size_t p=0;p<idxAndWeights.first.size();++p)
     {
@@ -142,7 +145,6 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
   for(const auto& noise : stackingFaultNoise())
   {
     // rotate stacking fault noise field
-    burgers
 
     // transform the basis if it is non-orthogonal
     //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));

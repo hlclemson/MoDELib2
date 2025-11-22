@@ -96,7 +96,9 @@ std::tuple<Eigen::Matrix<double,3,3>,double,double> SlipSystem::gridInterp(const
 
   if(planeNoise)
   {
-    const std::tuple<double,double,double> gridNoise(planeNoise->gridInterp(globalToLocal(x), burgers));
+    //const std::tuple<double,double,double> gridNoise(planeNoise->gridInterp(globalToLocal(x)));
+    //const std::tuple<double,double,double> gridNoise(planeNoise->gridInterp(globalToLocal(x), burgers));
+    const std::tuple<double,double,double> gridNoise(planeNoise->gridInterp(globalToLocal(x), globalToLocal(burgers)));
 
     const Eigen::Matrix<double,3,3> ssStress( std::get<0>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(0)+G2Lfull.row(0).transpose()*G2Lfull.row(2))
                                              +std::get<1>(gridNoise)*(G2Lfull.row(2).transpose()*G2Lfull.row(1)+G2Lfull.row(1).transpose()*G2Lfull.row(2)));

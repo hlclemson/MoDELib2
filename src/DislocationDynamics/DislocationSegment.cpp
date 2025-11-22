@@ -226,7 +226,7 @@ void DislocationSegment<dim,corder>::removeLoopLink(LoopLinkType* const pL)
     Burgers-=pL->flow().cartesian();
   }
   else
-{
+  {
     Burgers+=pL->flow().cartesian();
   }
   BurgersNorm=Burgers.norm();
@@ -627,7 +627,7 @@ typename DislocationSegment<dim,corder>::VectorDim DislocationSegment<dim,corder
     _outNormal /= _outNormalNorm;
   }
   else
-{
+  {
     _outNormal.setZero();
   }
   return _outNormal;
@@ -676,7 +676,7 @@ typename DislocationSegment<dim, corder>::VectorDim DislocationSegment<dim, cord
       return snapped.second;
     }
     else
-  {
+    {
       std::cout<<"glidePlanes.size()="<<gps.size()<<std::endl;
       std::cout<<"N="<<N<<std::endl;
       std::cout<<"P="<<P<<std::endl;

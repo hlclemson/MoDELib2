@@ -32,7 +32,7 @@ namespace model
         typedef std::map<std::string,std::shared_ptr<GlidePlaneNoiseBase<1>>> StackingFaultNoiseContainer;
 
         GlidePlaneNoise(const PolycrystallineMaterialBase& mat);
-        std::tuple<double,double,double> gridInterp(const Eigen::Matrix<double,2,1>& localPos, const VectorDim& burgers) const;
+        std::tuple<double,double,double> gridInterp(const Eigen::Matrix<double,2,1>& localPos, const Eigen::Matrix<double,2,1>& burgers) const;
         std::tuple<double,double,double> gridVal(const Eigen::Array<int,2,1>& idx) const;
         const SolidSolutionNoiseContainer& solidSolutionNoise() const;
         SolidSolutionNoiseContainer& solidSolutionNoise();

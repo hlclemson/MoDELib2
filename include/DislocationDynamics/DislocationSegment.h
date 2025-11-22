@@ -32,9 +32,9 @@ namespace model
     /*                      */,public SplineSegment<dim,corder>
     /*                      */,public DislocationQuadraturePointContainer<dim,corder>
     {
-        
+
     public:
-        
+
         typedef TypeTraits<DislocationSegment<dim,corder>> TraitsType;
         typedef typename TraitsType::LoopNetworkType LoopNetworkType;
         typedef typename TraitsType::LoopType LoopType;
@@ -60,8 +60,8 @@ namespace model
         typedef PlanarMeshFace<dim> PlanarMeshFaceType;
         typedef std::set<const PlanarMeshFaceType *> PlanarMeshFaceContainerType;
         typedef typename DislocationQuadraturePoint<dim,corder>::QuadratureDynamicType QuadratureDynamicType;
-        
-        
+
+
         static constexpr int mSize=ClusterDynamicsParameters<dim>::mSize;
         typedef Eigen::Matrix<double,mSize,2>   ConcentrationMatrixType;
         typedef Eigen::Matrix<double,mSize,1>   ConcentrationVectorType;
@@ -78,19 +78,19 @@ namespace model
         StraightDislocationSegment<dim> straight;
         std::shared_ptr<SlipSystem> _slipSystem;
 
-        
+
 //        static const MatrixDim I;
         static const VectorDim zeroVector;
         static double quadPerLength;
 //        static bool assembleWithTangentProjection;
         static int verboseDislocationSegment;
 
-        
+
         DislocationSegment(LoopNetworkType* const net,
                          const std::shared_ptr<NetworkNodeType>&,
                          const std::shared_ptr<NetworkNodeType>&
                          );
-        
+
         void addLoopLink(LoopLinkType* const pL);
         void removeLoopLink(LoopLinkType* const pL);
         void updateSlipSystem();
@@ -122,11 +122,11 @@ namespace model
         std::vector<std::pair<const GlidePlane<dim> *const, const GlidePlane<dim> *const>> parallelAndCoincidentGlidePlanes(const GlidePlaneContainerType &other) const;
         VectorDim snapToGlidePlanes(const VectorDim &P) const;
         VectorDim climbDirection() const;
-        
+
         ConcentrationMatrixType concentrationMatrices(const VectorDim& x,const ClusterDynamicsParameters<dim>& icp) const;
         ConcentrationVectorType clusterConcentration(const VectorDim& x,const ClusterDynamicsParameters<dim>& icp) const;
 
-        
+
     };
 }
 #endif
