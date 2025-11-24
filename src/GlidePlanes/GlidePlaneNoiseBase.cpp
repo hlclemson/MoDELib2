@@ -62,12 +62,14 @@ typename GlidePlaneNoiseBase<N>::REAL_SCALAR GlidePlaneNoiseBase<N>::W_t_Cai(REA
 
 template <int N>
 GlidePlaneNoiseBase<N>::GlidePlaneNoiseBase(const std::string& tag_in,
+                                            const int& displacementAngle_in,
                                             const int& seed_in,
                                             const NoiseTraitsBase::GridSizeType& gridSize_in,
                                             const NoiseTraitsBase::GridSpacingType& gridSpacing_in,
                                             const Eigen::Matrix<double,2,2>& latticeBasis):
   /*init*/ UniformPeriodicGrid<2>(gridSize_in.template segment<2>(0),gridSpacing_in.template segment<2>(0))
   /*init*/,tag(tag_in)
+  /*init*/,displacementAngle(displacementAngle_in)
   /*init*/,seed(seed_in)
   /*init*/,gridSize(gridSize_in)
   /*init*/,gridSpacing(gridSpacing_in)

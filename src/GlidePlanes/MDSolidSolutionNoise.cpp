@@ -14,6 +14,7 @@ namespace model
 {
 MDSolidSolutionNoise::MDSolidSolutionNoise(const PolycrystallineMaterialBase& mat,
                                            const std::string& tag,
+                                           const int& displacementAngle,
                                            const std::string& correlationFile_xz,
                                            const std::string& correlationFile_yz,
                                            const int& seed,
@@ -22,7 +23,7 @@ MDSolidSolutionNoise::MDSolidSolutionNoise(const PolycrystallineMaterialBase& ma
                                            const Eigen::Matrix<double,2,2>& latticeBasis,
                                            const double& a_Cai_in
                                            ) :
-  /*init*/ GlidePlaneNoiseBase<2>("MDSolidSolutionNoise"+tag,seed,gridSize,gridSpacing,latticeBasis)
+  /*init*/ GlidePlaneNoiseBase<2>("MDSolidSolutionNoise"+tag,displacementAngle,seed,gridSize,gridSpacing,latticeBasis)
   /*init*/,a_cai(a_Cai_in)
 {
   // read the dimensions of the original correlation sampled from MD

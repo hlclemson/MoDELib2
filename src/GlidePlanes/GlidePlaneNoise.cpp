@@ -37,7 +37,8 @@ GlidePlaneNoise::GlidePlaneNoise(const PolycrystallineMaterialBase& mat)
         const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
         const double dislocLength(parser.readScalar<double>("dislocation_length_SI",true)/mat.b_SI);
         const double MSSS(parser.readScalar<double>("MSSS_SI",true)/std::pow(mat.mu_SI,2));
-        const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionWhiteNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai,dislocLength,MSSS)));
+        //const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionWhiteNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai,dislocLength,MSSS)));
+        const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionWhiteNoise(tag,0,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai,dislocLength,MSSS)));
 
         if(!success.second)
         {
@@ -49,11 +50,10 @@ GlidePlaneNoise::GlidePlaneNoise(const PolycrystallineMaterialBase& mat)
       {
         //const bool isWhite(parser.readScalar<int>("white",true));
         const double a(parser.readScalar<double>("spreadLstress_SI",true)/mat.b_SI);      // spreading length for stresses [AA]
-        const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
-        const double MSSS(parser.readScalar<double>("MSSS_SI",true)/std::pow(mat.mu_SI,2));
+        const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI); const double MSSS(parser.readScalar<double>("MSSS_SI",true)/std::pow(mat.mu_SI,2));
 
         //const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),isWhite,a,a_Cai,MSSS)));
-        const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionNoise(tag,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a,a_Cai,MSSS)));
+        const auto success(solidSolutionNoise().emplace(tag,new AnalyticalSolidSolutionNoise(tag,0,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a,a_Cai,MSSS)));
 
         if(!success.second)
         {
@@ -68,7 +68,8 @@ GlidePlaneNoise::GlidePlaneNoise(const PolycrystallineMaterialBase& mat)
         const std::string correlationFile_xz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_xz",true)));
         const std::string correlationFile_yz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_yz",true)));
 
-        const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_xz,correlationFile_yz,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai)));
+        //const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_xz,correlationFile_yz,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai)));
+        const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,0,correlationFile_xz,correlationFile_yz,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai)));
         if(!success.second)
         {
           throw std::runtime_error("Could not insert noise "+tag);
@@ -76,10 +77,13 @@ GlidePlaneNoise::GlidePlaneNoise(const PolycrystallineMaterialBase& mat)
       }
       if(type=="MDStackingFaultNoise")
       {
+        // angle from the horizontal of the MD displacement vector
+        const int displacementAngle = parser.readScalar<int>("displacementAngle",true);
         // relative paths for correlation vtk files (easier to make everything self contained)
         const std::string correlationFile_stackingFault(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile",true)));
 
-        const auto success(stackingFaultNoise().emplace(tag,new MDStackingFaultNoise(mat,tag,correlationFile_stackingFault,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity())));
+        //const auto success(stackingFaultNoise().emplace(tag,new MDStackingFaultNoise(mat,tag,correlationFile_stackingFault,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity())));
+        const auto success(stackingFaultNoise().emplace(tag,new MDStackingFaultNoise(mat,tag,displacementAngle,correlationFile_stackingFault,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity())));
 
         if(!success.second)
         {
@@ -119,19 +123,6 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
   double effsolNoiseYZ(0.0);
   for(const auto& noise : solidSolutionNoise())
   {
-    // rotate solid solution noise field
-    //const Eigen::Matrix<double,2,1> ref_vec {1., 0.};
-    ////const double normBurgers = burgers.norm();// |b|
-    //const double dot = ref_vec.dot(burgers) / burgers.norm(); // a·b
-    ////double normX = .norm();// |a|
-    //const double angle_rad = std::acos(dot);  // θ in radians
-    ////// Build a 2-D rotation matrix (rad)
-    //const Eigen::Rotation2D<double> rotMat(angle_rad);       // 2×2 rotation matrix
-    //noise *= R; // rotate
-    //localPos = rotMat*localPos;
-
-    //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
-    //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(rotMat*localPos));
     const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
     for(size_t p=0;p<idxAndWeights.first.size();++p)
     {
@@ -144,11 +135,22 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
   double effsfNoise(0.0);
   for(const auto& noise : stackingFaultNoise())
   {
+    Eigen::Matrix<double,2,1> _localPos;   // mutable copy
+    // transform the basis if it is non-orthogonal
+    _localPos = noise.second->invTransposeLatticeBasis*localPos;
     // rotate stacking fault noise field
-
+    const Eigen::Rotation2D<double> R0(noise.second->displacementAngle);
+    const double normB = burgers.norm();// |b|
+    const Eigen::Matrix<double,2,1> horizontal {1., 0.};
+    const double theta_b = std::acos(horizontal.dot(burgers/normB));
+    const Eigen::Rotation2D<double> Rb(-theta_b);
+    //noise *= R; // rotate
+    const Eigen::Matrix<double,2,1> localPosRotated = R0*Rb*_localPos;
+    
     // transform the basis if it is non-orthogonal
     //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
-    const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(noise.second->invTransposeLatticeBasis*localPos));
+    //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(noise.second->invTransposeLatticeBasis*localPos));
+    const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPosRotated));
 
     for(size_t p=0;p<idxAndWeights.first.size();++p)
     {

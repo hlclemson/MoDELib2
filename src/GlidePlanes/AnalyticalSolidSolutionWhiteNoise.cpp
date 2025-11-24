@@ -15,6 +15,7 @@ namespace model
 {
 
 AnalyticalSolidSolutionWhiteNoise::AnalyticalSolidSolutionWhiteNoise(const std::string& tag,
+                                                                     const int& displacementAngle,
                                                                      const int& seed,
                                                                      const GridSizeType& gridSize,
                                                                      const GridSpacingType& gridSpacing,
@@ -23,7 +24,7 @@ AnalyticalSolidSolutionWhiteNoise::AnalyticalSolidSolutionWhiteNoise(const std::
                                                                      const double& a_Cai_in,
                                                                      const double& dislocLength,
                                                                      const double& MSSS) :
-  /* init */ GlidePlaneNoiseBase<2>("AnalyticalSolidSolutionWhiteNoise"+tag,seed,gridSize,gridSpacing,latticeBasis)
+  /* init */ GlidePlaneNoiseBase<2>("AnalyticalSolidSolutionWhiteNoise"+tag,displacementAngle,seed,gridSize,gridSpacing,latticeBasis)
   /* init */,a_cai(a_Cai_in)
   /* init */,uncorrKcoeff(MSSS*gridSpacing(0)/dislocLength)
 {
