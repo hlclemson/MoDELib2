@@ -140,13 +140,15 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
     _localPos = noise.second->invTransposeLatticeBasis*localPos;
     // rotate stacking fault noise field
     const Eigen::Rotation2D<double> R0(noise.second->displacementAngle);
-    const double normB = burgers.norm();// |b|
-    const Eigen::Matrix<double,2,1> horizontal {1., 0.};
-    const double theta_b = std::acos(horizontal.dot(burgers/normB));
-    const Eigen::Rotation2D<double> Rb(-theta_b);
-    //noise *= R; // rotate
+    const Eigen::Matrix<double,2,1> unitB = burgers/burgers.norm();
+    // negative (clockwise) rotation matrix [cos -sin; sin cos]
+    Eigen::Matrix<double,2,2> Rb;
+    Rb(0,0) = unitB.x();
+    Rb(0,1) = -unitB.y();
+    Rb(1,0) = unitB.y();
+    Rb(1,1) = unitB.x();
+    // rotate quadrature point position
     const Eigen::Matrix<double,2,1> localPosRotated = R0*Rb*_localPos;
-    
     // transform the basis if it is non-orthogonal
     //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
     //const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(noise.second->invTransposeLatticeBasis*localPos));
