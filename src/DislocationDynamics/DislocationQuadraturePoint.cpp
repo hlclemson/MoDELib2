@@ -530,10 +530,10 @@ namespace model
                     }
                 }
             }
-                        
+
             for (auto& qPoint : quadraturePoints())
             {
-                
+
                 //Add line tension contribution
                 if (parentSegment.network().alphaLineTension>0.0 && !parentSegment.hasZeroBurgers() && parentSegment.chordLength()>FLT_EPSILON)
                 {
