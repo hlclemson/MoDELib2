@@ -159,19 +159,12 @@ def main() -> int:
 
     ####### Test Parameters #######
     glidePlasticStrain = 1e-10  # abstract value found through trial and error
-    noise_seed_to_test = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    glide_steps_to_test = [
-        [400, 405],
-        [400, 415],
-        [400, 425],
-        [400, 435],
-        [400, 445],
-        [400, 455],
-        [400, 465],
-        [400, 475],
-        [400, 485],
-        [400, 495],
-    ]
+    #noise_seed_to_test = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    # test 100 pair
+    noise_seed_to_test = range(1,101)
+    ref_glide_pos = 400
+    glide_inc_step = 4
+    glide_steps_to_test = [ [ref_glide_pos, ref_glide_pos+(glide_inc_step*i)] for i in range(1,101) ]
 
     stress = 0  # in MPa
     crss_search_resolution = 10
