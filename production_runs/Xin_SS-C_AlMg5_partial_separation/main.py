@@ -30,8 +30,8 @@ def _set_noise_types(fileName: Path, config_params: dict) -> None:
     """
     # compile the glideplane noise list based on the config
     noise_list = []
-    for k,v in config_params.items():
-        match = re.fullmatch(r'glidePlaneNoise\d*', k)
+    for k, v in config_params.items():
+        match = re.fullmatch(r"glidePlaneNoise\d*", k)
         if match:
             # is it a list? else, make it as a list
             for entry in (v if isinstance(v, list) else [v]):
@@ -41,19 +41,19 @@ def _set_noise_types(fileName: Path, config_params: dict) -> None:
     fileName = Path("inputFiles") / fileName
     with open(fileName) as f:
         lines = f.readlines()
-    pattern = re.compile(r'glidePlaneNoise')
+    pattern = re.compile(r"glidePlaneNoise")
     # ensure each list entry ends with \n
-    noise_list = [s + '\n' for s in noise_list]
+    noise_list = [s + "\n" for s in noise_list]
     for idx, line in enumerate(lines):
         if pattern.search(line):
             # replace the existing glidePlaneNoise string with the new one
             # swap 1 line → N lines
-            lines[idx:idx+1] = noise_list
+            lines[idx : idx + 1] = noise_list
             break
-    else: # no match at all, return
+    else:  # no match at all, return
         return
     # replace the existing file
-    with open(fileName, 'w') as f:
+    with open(fileName, "w") as f:
         f.writelines(lines)
 
 
@@ -159,18 +159,27 @@ def main() -> int:
 
     ####### Test Parameters #######
     glidePlasticStrain = 1e-10  # abstract value found through trial and error
-    #noise_seed_to_test = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     # test 100 pair
-    noise_seed_to_test = range(1,101)
+    noise_seed_to_test = range(1, 101)
     ref_glide_pos = 400
     glide_inc_step = 4
-    glide_steps_to_test = [ [ref_glide_pos, ref_glide_pos+(glide_inc_step*i)] for i in range(1,101) ]
+    glide_steps_to_test = [
+        [ref_glide_pos, ref_glide_pos + (glide_inc_step * i)] for i in range(1, 101)
+    ]
 
-    stress = 0  # in MPa
-    crss_search_resolution = 10
-    zero_str_tensor = np.array([0, 0, 0, 0, 0, 0])
-    min_steps = int(config["DD_parameters"]["outputFrequency"]) + 1
-    strSign = -1  # +1 or -1
+    ext_stress = np.array(
+        [
+            float(config["external_stress_MPa"]["s11"]),
+            float(config["external_stress_MPa"]["s22"]),
+            float(config["external_stress_MPa"]["s33"]),
+            float(config["external_stress_MPa"]["s12"]),
+            float(config["external_stress_MPa"]["s23"]),
+            float(config["external_stress_MPa"]["s13"]),
+        ]
+    ).astype(np.float32)
+    # pure stress controlled
+    stiffness_ratio = np.array([0, 0, 0, 0, 0, 0]).astype(np.float32)
+
     for seed, glide_steps in zip(noise_seed_to_test, glide_steps_to_test):
         # Preparing input files
         folders = ["evl", "F", "inputFiles"]
@@ -187,13 +196,19 @@ def main() -> int:
         # DD.txt setup
         dd_fname = Path(files_to_copy_from_lib["dd_file"]).name
         modify_dict_parameters(config["DD_parameters"], dd_fname)
+        # 1 additional step to output the last time step
+        original_target_run = int(config["DD_parameters"]["Nsteps"]) + 1
+        modify_parameter("DD.txt", "Nsteps", original_target_run)
 
         # material file setup
         mat_fname = Path(files_to_copy_from_lib["material_file"]).name
         modify_dict_parameters(config["Material_parameters"], mat_fname)
 
         # check if the configuration includes noise
-        has_noise = any(re.fullmatch(r'glidePlaneNoise\d*', k) for k in config["Material_parameters"].keys())
+        has_noise = any(
+            re.fullmatch(r"glidePlaneNoise\d*", k)
+            for k in config["Material_parameters"].keys()
+        )
         # compile the glideplane noise list and
         # assign it in the material file
         if has_noise:
@@ -209,7 +224,6 @@ def main() -> int:
         modify_parameter(micro_fname, "glideSteps", glide_steps)
 
         # noise_file.txt setup
-        # correletion_fname = Path( files_to_copy_from_lib["correlation_file_md_sf"]).name
         noise_path = files_to_copy_from_lib["noise_file"]
         for noise in (noise_path if isinstance(noise_path, list) else [noise_path]):
             noise_fname = Path(noise).name
@@ -250,45 +264,24 @@ def main() -> int:
         )
 
         # boundary condition control file
-        elasticDeformationFile = "ElasticDeformation.txt"
+        ext_bc_file = "ElasticDeformation.txt"
+        modify_parameter(ext_bc_file, "ExternalStress0", ext_stress)
+        # make external load control pure stress controlled
+        modify_parameter(ext_bc_file, "stiffnessRatio", stiffness_ratio)
 
-        # minimize the system before the run
-        modify_parameter("DD.txt", "Nsteps", min_steps)
-        modify_parameter(elasticDeformationFile, "ExternalStress0", zero_str_tensor)
+        # create microstructure file
         subprocess.run(
             [MICROSTUCTEXE, "./"],
             capture_output=False,
             text=True,
         )
+
+        # run dislocation dynamics
         subprocess.run(
             [DDOMP, "./"],
             capture_output=False,
             text=False,
         )
-
-        # change the target run back to original
-        original_target_run = config["DD_parameters"]["Nsteps"]
-        modify_parameter("DD.txt", "Nsteps", original_target_run)
-
-        # extract material info
-        # b_SI = getValueInFile(f"inputFiles/{matFile}", "b_SI")
-        mu0_SI = getValueInFile(f"inputFiles/{mat_fname}", "mu0_SI")
-        convertMPaToMu = 1 / (mu0_SI * 10 ** (-6))
-
-        # apply stress and run simulation
-        # Voigt order is 11,22,33,12,23,13
-        # s12 = strSign * stress * convertMPaToMu
-        s13 = strSign * stress * convertMPaToMu
-        stressTensor = np.array([0, 0, 0, 0, 0, s13])
-        modify_parameter("ElasticDeformation.txt", "ExternalStress0", stressTensor)
-        subprocess.run(
-            [DDOMP, "./"],
-            capture_output=False,
-            text=False,
-        )
-
-        # output sanitization, remove duplicate entry on F
-        _remove_dup_F()
 
         # build the storage directory path
         target_dir = (
