@@ -45,6 +45,7 @@
       "spreadLstress_SI": 1.0355e-10,
       "gridSize": [256, 256, 64],
       "gridSpacing_SI": [1.0e-10, 1.0e-10, 1e-10],
+      "a_cai_SI": 2.574e-10,
       "MSSS_SI": 0.45e18
     }
   },
