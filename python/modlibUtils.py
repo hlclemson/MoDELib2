@@ -183,7 +183,7 @@ def setInputVariable(fileName,variable,newVal):
                     line = line.replace(oldVal,newVal)
                     print(line, file=sys.stderr)
             sys.stdout.write(line)
-            
+
 def setInputMatrix(fileName,variable,newVal):
     with fileinput.FileInput(fileName, inplace=True) as file:
         num_rows, num_cols = newVal.shape
