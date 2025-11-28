@@ -50,10 +50,9 @@ struct AnalyticalSolidSolutionNoise: public GlidePlaneNoiseBase<2>
   // normalized auto-correlation function in Fourier space for sigma_yz
   REAL_SCALAR S_yz_k(REAL_SCALAR kx, REAL_SCALAR ky, REAL_SCALAR kz) const;
 
-  AnalyticalSolidSolutionNoise(const std::string& tag, const int& seed,
+  AnalyticalSolidSolutionNoise(const std::string& type, const std::string& tag, const int& seed,
                                const GridSizeType& gridSize, const GridSpacingType& gridSpacing,
                                const Eigen::Matrix<double,2,2>& latticeBasis,
-                               //const bool& isWhite_in,
                                const double& a_in,const double& a_Cai_in,const double& MSSS);
 
   std::array<COMPLEX,2> kCorrelations(const Eigen::Matrix<double,3,1>& kv,const Eigen::Matrix<int,3,1>& kvID) const override;

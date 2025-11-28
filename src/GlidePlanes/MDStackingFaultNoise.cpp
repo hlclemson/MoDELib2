@@ -14,6 +14,7 @@
 namespace model
 {
 MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& mat,
+                                           const std::string& type,
                                            const std::string& tag,
                                            const std::string& correlationFile_in,
                                            const int& seed,
@@ -21,7 +22,7 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
                                            const GridSpacingType& gridSpacing,
                                            const Eigen::Matrix<double,2,2>& latticeBasis
                                            ) :
-  /* init */ GlidePlaneNoiseBase<1>("MDStackingFaultNoise"+tag,seed,gridSize,gridSpacing,nonOrthogonalBasisReader(correlationFile_in))
+  /* init */ GlidePlaneNoiseBase<1>(type,"MDStackingFaultNoise"+tag,seed,gridSize,gridSpacing,nonOrthogonalBasisReader(correlationFile_in))
   /* init */,correlationFile(correlationFile_in)
 {
   // read the dimension of the original correlation

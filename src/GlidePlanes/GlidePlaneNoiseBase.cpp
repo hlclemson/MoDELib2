@@ -61,12 +61,14 @@ typename GlidePlaneNoiseBase<N>::REAL_SCALAR GlidePlaneNoiseBase<N>::W_t_Cai(REA
 }
 
 template <int N>
-GlidePlaneNoiseBase<N>::GlidePlaneNoiseBase(const std::string& tag_in,
+GlidePlaneNoiseBase<N>::GlidePlaneNoiseBase(const std::string& type_in,
+                                            const std::string& tag_in,
                                             const int& seed_in,
                                             const NoiseTraitsBase::GridSizeType& gridSize_in,
                                             const NoiseTraitsBase::GridSpacingType& gridSpacing_in,
                                             const Eigen::Matrix<double,2,2>& latticeBasis):
   /*init*/ UniformPeriodicGrid<2>(gridSize_in.template segment<2>(0),gridSpacing_in.template segment<2>(0))
+  /*init*/,type(type_in)
   /*init*/,tag(tag_in)
   /*init*/,seed(seed_in)
   /*init*/,gridSize(gridSize_in)
@@ -439,9 +441,31 @@ void GlidePlaneNoiseBase<N>::write_field_slice(const PolycrystallineMaterialBase
     }
   }
 
+  std::string stress_comp;
   for(int n=0;n<N;++n)
   {
-    std::string fname="noise_patch_"+std::to_string(n)+".vtk";
+    // if there are more than one noise field
+    if (N > 1)
+    {
+      switch (n)
+      {
+        case 0:
+            stress_comp = "_xz";
+            break;
+        case 1:
+            stress_comp = "_yz";
+            break;
+        default:
+            stress_comp = "";
+      }
+    }
+    else
+    {
+      stress_comp = "";
+    }
+    //std::string fname="noise_patch_"+type+"_"+std::to_string(n)+".vtk";
+    std::string fname="noise_patch_"+type+stress_comp+".vtk";
+    //std::string fname="noise_patch_"+std::to_string(n)+".vtk";
     std::string fnamePath = matPath+"/"+fname;
     //FILE *OutFile=fopen(fname.c_str(),"w");
     FILE *OutFile=fopen(fnamePath.c_str(),"w");

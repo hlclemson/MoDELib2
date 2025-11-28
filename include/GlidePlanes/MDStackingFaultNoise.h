@@ -38,6 +38,7 @@ namespace model
         REAL_SCALAR fftScaleFactor;
 
         MDStackingFaultNoise(const PolycrystallineMaterialBase& mat,
+                             const std::string& type,
                              const std::string& tag,
                              const std::string& correlationFile_in,
                              const int& seed,
