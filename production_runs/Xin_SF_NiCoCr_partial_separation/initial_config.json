@@ -1,0 +1,84 @@
+{
+  "files_to_copy_from_lib" : {
+    "dd_file": "../../Library/DislocationDynamics/DD.txt",
+    "noise_file": [
+      "../../Library/GlidePlaneNoise/MDStackingFault.txt"
+    ],
+    "material_file": "../../Library/Materials/NiCoCr1350K.txt",
+    "elastic_deformation_file": "../../Library/ElasticDeformation/ElasticDeformation.txt",
+    "mesh": "../../Library/Meshes/unitCube24.msh",
+    "microstructure": "../../Library/Microstructures/periodicDipoleIndividual.txt",
+    "correlation_file_md_sf": "../../Library/GlidePlaneNoise/NiCoCr1350K_Cx_R100_ISF.vtk",
+    "correlation_file_md_ss_xz": "",
+    "correlation_file_md_ss_yz": ""
+  },
+
+  "external_stress_MPa" : {
+    "sign": "+",
+    "s11": 0, "s22": 0,"s33": 0,"s12": 0,"s23": 0, "s13": 0
+  },
+
+  "DD_parameters" : {
+    "useFEM": 0,
+    "useDislocations": 1,
+    "useInclusions": 0,
+    "useElasticDeformation": 1,
+    "maxJunctionIterations": 0,
+    "EwaldLengthFactor": 1,
+    "use_velocityFilter": 0,
+    "use_stochasticForce": 0,
+    "timeSteppingMethod": "fixed",
+    "dtMax": 0.06,
+    "alphaLineTension": 1.5,
+    "quadPerLength": 6,
+    "coreSize": 0.9,
+    "remeshFrequency": 0,
+    "Lmin": 1,
+    "Lmax": 5,
+    "outputFrequency": 1000,
+    "computeElasticEnergyPerLength": 1,
+    "computeDDinteractions" : 1,
+    "glideSolverType": "Galerkin",
+    "Nsteps": 4000,
+    "nodalVelocityConstraints": [0,1,0]
+  },
+
+  "noise_settings" : {
+    "MDStackingFault.txt":{
+      "tag": 1,
+      "seed": 1,
+      "correlationFile": "NiCoCr1350K_Cx_R100_ISF.vtk",
+      "gridSize": [1024, 216, 1],
+      "gridSpacing_SI": [2.515e-10, 2.515e-10, 1e-10]
+    }
+  },
+
+  "Material_parameters" : {
+    "enabledSlipSystems": "Shockley",
+    "glidePlaneNoise": [
+      "MDStackingFault.txt"
+    ],
+    "atomsPerUnitCell": 1,
+    "dislocationMobilityType": "default"
+  },
+
+  "Microstructure_parameters" : {
+    "slipSystemIDs": [0, 1],
+    "exitFaceIDs": [1, 1],
+    "glideSteps": [400, 405],
+    "dipoleCenters": [[0.0,0.0,0.0],[0.0,0.0,0.0]],
+    "dipoleHeights": [2500, 2500],
+    "nodesPerLine": [215, 215]
+  },
+
+  "polycrystal" : {
+    "absoluteTemperature":1,
+    "grain1globalX1":[0,1,1],
+    "grain1globalX3":[-1,1,-1],
+    "boxEdges":[[0,1,1], [-2,-1,1], [-1,1,-1]],
+    "boxScaling":[1020, 215, 5880],
+    "X0":[0, 0, 0],
+    "periodicFaceIDs":[-1]
+  }
+
+}
