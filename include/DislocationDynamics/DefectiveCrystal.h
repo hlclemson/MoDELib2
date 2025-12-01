@@ -35,7 +35,7 @@ namespace model
         typedef MicrostructureContainer<_dim> MicrostructureContainerType;
         
         typedef InclusionMicrostructure<dim> InclusionMicrostructureType;
-        typedef DislocationNetwork<dim> DislocationNetworkType;
+        typedef DislocationNetwork<dim,0> DislocationNetworkType;
         typedef ClusterDynamics<dim> ClusterDynamicsType;
         typedef ElasticDeformation<dim> ElasticDeformationType;
         
@@ -45,7 +45,7 @@ namespace model
         void runSteps();
         void runSingleStep();
         
-        const DislocationNetwork<_dim>& dislocationNetwork() const;
+        const DislocationNetwork<_dim,0>& dislocationNetwork() const;
         
     };
 }

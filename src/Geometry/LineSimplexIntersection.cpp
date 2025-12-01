@@ -12,6 +12,8 @@
 #include <tuple>
 #include <map>
 #include <Eigen/Dense>
+// added
+#include <cassert>
 
 #include <LineSimplexIntersection.h>
 

@@ -21,13 +21,13 @@
 
 namespace model
 {
-    template <int _dim>
-    class DislocationLoop : public Loop<DislocationLoop<_dim>>
+    template <int _dim, short unsigned int corder>
+    class DislocationLoop : public Loop<DislocationLoop<_dim,corder>>
     {
 
     public:
         
-        typedef TypeTraits<DislocationLoop<_dim>> TraitsType;
+        typedef TypeTraits<DislocationLoop<_dim,corder>> TraitsType;
         typedef typename TraitsType::LoopNetworkType LoopNetworkType;
         typedef typename TraitsType::LoopType LoopType;
         typedef typename TraitsType::LoopNodeType LoopNodeType;

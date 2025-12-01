@@ -61,7 +61,6 @@ namespace model
         SimplicialMeshActor::SimplicialMeshActor(vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow_in,vtkRenderer* const renderer_in, const SimplicialMesh<3>& mesh_in) :
         /* init */ mainLayout(new QGridLayout(this))
         /* init */,showMesh(new QCheckBox(this))
-    /* init */,showExternalFaceIDs(new QCheckBox(this))
 //        /* init */,showMeshLabel(new QLabel("show mesh"))
         /* init */,showFaceBoundaries(new QCheckBox(this))
 //        /* init */,showFaceBoundariesLabel(new QLabel("show face edges"))
@@ -73,9 +72,6 @@ namespace model
         /* init */,sliderClipPlane(new QSlider(this))
         /* init */,showAxes(new QCheckBox(this))
         /* init */,showPeriodicityVectors(new QCheckBox(this))
-        /* init */,labelPolyData(vtkSmartPointer<vtkPolyData>::New())
-        /* init */,labelMapper(vtkSmartPointer<vtkLabeledDataMapper>::New())
-        /* init */,labelActor(vtkSmartPointer<vtkActor2D>::New())
         ///* init */,sliderAxes(new QSlider(this))
 //        /* init */,showRegionBoundariesLabel(new QLabel("show grain boundaries"))
         /* init */,renderWindow(renderWindow_in)
@@ -118,10 +114,6 @@ namespace model
             showFaceBoundaries->setText("Face Edges");
             faceActor->SetVisibility(true);
             showMesh->setChecked(false);
-            showExternalFaceIDs->setText("External face IDs");
-            showExternalFaceIDs->setChecked(false);
-            labelActor->SetVisibility(false);
-
             showMesh->setText("Mesh");
             actor->SetVisibility(false);
 //            showGrainColors->setChecked(false);
@@ -188,7 +180,6 @@ namespace model
 
 
             mainLayout->addWidget(showMesh,0,0,1,1);
-            mainLayout->addWidget(showExternalFaceIDs,0,1,1,1);
 //            mainLayout->addWidget(showMeshLabel,0,1,1,1);
             mainLayout->addWidget(showFaceBoundaries,1,0,1,1);
 //            mainLayout->addWidget(showFaceBoundariesLabel,1,1,1,1);
@@ -224,7 +215,6 @@ namespace model
             connect(sliderClipPlane,SIGNAL(valueChanged(int)), this, SLOT(modify()));
             connect(showAxes,SIGNAL(stateChanged(int)), this, SLOT(modify()));
             connect(showPeriodicityVectors,SIGNAL(stateChanged(int)), this, SLOT(modify()));
-            connect(showExternalFaceIDs,SIGNAL(stateChanged(int)), this, SLOT(modify()));
 
             
              
@@ -490,38 +480,9 @@ namespace model
               cubeAxesActor->SetFlyModeToStaticTriad();
             
             
-            vtkSmartPointer<vtkPoints> nodePoints(vtkSmartPointer<vtkPoints>::New());
-            vtkSmartPointer<vtkDoubleArray> nodeLabels(vtkSmartPointer<vtkDoubleArray>::New());
-            nodeLabels->SetNumberOfComponents(1);
-            nodeLabels->SetName("face IDs");
-
-            for(const auto& region : mesh.regions())
-            {
-                for(const auto& face : region.second->faces())
-                {
-                    if(face.second->isExternal())
-                    {
-                        nodePoints->InsertNextPoint(face.second->center().data());
-                        nodeLabels->InsertNextTuple1(face.second->sID);
-                    }
-                }
-            }
-            
-            labelPolyData->SetPoints(nodePoints);
-            labelPolyData->GetPointData()->SetScalars(nodeLabels);
-            labelPolyData->Modified();
-            labelMapper->SetInputData(labelPolyData);
-            labelMapper->SetLabelModeToLabelScalars();
-            labelMapper->SetLabelFormat("%1.0f");
-            labelMapper->GetLabelTextProperty()->SetFontSize(20);
-            labelActor->SetMapper(labelMapper);
-            labelActor->GetProperty()->SetColor(0.0, 0.0, 0.0); //(R,G,B)
-
-            
             renderer->AddActor(gbActor);
             renderer->AddActor(clipActor); // enable to clip grain boundaries
             renderer->AddActor(cubeAxesActor);
-            renderer->AddActor(labelActor);
 
             
             // Update
@@ -565,8 +526,6 @@ namespace model
             cubeAxesActor->SetVisibility(showAxes->isChecked());
 
             periodicityActor->SetVisibility(showPeriodicityVectors->isChecked());
-            
-            labelActor->SetVisibility(showExternalFaceIDs->isChecked());
             
             renderWindow->Render();
         }

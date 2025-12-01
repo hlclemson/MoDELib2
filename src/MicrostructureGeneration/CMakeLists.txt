@@ -7,6 +7,9 @@ target_sources(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/PeriodicDipoleDensitySpecification.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PeriodicDipoleIndividualSpecification.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PeriodicDipoleGenerator.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ExtendFRSourceDensitySpecification.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ExtendFRSourceIndividualSpecification.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ExtendFRSourceGenerator.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PrismaticLoopDensitySpecification.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PrismaticLoopIndividualSpecification.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PrismaticLoopGenerator.cpp

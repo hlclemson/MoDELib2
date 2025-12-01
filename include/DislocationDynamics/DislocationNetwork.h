@@ -71,15 +71,15 @@
 
 namespace model
 {
-    template <int dim>
+    template <int dim, short unsigned int corder>
     class DislocationNetwork : public MicrostructureBase<dim>
-    /*                      */,public LoopNetwork<DislocationNetwork<dim> >
+    /*                      */,public LoopNetwork<DislocationNetwork<dim,corder> >
     {
         
     public:
         
         
-        typedef TypeTraits<DislocationNetwork<dim>> TraitsType;
+        typedef TypeTraits<DislocationNetwork<dim,corder>> TraitsType;
         typedef typename TraitsType::LoopNetworkType LoopNetworkType;
         typedef typename TraitsType::LoopType LoopType;
         typedef typename TraitsType::LoopNodeType LoopNodeType;
@@ -106,8 +106,8 @@ namespace model
         void updateBoundaryNodes();
         bool contract(std::shared_ptr<NetworkNodeType> nA,std::shared_ptr<NetworkNodeType> nB);
         
-        std::shared_ptr<DislocationGlideSolverBase<DislocationNetwork<dim>>> glideSolver;
-        std::shared_ptr<DislocationClimbSolverBase<DislocationNetwork<dim>>> climbSolver;
+        std::shared_ptr<DislocationGlideSolverBase<DislocationNetwork<dim,corder>>> glideSolver;
+        std::shared_ptr<DislocationClimbSolverBase<DislocationNetwork<dim,corder>>> climbSolver;
 
     private:
         
@@ -117,11 +117,11 @@ namespace model
 
         DislocationDynamicsBase<dim>& ddBase;
         DislocationNetworkRemesh<LoopNetworkType> networkRemesher;
-        DislocationJunctionFormation<DislocationNetwork<dim>> junctionsMaker;
-        const std::shared_ptr<BaseCrossSlipModel<DislocationNetwork<dim>>> crossSlipModel;
-        DislocationCrossSlip<DislocationNetwork<dim>> crossSlipMaker;
+        DislocationJunctionFormation<DislocationNetwork<dim,corder>> junctionsMaker;
+        const std::shared_ptr<BaseCrossSlipModel<DislocationNetwork<dim,corder>>> crossSlipModel;
+        DislocationCrossSlip<DislocationNetwork<dim,corder>> crossSlipMaker;
         DislocationNodeContraction<LoopNetworkType> nodeContractor;
-        DDtimeStepper<DislocationNetwork<dim>> timeStepper;
+        DDtimeStepper<DislocationNetwork<dim,corder>> timeStepper;
         std::shared_ptr<StochasticForceGenerator> stochasticForceGenerator;
         int ddSolverType;
         bool computeDDinteractions;

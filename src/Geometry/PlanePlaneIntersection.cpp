@@ -10,6 +10,7 @@
 
 #include <tuple>
 #include <map>
+#include <cassert>
 #include <Eigen/Dense>
 #include <Eigen/Cholesky>
 #include <Plane.h>

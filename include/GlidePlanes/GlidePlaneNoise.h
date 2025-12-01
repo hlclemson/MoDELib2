@@ -16,8 +16,10 @@
 #include <GlidePlaneNoiseBase.h>
 #include <PolycrystallineMaterialBase.h>
 #include <AnalyticalSolidSolutionNoise.h>
+#include <AnalyticalSolidSolutionWhiteNoise.h>
 #include <MDSolidSolutionNoise.h>
 #include <MDStackingFaultNoise.h>
+#include <MDShortRangeOrderNoise.h> //added
 
 namespace model
 {
@@ -29,18 +31,20 @@ namespace model
         typedef typename NoiseTraitsBase::GridSizeType GridSizeType;
         typedef std::map<std::string,std::shared_ptr<GlidePlaneNoiseBase<2>>> SolidSolutionNoiseContainer;
         typedef std::map<std::string,std::shared_ptr<GlidePlaneNoiseBase<1>>> StackingFaultNoiseContainer;
-        
+
         GlidePlaneNoise(const PolycrystallineMaterialBase& mat);
-        std::tuple<double,double,double> gridInterp(const Eigen::Matrix<double,2,1>& localPos) const;
-        std::tuple<double,double,double> gridVal(const Eigen::Array<int,2,1>& idx) const;
+        std::tuple<double,double,double,double,double> gridInterp(const Eigen::Matrix<double,2,1>& localPos) const;
+        std::tuple<double,double,double,double,double> gridVal(const Eigen::Array<int,2,1>& idx) const;
         const SolidSolutionNoiseContainer& solidSolutionNoise() const;
         SolidSolutionNoiseContainer& solidSolutionNoise();
         const StackingFaultNoiseContainer& stackingFaultNoise() const;
         StackingFaultNoiseContainer& stackingFaultNoise();
 
-        // added for basis transformation
-        //private:
-        //  std::pair<int, Eigen::Matrix2d> basisTransformPair_SF;
+         const StackingFaultNoiseContainer& shortRangeOrderNoise() const;
+        StackingFaultNoiseContainer& shortRangeOrderNoise();
+
+
+
     };
 
 }

@@ -309,8 +309,8 @@ namespace model
         }
     }
 
-    template struct AthermalCrossSlipModel<DislocationNetwork<3>>;
-    template struct EscaigCrossSlipModelHEX<DislocationNetwork<3>>;
+    template struct AthermalCrossSlipModel<DislocationNetwork<3,0>>;
+    template struct EscaigCrossSlipModelHEX<DislocationNetwork<3,0>>;
 
 }
 #endif

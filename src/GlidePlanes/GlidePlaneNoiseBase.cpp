@@ -8,10 +8,10 @@
 #ifndef model_GlidePlaneNoiseBase_cpp
 #define model_GlidePlaneNoiseBase_cpp
 
-#include <numbers>
 #include <chrono>
 #include <GlidePlaneNoiseBase.h>
 #include <TerminalColors.h>
+#include <cstdint>
 
 namespace model
 {
@@ -65,7 +65,8 @@ GlidePlaneNoiseBase<N>::GlidePlaneNoiseBase(const std::string& tag_in,
                                             const int& seed_in,
                                             const NoiseTraitsBase::GridSizeType& gridSize_in,
                                             const NoiseTraitsBase::GridSpacingType& gridSpacing_in,
-                                            const Eigen::Matrix<double,2,2>& latticeBasis):
+                                            const Eigen::Matrix<double,2,2>& latticeBasis,
+                                           const double& effsroAve_in):
   /*init*/ UniformPeriodicGrid<2>(gridSize_in.template segment<2>(0),gridSpacing_in.template segment<2>(0))
   /*init*/,tag(tag_in)
   /*init*/,seed(seed_in)
@@ -81,6 +82,7 @@ GlidePlaneNoiseBase<N>::GlidePlaneNoiseBase(const std::string& tag_in,
   /*init*/,LX(gridLength(0))
   /*init*/,LY(gridLength(1))
   /*init*/,LZ(gridLength(2))
+  /* int */,effsroAve(effsroAve_in)
 {
 }
 
@@ -144,12 +146,11 @@ std::vector<typename GlidePlaneNoiseBase<N>::COMPLEX*> GlidePlaneNoiseBase<N>::o
 
         const Eigen::Matrix<double,3,1> kv((Eigen::Matrix<double,3,1>()<<kx,ky,kz).finished());
         const Eigen::Matrix<int,3,1> kvID((Eigen::Matrix<int,3,1>()<<i,j,k).finished());
-//        const double kCorrFactor(NZ>1 ? ((k==0 || k==NZ/2)? 1.0 : 2.0) : ((j==0 || j==NY/2)? 1.0 : 2.0)); // /!\ special case for k=0 and k==NZ/2 because of folding of C2R Fourier transform
+        //const double kCorrFactor(NZ>1 ? ((k==0 || k==NZ/2)? 1.0 : 2.0) : ((j==0 || j==NY/2)? 1.0 : 2.0)); // /!\ special case for k=0 and k==NZ/2 because of folding of C2R Fourier transform
         const auto kCorr(kCorrelations(kv,kvID));
         for(int n=0;n<N;++n)
         {
-//          okCorr[n][ind]=sqrt(kCorr[n]/kCorrFactor);
-            okCorr[n][ind]=sqrt(kCorr[n]);
+          okCorr[n][ind]=sqrt(kCorr[n]);
         }
       }
     }
@@ -285,8 +286,32 @@ std::vector<std::vector<double>> GlidePlaneNoiseBase<N>::averageNoiseCorrelation
     }
   }
 
+  for(int n=0;n<N;++n)
+  {
+    for(int ind=0;ind<NK;++ind)
+    {
+      // Normalize the output after iFFT
+      avgkCorr[n][ind] /= static_cast<double>(NR);
+    }
+  }
+
   // do IDFT from correlation in k-space to real space
-  std::vector<REAL_SCALAR*> avgrCorr(realNoise(avgkCorr));
+  //std::vector<REAL_SCALAR*> avgrCorr(realNoise(avgkCorr));
+  std::vector<REAL_SCALAR*> avgrCorr;
+  for(int n=0;n<N;++n)
+  {
+    avgrCorr.push_back((REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*NR));
+    // explicitly initialize to zeros, avoid garbarge propagation
+    std::fill(avgrCorr[n], avgrCorr[n]+NR, REAL_SCALAR{0.0});
+  }
+
+  for(int n=0;n<N;++n)
+  {
+    fftw_plan fplan = (NZ>1 ? fftw_plan_dft_c2r_3d(NX, NY, NZ, reinterpret_cast<fftw_complex*>(avgkCorr[n]), avgrCorr[n], FFTW_ESTIMATE)
+      //: fftw_plan_dft_c2r_2d(NX, NY, reinterpret_cast<fftw_complex*>(nkCorr[n]), rNoise[n], FFTW_ESTIMATE));
+      : fftw_plan_dft_c2r_2d(NY, NX, reinterpret_cast<fftw_complex*>(avgkCorr[n]), avgrCorr[n], FFTW_ESTIMATE));
+    fftw_execute(fplan);
+  }
 
   // initialize a flattened array for python API
   std::vector<std::vector<double>> avgrCorrFlat;
@@ -355,7 +380,8 @@ std::vector<std::vector<double>> GlidePlaneNoiseBase<N>::sampleAverageNoise(cons
 }
 
 template <int N>
-void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const
+//void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const
+void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics() const
 {
   // Compute Statistics
   NoiseType ave(NoiseTraits<N>::Zero());
@@ -374,38 +400,80 @@ void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMat
 
   std::cout<<"gridSize= "<<gridSize.transpose()<<std::endl;
   std::cout<<"gridSpacing= "<<gridSpacing.transpose()<<std::endl;
-  std::cout<<"noiseAverage="<<ave*mat.mu_SI<<" [Pa]"<<std::endl;
-  std::cout<<"noiseVariance="<<var*std::pow(mat.mu_SI,2)<<" [Pa^2]"<<std::endl;
+
+  // these are incorrect for MD stacking fault noises (J/m2)
+  //std::cout<<"noiseAverage="<<ave*mat.mu_SI<<" [Pa]"<<std::endl;
+  //std::cout<<"noiseVariance="<<var*std::pow(mat.mu_SI,2)<<" [Pa^2]"<<std::endl;
+  std::cout<<"noiseAverage="<<ave<<std::endl;
+  std::cout<<"noiseVariance="<<var<<std::endl;
 }
 
-//    void AnalyticalSolidSolutionNoise::Write_field_slice(REAL_SCALAR *F, const char *fname)
-//    {
-//        FILE *OutFile=fopen(fname,"w");
-//
-//        fprintf(OutFile,"# vtk DataFile Version 2.0\n");
-//        fprintf(OutFile,"iter %d\n",0);
-//        fprintf(OutFile,"BINARY\n");
-//        fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
-//        fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
-//        fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
-//        fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
-//        fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
-//        fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
-//        fprintf(OutFile,"LOOKUP_TABLE \t default\n");
-//
-//        for(int i=0;i<NX;i++)
-//        {
-//            for(int j=0;j<NY;j++)
-//            {
-//                const int k=0;
-//                const int ind = NY*NZ*i + j*NZ + k;
-//                const double temp=NoiseTraitsBase::ReverseDouble(double(F[ind]));
-//                fwrite(&temp, sizeof(double), 1, OutFile);
-//            }
-//        }
-//
-//        fclose(OutFile);
-//    }
+template <int N>
+void GlidePlaneNoiseBase<N>::write_field_slice(const PolycrystallineMaterialBase& mat) const
+{
+  const std::string matPath = std::filesystem::path(mat.materialFile).parent_path().string();
+  const double DX = gridSpacing(0);
+  const double DY = gridSpacing(1);
+  const double DZ = gridSpacing(2);
+
+  std::vector<std::vector<double>> noiseArrays(N, std::vector<double>(NR, 0.0));
+  //const int k=0;
+  for(int i=0;i<NX;i++)
+  {
+    for(int j=0;j<NY;j++)
+    {
+      // input array is 2D, so index calculation
+      // must be changed
+      //const int ind = NY*NZ*i + j*NZ + k;
+      const int ind = NY*i + j;
+      const NoiseType& row = noiseVector()[ind];
+      for(int n=0;n<N;++n)
+      {
+        if constexpr (N==1)
+        {
+          noiseArrays[n][ind] = row;
+        }
+        else
+        {
+          noiseArrays[n][ind] = row(n);
+        }
+      }
+    }
+  }
+
+  for(int n=0;n<N;++n)
+  {
+    std::string fname="noise_patch_"+std::to_string(n)+".vtk";
+    std::string fnamePath = matPath+"/"+fname;
+    //FILE *OutFile=fopen(fname.c_str(),"w");
+    FILE *OutFile=fopen(fnamePath.c_str(),"w");
+
+    fprintf(OutFile,"# vtk DataFile Version 2.0\n");
+    fprintf(OutFile,"iter %d\n",0);
+    //fprintf(OutFile,"ASCII\n");
+    fprintf(OutFile,"BINARY\n");
+    fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
+    fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
+    fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
+    fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
+    fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
+    fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
+    fprintf(OutFile,"LOOKUP_TABLE \t default\n");
+
+    for(int i=0;i<NX;i++)
+    {
+      for(int j=0;j<NY;j++)
+      {
+        const int ind = NY*i + j;
+        //const double temp=noiseArrays[n][ind]; // for ascii
+        const double temp=NoiseTraitsBase::ReverseDouble(noiseArrays[n][ind]);
+        fwrite(&temp, sizeof(double), 1, OutFile);
+        //fprintf(OutFile, "%.18e ", temp); // for ascii
+      }
+    }
+    fclose(OutFile);
+  }
+}
 
 template struct GlidePlaneNoiseBase<1>;
 template struct GlidePlaneNoiseBase<2>;

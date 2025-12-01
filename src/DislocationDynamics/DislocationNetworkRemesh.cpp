@@ -601,7 +601,7 @@ void DislocationNetworkRemesh<DislocationNetworkType>::removeCollapsedLoops()
 //        return std::min(mesh.xMax(0) - mesh.xMin(0), std::min(mesh.xMax(1) - mesh.xMin(1), mesh.xMax(2) - mesh.xMin(2)));
 //    }
     
-    template class DislocationNetworkRemesh<DislocationNetwork<3>>;
+    template class DislocationNetworkRemesh<DislocationNetwork<3,0>>;
 
     
 } // namespace model

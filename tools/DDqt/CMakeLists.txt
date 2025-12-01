@@ -8,7 +8,7 @@ if (NOT Qt6_FOUND)
 endif()
 
 ### VTK ###
-find_package(VTK REQUIRED)
+find_package(VTK "9.3.0" REQUIRED) # Changed // important
 message (STATUS "VTK_VERSION: ${VTK_VERSION}")
 if (NOT VTK_FOUND)
   message("Skipping DDvtk: ${VTK_NOT_FOUND_MESSAGE}")

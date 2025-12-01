@@ -8,6 +8,7 @@
 #ifndef model_RationalLatticeDirection_cpp_
 #define model_RationalLatticeDirection_cpp_
 
+#include <cassert>
 #include <LatticeModule.h>
 #include <RationalLatticeDirection.h>
 

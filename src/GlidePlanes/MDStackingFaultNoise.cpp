@@ -19,9 +19,9 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
                                            const int& seed,
                                            const GridSizeType& gridSize,
                                            const GridSpacingType& gridSpacing,
-                                           const Eigen::Matrix<double,2,2>& latticeBasis
-                                           ) :
-  /* init */ GlidePlaneNoiseBase<1>("MDStackingFaultNoise"+tag,seed,gridSize,gridSpacing,nonOrthogonalBasisReader(correlationFile_in))
+                                           const Eigen::Matrix<double,2,2>& latticeBasis,
+                                           const double& effsroAve_in) :
+  /* init */ GlidePlaneNoiseBase<1>("MDStackingFaultNoise"+tag,seed,gridSize,gridSpacing,nonOrthogonalBasisReader(correlationFile_in),effsroAve_in)
   /* init */,correlationFile(correlationFile_in)
 {
   // read the dimension of the original correlation

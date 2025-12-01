@@ -35,7 +35,6 @@
 #include <GlidePlaneActor.h>
 #include <QuadratureActor.h>
 #include <ChartActor.h>
-#include <SlipSystemTab.h>
 #include <QCheckBox>
 
 // added std library
@@ -55,7 +54,6 @@ namespace model
         vtkGenericOpenGLRenderWindow* const renderWindow;
         QVTKOpenGLStereoWidget* const qvtkGLwidget;
 //        const DDtraitsIO& traitsIO;
-//        SlipSystemTab::SlipSystemColorMapType slipSystemColorMap;
         DislocationDynamicsBase<3>& ddBase;
         DefectiveCrystal<3> defectiveCrystal;
         NetworkNodeActor* nodes;
@@ -66,8 +64,6 @@ namespace model
         QuadratureActor* quadrature;
         ChartActor* chartActor;
         DDFieldWidget* ddField;
-        SlipSystemTab* slipSystemTab;
-        
     private:
         std::atomic<bool> m_stopRequested{false};
 

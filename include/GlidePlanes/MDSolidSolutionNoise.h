@@ -33,6 +33,7 @@ namespace model
         COMPLEX *Rk_xz;
         COMPLEX *Rk_yz;
         const REAL_SCALAR a_cai;
+        const double MSSS;
 
         // variable energy correction factor from zero padding
         REAL_SCALAR eNormFactor;
@@ -44,7 +45,9 @@ namespace model
                                     const std::string& correlationFile_xz, const std::string& correlationFile_yz,
                                     const int& seed, const GridSizeType& gridSize, const GridSpacingType& gridSpacing,
                                     const Eigen::Matrix<double,2,2>& latticeBasis,
-                                    const double& a_Cai_in);
+                                    const double& MSSS_in, // input from MD calculation 
+                                    const double& a_Cai_in,
+                                    const double& effsroAve_in);
         
         
         std::array<COMPLEX,2> kCorrelations(const Eigen::Matrix<double,3,1>& kv,const Eigen::Matrix<int,3,1>& kvID) const override;

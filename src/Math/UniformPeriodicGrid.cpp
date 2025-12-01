@@ -79,14 +79,14 @@ namespace model
     std::pair<typename UniformPeriodicGrid<dim>::ArrayDimI,typename UniformPeriodicGrid<dim>::ArrayDimI> UniformPeriodicGrid<dim>::posToIdx(const ArrayDimD& localPos) const
     {/*!\param[in] localPos the  position vector on the grid
       * \returns The grid indices (possibly outside the gridSize bounds) as the pair  (iLow,jLow),(iHIgh,jHigh)
-      * ------------------
+      * ---------------------
       * |   s2   |   s3     |
-      * |         |(localPos)|
-      * |____+_____ |
+      * |        |(localPos)|
+      * |________+_________ |
       * |        |          |
       * |        |          |
       * |   s0   |   s1     |
-      * ------------------*
+      * --------------------
       * iLow,jLow
       *
       */

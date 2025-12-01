@@ -68,10 +68,10 @@ namespace model
             
             f_file<< this->ddBase.simulationParameters.runID<<" "<<std::setprecision(15)<<std::scientific<<this->ddBase.simulationParameters.totalTime<<" "<<this->ddBase.simulationParameters.dt<<" ";
 
-            const Eigen::Matrix<double,dim,dim> pD(this->averagePlasticDistortion());
+            const Eigen::Matrix<double,dim,dim>& pD(this->averagePlasticDistortion());
             f_file<<pD.row(0)<<" "<<pD.row(1)<<" "<<pD.row(2)<<" "<<pD.trace()<<" "<<pD.norm()<<" ";
 
-            const Eigen::Matrix<double,dim,dim> pDR(this->averagePlasticDistortionRate());
+            const Eigen::Matrix<double,dim,dim>& pDR(this->averagePlasticDistortionRate());
             f_file<<pDR.row(0)<<" "<<pDR.row(1)<<" "<<pDR.row(2)<<" "<<pDR.trace()<<" "<<pDR.norm()<<" ";
             
             if(this->ddBase.simulationParameters.runID==0)
@@ -137,9 +137,9 @@ namespace model
     }
 
     template <int _dim>
-    const DislocationNetwork<_dim>& DefectiveCrystal<_dim>::dislocationNetwork() const
+    const DislocationNetwork<_dim,0>& DefectiveCrystal<_dim>::dislocationNetwork() const
     {
-        const auto ptrDN(this->template getUniqueTypedMicrostructure<DislocationNetwork<_dim>>());
+        const auto ptrDN(this->template getUniqueTypedMicrostructure<DislocationNetwork<_dim,0>>());
         if(ptrDN)
         {
             return *ptrDN;

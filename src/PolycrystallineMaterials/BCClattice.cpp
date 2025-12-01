@@ -93,157 +93,83 @@ namespace model
         return temp;
     }
 
-typename BCClattice<3>::SecondPhaseContainerType BCClattice<3>::secondPhases(const PolycrystallineMaterialBase& material,
-                                                                             const Lattice<dim>& lat,
-                                                                             const PlaneNormalContainerType& plN)
-{       LatticeVectorType a1((VectorDimI()<<1,0,0).finished(),lat);
-    LatticeVectorType a2((VectorDimI()<<0,1,0).finished(),lat);
-    LatticeVectorType a3((VectorDimI()<<0,0,1).finished(),lat);
 
-SecondPhaseContainerType temp;
 
-for(const std::string& sp : material.enabledSecondPhases)
-{
-    if(sp=="chi")
-    {
-        Eigen::Matrix<double,Eigen::Dynamic,2> waveVectors110(TextFileParser(material.materialFile).readMatrixCols<double>("chiWaveVectors110",2,true));
-        Eigen::Matrix<double,Eigen::Dynamic,3> fr110(TextFileParser(material.materialFile).readMatrixCols<double>("chiGammaSurfacePoints110",3,true));
-        const int rotSymm110(1);
-        const Eigen::Matrix<double,2,2> A110(GlidePlaneBase(a3,a1,nullptr).localBasis()*(Eigen::Matrix<double,2,2>()<<2, 1, 0, 1).finished());
-        std::vector<Eigen::Matrix<double,2,1>> mirSymm110 = {
-            (A110.col(1)).normalized(),
-            (A110.col(0)-A110.col(1)).normalized()
-        };
-
-        Eigen::Matrix<double,Eigen::Dynamic,3> f110(fr110);
-        f110.block(0,0,fr110.rows(),2) = (A110 * fr110.block(0,0,fr110.rows(),2).transpose()).transpose();
-        f110.col(2) = fr110.col(2) / (material.mu_SI * material.b_SI);
-
-        std::shared_ptr<GammaSurface> gammaSurface110(new GammaSurface(A110,waveVectors110,f110,rotSymm110,mirSymm110));
-        const double d110(lat.reciprocalLatticeDirection(lat.C2G*(VectorDimD()<<1.0,1.0,0.0).finished()).planeSpacing());
-        std::map<const GlidePlaneBase*,std::shared_ptr<GammaSurface>> gsMap;
-        for(const auto& pn : plN)
+    typename BCClattice<3>::SecondPhaseContainerType BCClattice<3>::secondPhases(const PolycrystallineMaterialBase& material,
+                                                                                 const Lattice<dim>& lat,
+                                                                                 const PlaneNormalContainerType& plN)
+    {       LatticeVectorType a1((VectorDimI()<<1,0,0).finished(),lat);
+        LatticeVectorType a2((VectorDimI()<<0,1,0).finished(),lat);
+        LatticeVectorType a3((VectorDimI()<<0,0,1).finished(),lat);
+        
+        SecondPhaseContainerType temp;
+        
+        for(const std::string& sp : material.enabledSecondPhases)
         {
-            if(std::abs(pn.second->planeSpacing()-d110)<FLT_EPSILON)
+            if(sp=="chi")
             {
-                gsMap.emplace(pn.second.get(),gammaSurface110);
+                Eigen::Matrix<double,Eigen::Dynamic,2> waveVectors110(TextFileParser(material.materialFile).readMatrixCols<double>("chiWaveVectors110",2,true));
+                Eigen::Matrix<double,Eigen::Dynamic,3> fr110(TextFileParser(material.materialFile).readMatrixCols<double>("chiGammaSurfacePoints110",3,true));
+                const int rotSymm110(1);
+                const Eigen::Matrix<double,2,2> A110(2.0*GlidePlaneBase(a3,a1,nullptr).localBasis());
+                std::vector<Eigen::Matrix<double,2,1>> mirSymm110 = {
+                    (A110.col(0)+A110.col(1)).normalized(),
+                    (A110.col(0)-A110.col(1)).normalized()
+                };
+                
+                Eigen::Matrix<double,Eigen::Dynamic,3> f110(fr110);
+                f110.block(0,0,fr110.rows(),2) = (A110 * fr110.block(0,0,fr110.rows(),2).transpose()).transpose();
+                f110.col(2) = fr110.col(2) / (material.mu_SI * material.b_SI);
+                
+                std::shared_ptr<GammaSurface> gammaSurface110(new GammaSurface(A110,waveVectors110,f110,rotSymm110,mirSymm110));
+                const double d110(lat.reciprocalLatticeDirection(lat.C2G*(VectorDimD()<<1.0,1.0,0.0).finished()).planeSpacing());
+                std::map<const GlidePlaneBase*,std::shared_ptr<GammaSurface>> gsMap;
+                for(const auto& pn : plN)
+                {
+                    if(std::abs(pn.second->planeSpacing()-d110)<FLT_EPSILON)
+                    {
+                        gsMap.emplace(pn.second.get(),gammaSurface110);
+                    }
+                }
+                std::shared_ptr<SecondPhase<dim>> sp(new SecondPhase<dim>("chi",gsMap,plN));
+                temp.emplace(sp->sID,sp);
+            }
+            else if(sp=="sigma")
+            {
+                Eigen::Matrix<double,Eigen::Dynamic,2> waveVectors110(TextFileParser(material.materialFile).readMatrixCols<double>("sigmaWaveVectors110",2,true));
+                Eigen::Matrix<double,Eigen::Dynamic,3> fr110(TextFileParser(material.materialFile).readMatrixCols<double>("sigmaGammaSurfacePoints110",3,true));
+                const int rotSymm110(1);
+                const Eigen::Matrix<double,2,2> A110(2.0*GlidePlaneBase(a3,a1,nullptr).localBasis());
+                std::vector<Eigen::Matrix<double,2,1>> mirSymm110 = {
+                    (A110.col(0)+A110.col(1)).normalized(),
+                    (A110.col(0)-A110.col(1)).normalized()
+                };
+                
+                Eigen::Matrix<double,Eigen::Dynamic,3> f110(fr110);
+                f110.block(0,0,fr110.rows(),2) = (A110 * fr110.block(0,0,fr110.rows(),2).transpose()).transpose();
+                f110.col(2) = fr110.col(2) / (material.mu_SI * material.b_SI);
+                
+                std::shared_ptr<GammaSurface> gammaSurface110(new GammaSurface(A110,waveVectors110,f110,rotSymm110,mirSymm110));
+                const double d110(lat.reciprocalLatticeDirection(lat.C2G*(VectorDimD()<<1.0,1.0,0.0).finished()).planeSpacing());
+                std::map<const GlidePlaneBase*,std::shared_ptr<GammaSurface>> gsMap;
+                for(const auto& pn : plN)
+                {
+                    if(std::abs(pn.second->planeSpacing()-d110)<FLT_EPSILON)
+                    {
+                        gsMap.emplace(pn.second.get(),gammaSurface110);
+                    }
+                }
+                std::shared_ptr<SecondPhase<dim>> sp(new SecondPhase<dim>("sigma",gsMap,plN));
+                temp.emplace(sp->sID,sp);
+            }
+            
+            else
+            {
+                throw std::runtime_error("Unnown SecondPhase "+sp+" in BCC crystals.");
             }
         }
-        std::shared_ptr<SecondPhase<dim>> sp(new SecondPhase<dim>("chi",gsMap,plN));
-        temp.emplace(sp->sID,sp);
+        return temp;
     }
-    else if(sp=="sigma")
-    {
-        Eigen::Matrix<double,Eigen::Dynamic,2> waveVectors110(TextFileParser(material.materialFile).readMatrixCols<double>("sigmaWaveVectors110",2,true));
-        Eigen::Matrix<double,Eigen::Dynamic,3> fr110(TextFileParser(material.materialFile).readMatrixCols<double>("sigmaGammaSurfacePoints110",3,true));
-        const int rotSymm110(1);
-        const Eigen::Matrix<double,2,2> A110(GlidePlaneBase(a3,a1,nullptr).localBasis()*(Eigen::Matrix<double,2,2>()<<2, 1, 0, 1).finished());
-        std::vector<Eigen::Matrix<double,2,1>> mirSymm110 = {
-            (A110.col(1)).normalized(),
-            (A110.col(0)-A110.col(1)).normalized()
-        };
-
-        Eigen::Matrix<double,Eigen::Dynamic,3> f110(fr110);
-        f110.block(0,0,fr110.rows(),2) = (A110 * fr110.block(0,0,fr110.rows(),2).transpose()).transpose();
-        f110.col(2) = fr110.col(2) / (material.mu_SI * material.b_SI);
-
-        std::shared_ptr<GammaSurface> gammaSurface110(new GammaSurface(A110,waveVectors110,f110,rotSymm110,mirSymm110));
-        const double d110(lat.reciprocalLatticeDirection(lat.C2G*(VectorDimD()<<1.0,1.0,0.0).finished()).planeSpacing());
-        std::map<const GlidePlaneBase*,std::shared_ptr<GammaSurface>> gsMap;
-        for(const auto& pn : plN)
-        {
-            if(std::abs(pn.second->planeSpacing()-d110)<FLT_EPSILON)
-            {
-                gsMap.emplace(pn.second.get(),gammaSurface110);
-            }
-        }
-        std::shared_ptr<SecondPhase<dim>> sp(new SecondPhase<dim>("sigma",gsMap,plN));
-        temp.emplace(sp->sID,sp);
-    }
-    
-    else
-    {
-        throw std::runtime_error("Unknown SecondPhase "+sp+" in BCC crystals.");
-    }
-}
-return temp;
-}
-
-//    typename BCClattice<3>::SecondPhaseContainerType BCClattice<3>::secondPhases(const PolycrystallineMaterialBase& material,
-//                                                                                 const Lattice<dim>& lat,
-//                                                                                 const PlaneNormalContainerType& plN)
-//    {       LatticeVectorType a1((VectorDimI()<<1,0,0).finished(),lat);
-//        LatticeVectorType a2((VectorDimI()<<0,1,0).finished(),lat);
-//        LatticeVectorType a3((VectorDimI()<<0,0,1).finished(),lat);
-//        
-//        SecondPhaseContainerType temp;
-//        
-//        for(const std::string& sp : material.enabledSecondPhases)
-//        {
-//            if(sp=="chi")
-//            {
-//                Eigen::Matrix<double,Eigen::Dynamic,2> waveVectors110(TextFileParser(material.materialFile).readMatrixCols<double>("chiWaveVectors110",2,true));
-//                Eigen::Matrix<double,Eigen::Dynamic,3> fr110(TextFileParser(material.materialFile).readMatrixCols<double>("chiGammaSurfacePoints110",3,true));
-//                const int rotSymm110(1);
-//                const Eigen::Matrix<double,2,2> A110(2.0*GlidePlaneBase(a3,a1,nullptr).localBasis());
-//                std::vector<Eigen::Matrix<double,2,1>> mirSymm110 = {
-//                    (A110.col(0)+A110.col(1)).normalized(),
-//                    (A110.col(0)-A110.col(1)).normalized()
-//                };
-//                
-//                Eigen::Matrix<double,Eigen::Dynamic,3> f110(fr110);
-//                f110.block(0,0,fr110.rows(),2) = (A110 * fr110.block(0,0,fr110.rows(),2).transpose()).transpose();
-//                f110.col(2) = fr110.col(2) / (material.mu_SI * material.b_SI);
-//                
-//                std::shared_ptr<GammaSurface> gammaSurface110(new GammaSurface(A110,waveVectors110,f110,rotSymm110,mirSymm110));
-//                const double d110(lat.reciprocalLatticeDirection(lat.C2G*(VectorDimD()<<1.0,1.0,0.0).finished()).planeSpacing());
-//                std::map<const GlidePlaneBase*,std::shared_ptr<GammaSurface>> gsMap;
-//                for(const auto& pn : plN)
-//                {
-//                    if(std::abs(pn.second->planeSpacing()-d110)<FLT_EPSILON)
-//                    {
-//                        gsMap.emplace(pn.second.get(),gammaSurface110);
-//                    }
-//                }
-//                std::shared_ptr<SecondPhase<dim>> sp(new SecondPhase<dim>("chi",gsMap,plN));
-//                temp.emplace(sp->sID,sp);
-//            }
-//            else if(sp=="sigma")
-//            {
-//                Eigen::Matrix<double,Eigen::Dynamic,2> waveVectors110(TextFileParser(material.materialFile).readMatrixCols<double>("sigmaWaveVectors110",2,true));
-//                Eigen::Matrix<double,Eigen::Dynamic,3> fr110(TextFileParser(material.materialFile).readMatrixCols<double>("sigmaGammaSurfacePoints110",3,true));
-//                const int rotSymm110(1);
-//                const Eigen::Matrix<double,2,2> A110(2.0*GlidePlaneBase(a3,a1,nullptr).localBasis());
-//                std::vector<Eigen::Matrix<double,2,1>> mirSymm110 = {
-//                    (A110.col(0)+A110.col(1)).normalized(),
-//                    (A110.col(0)-A110.col(1)).normalized()
-//                };
-//                
-//                Eigen::Matrix<double,Eigen::Dynamic,3> f110(fr110);
-//                f110.block(0,0,fr110.rows(),2) = (A110 * fr110.block(0,0,fr110.rows(),2).transpose()).transpose();
-//                f110.col(2) = fr110.col(2) / (material.mu_SI * material.b_SI);
-//                
-//                std::shared_ptr<GammaSurface> gammaSurface110(new GammaSurface(A110,waveVectors110,f110,rotSymm110,mirSymm110));
-//                const double d110(lat.reciprocalLatticeDirection(lat.C2G*(VectorDimD()<<1.0,1.0,0.0).finished()).planeSpacing());
-//                std::map<const GlidePlaneBase*,std::shared_ptr<GammaSurface>> gsMap;
-//                for(const auto& pn : plN)
-//                {
-//                    if(std::abs(pn.second->planeSpacing()-d110)<FLT_EPSILON)
-//                    {
-//                        gsMap.emplace(pn.second.get(),gammaSurface110);
-//                    }
-//                }
-//                std::shared_ptr<SecondPhase<dim>> sp(new SecondPhase<dim>("sigma",gsMap,plN));
-//                temp.emplace(sp->sID,sp);
-//            }
-//            
-//            else
-//            {
-//                throw std::runtime_error("Unnown SecondPhase "+sp+" in BCC crystals.");
-//            }
-//        }
-//        return temp;
-//    }
 
 } // namespace model
 #endif

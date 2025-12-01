@@ -292,7 +292,7 @@ namespace model
         return getNodeVelocitiesBulk()+getNodeVelocitiesPipe();
     }
 
-    template class GalerkinClimbSolver<DislocationNetwork<3>>;
+    template class GalerkinClimbSolver<DislocationNetwork<3,0>>;
 
 }
 #endif

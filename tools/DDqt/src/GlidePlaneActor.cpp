@@ -86,7 +86,7 @@ namespace model
     /* init */ renderWindow(renWin)
     /* init */,renderer(ren)
     /* init */,defectiveCrystal(defectiveCrystal_in)
-    /* init */,dislocationNetwork(defectiveCrystal.template getUniqueTypedMicrostructure<DislocationNetwork<3>>())
+    /* init */,dislocationNetwork(defectiveCrystal.template getUniqueTypedMicrostructure<DislocationNetwork<3,0>>())
     /* init */,mainLayout(new QGridLayout(this))
     /* init */,glidePlanesGroup(new QGroupBox(tr("&Planes")))
     /* init */,lut(vtkSmartPointer<vtkLookupTable>::New())
@@ -103,6 +103,8 @@ namespace model
     /* init */,ss2NoiseMax(new QLineEdit("0.0"))
     /* init */,sfNoiseMin(new QLineEdit("0.0"))
     /* init */,sfNoiseMax(new QLineEdit("0.0"))
+    /* init */,sroNoiseMin(new QLineEdit("0.0"))
+    /* init */,sroNoiseMax(new QLineEdit("0.0"))
     /* init */,noisePolydata(vtkSmartPointer<vtkPolyData>::New())
     /* init */,noiseMapper(vtkSmartPointer<vtkDataSetMapper>::New())
     /* init */,noiseActor(vtkSmartPointer<vtkActor>::New())
@@ -121,7 +123,9 @@ namespace model
         lut->SetHueRange(0.66667, 0.0);
         lut->Build();
         
-        stackingFaultLut->SetHueRange(0.66667, 0.0);
+        // stackingFaultLut->SetHueRange(0.66667, 0.0);
+        stackingFaultLut->SetHueRange(0.0, 0.0);
+
         stackingFaultLut->Build();
 
         glidePlanesGroup->setCheckable(true);
@@ -140,9 +144,11 @@ namespace model
             grainNoiseBox->addItem(QString::fromStdString(std::to_string(pair.first)));
         }
         
-        glidePlanesNoiseBox->addItem("solidSolution_1");
-        glidePlanesNoiseBox->addItem("solidSolution_2");
+        glidePlanesNoiseBox->addItem("solidSolution_xz"); // changed 
+        glidePlanesNoiseBox->addItem("solidSolution_yz"); // changed
         glidePlanesNoiseBox->addItem("stackingFault");
+        glidePlanesNoiseBox->addItem("shortRangeOrder");
+
         const auto& grain(defectiveCrystal.ddBase.poly.grains.begin()->second);
         for(size_t k=0; k<grain->slipSystems().size();++k)
         {
@@ -163,6 +169,8 @@ namespace model
         noiseLayout->addWidget(ss2NoiseMax,4,1,1,1);
         noiseLayout->addWidget(sfNoiseMin,5,0,1,1);
         noiseLayout->addWidget(sfNoiseMax,5,1,1,1);
+        noiseLayout->addWidget(sroNoiseMin,6,0,1,1);
+        noiseLayout->addWidget(sroNoiseMax,6,1,1,1);
         
         QGridLayout *stackingFaultLayout = new QGridLayout();
         stackingFaultLayout->addWidget(sfeMinEdit,0,0,1,1);
@@ -187,6 +195,8 @@ namespace model
         connect(ss2NoiseMax,SIGNAL(returnPressed()), this, SLOT(modify()));
         connect(sfNoiseMin,SIGNAL(returnPressed()), this, SLOT(modify()));
         connect(sfNoiseMax,SIGNAL(returnPressed()), this, SLOT(modify()));
+        connect(sroNoiseMin,SIGNAL(returnPressed()), this, SLOT(modify()));
+        connect(sroNoiseMax,SIGNAL(returnPressed()), this, SLOT(modify()));
         connect(noiseMeshSizeEdit,SIGNAL(returnPressed()), this, SLOT(computeGlidePlaneNoise()));
 
         // GlidePlane boundaries
@@ -225,7 +235,7 @@ namespace model
         if(dislocationNetwork && glidePlanesNoiseGroup->isChecked())
         {
             noiseValues.clear();
-            for(int k=0;k<3;++k)
+            for(int k=0;k<4;++k) // changed
             {
                 valuesMinMax[k]=std::make_pair(std::numeric_limits<double>::max(),-std::numeric_limits<double>::max());
             }
@@ -271,13 +281,21 @@ namespace model
                                 
                                 for(const auto& point2d : triMesh.vertices())
                                 {
+                                    // we should modifty this part of the code to fix the noise visualization issue.
+                                    // glide plane is a plane object of which x and y are randomly picked and
+                                    // slip system has local coordinate system where the axis are the burgers vector direction
                                     const auto point3d(glidePlane->globalPosition(point2d));
+                                    //const auto point3d(slipSystem->localToGlobal(point2d)+glidePlane->P); //changed
                                     meshPts->InsertNextPoint(point3d(0),point3d(1),point3d(2));
-                                    noiseValues.push_back(planeNoise->gridInterp(point2d));
-                                    
+                                    //noiseValues.push_back(planeNoise->gridInterp(point2d));
+                                    noiseValues.push_back(planeNoise->gridInterp(slipSystem->globalToLocal(point3d))); // changed
+                                    // noiseValues.push_back(planeNoise->gridInterp(slipSystem->globalToLocal(point3d),slipSystem->globalToLocal(point3d))); // changed
+
                                     valuesMinMax[0]=std::make_pair(std::min(valuesMinMax[0].first,std::get<0>(noiseValues.back())),std::max(valuesMinMax[0].second,std::get<0>(noiseValues.back())));
                                     valuesMinMax[1]=std::make_pair(std::min(valuesMinMax[1].first,std::get<1>(noiseValues.back())),std::max(valuesMinMax[1].second,std::get<1>(noiseValues.back())));
                                     valuesMinMax[2]=std::make_pair(std::min(valuesMinMax[2].first,std::get<2>(noiseValues.back())),std::max(valuesMinMax[2].second,std::get<2>(noiseValues.back())));
+                                    valuesMinMax[3]=std::make_pair(std::min(valuesMinMax[3].first,std::get<4>(noiseValues.back())),std::max(valuesMinMax[3].second,std::get<4>(noiseValues.back())));
+
                                 }
 
                                 ss1NoiseMin->setText(QString::number((valuesMinMax[0].first)));
@@ -286,6 +304,8 @@ namespace model
                                 ss2NoiseMax->setText(QString::number((valuesMinMax[1].second)));
                                 sfNoiseMin->setText(QString::number((valuesMinMax[2].first)));
                                 sfNoiseMax->setText(QString::number((valuesMinMax[2].second)));
+                                sroNoiseMin->setText(QString::number((valuesMinMax[3].first)));
+                                sroNoiseMax->setText(QString::number((valuesMinMax[3].second)));
                                 
                                 for(const auto& tri : triMesh.triangles())
                                 {
@@ -527,6 +547,9 @@ void GlidePlaneActor::computeStackingFaults()
                         break;
                     case 2:
                         val=std::get<2>(tup);
+                        break;
+                    case 3:
+                        val=std::get<4>(tup);
                         break;
                     default:
                         break;

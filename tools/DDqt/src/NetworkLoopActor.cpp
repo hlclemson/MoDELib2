@@ -77,7 +77,7 @@ NetworkLoopActor::NetworkLoopActor(vtkGenericOpenGLRenderWindow* const renWin,vt
 /* init */,globalMeshSizeEdit(new QLineEdit("100000000"))
 /* init */,localMeshSizeEdit(new QLineEdit("1.0"))
 /* init */,defectiveCrystal(defectiveCrystal_in)
-/* init */,dislocationNetwork(defectiveCrystal.template getUniqueTypedMicrostructure<DislocationNetwork<3>>())
+/* init */,dislocationNetwork(defectiveCrystal.template getUniqueTypedMicrostructure<DislocationNetwork<3,0>>())
 {
     
     nodeGlyphs->SetInputData(nodePolyData);
@@ -176,7 +176,7 @@ NetworkLoopActor::NetworkLoopActor(vtkGenericOpenGLRenderWindow* const renWin,vt
     //            areaMapper->SetInputData(areaPolyData);
     areaMapper->SetInputData(areaTriangleFilter->GetOutput());
     areaActor->SetMapper(areaMapper);
-//    areaActor->GetProperty()->SetColor(0.0, 1.0, 1.0); //(R,G,B)
+    areaActor->GetProperty()->SetColor(0.0, 1.0, 1.0); //(R,G,B)
     areaActor->SetVisibility(false);
     
     meshPolydata->Allocate();
@@ -196,7 +196,7 @@ NetworkLoopActor::NetworkLoopActor(vtkGenericOpenGLRenderWindow* const renWin,vt
 
 
 
-void NetworkLoopActor::updateConfiguration(const SlipSystemTab::SlipSystemColorMapType& sscm)
+void NetworkLoopActor::updateConfiguration()
 {
     std::cout<<"Updating loops..."<<std::flush;
     const auto t0= std::chrono::system_clock::now();
@@ -265,9 +265,6 @@ void NetworkLoopActor::updateConfiguration(const SlipSystemTab::SlipSystemColorM
         // Slipped area
         vtkNew<vtkPoints> areaPoints;
         vtkNew<vtkCellArray> areaPolygons;
-        vtkSmartPointer<vtkUnsignedCharArray> areaColors(vtkSmartPointer<vtkUnsignedCharArray>::New());
-        areaColors->SetNumberOfComponents(3);
-
         size_t areaPointID(0);
         for(const auto& weakloop : dislocationNetwork->loops())
         {
@@ -282,26 +279,10 @@ void NetworkLoopActor::updateConfiguration(const SlipSystemTab::SlipSystemColorM
                     areaPointID++;
                 }
                 areaPolygons->InsertNextCell(polygon);
-                
-                Eigen::Matrix<int,3,1> areaClr((Eigen::Matrix<int,3,1>()<<255,255,255).finished());
-                if(loop->slipSystem())
-                {
-                    const auto ssIter(sscm.find(loop->slipSystem().get()));
-                    if(ssIter!=sscm.end())
-                    {
-                        areaClr=ssIter->second->rgb();
-                    }
-                }
-                areaColors->InsertNextTuple3(areaClr(0),areaClr(1),areaClr(2)); // use this to assig color to each vertex
-
             }
         }
         areaPolyData->SetPoints(areaPoints);
         areaPolyData->SetPolys(areaPolygons);
-        areaPolyData->GetCellData()->SetScalars(areaColors);
-        areaPolyData->Modified();
-        areaMapper->SetScalarModeToUseCellData();
-
         areaTriangleFilter->Update();
         
         

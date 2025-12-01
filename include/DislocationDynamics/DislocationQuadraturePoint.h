@@ -29,14 +29,14 @@
 namespace model
 {
 
-    template <int dim>
+    template <int dim, short unsigned int corder>
     class DislocationSegment;
 
 
-    template<int dim>
+    template<int dim,int corder>
     struct DislocationQuadraturePoint
     {
-        static constexpr int corder=0;
+        
         static constexpr int Ncoeff= SplineBase<dim,corder>::Ncoeff;
         static constexpr int pOrder= SplineBase<dim,corder>::pOrder;
         static constexpr int Ndof= SplineBase<dim,corder>::Ndof;
@@ -46,7 +46,7 @@ namespace model
         typedef Eigen::Matrix<double,dim,Ndof> MatrixDimNdof;
         typedef Eigen::Matrix<double,Ncoeff,Ncoeff> MatrixNcoeff;
         typedef Eigen::Matrix<double,Ncoeff,dim> MatrixNcoeffDim;
-        typedef DislocationSegment<dim> LinkType;
+        typedef DislocationSegment<dim,corder> LinkType;
         typedef   QuadratureDynamic<1,UniformOpen,1,2,3,4,5,6,7,8,16,32,64,128,256,512,1024> QuadratureDynamicType;
         typedef QuadPowDynamic<pOrder,UniformOpen,1,2,3,4,5,6,7,8,16,32,64,128,256,512,1024> QuadPowDynamicType;
 
@@ -104,11 +104,10 @@ namespace model
         
     };
     
-    template<int dim>
-    class DislocationQuadraturePointContainer : public std::deque<DislocationQuadraturePoint<dim>>
+    template<int dim,int corder>
+    class DislocationQuadraturePointContainer : public std::deque<DislocationQuadraturePoint<dim,corder>>
     
     {
-        static constexpr int corder=DislocationQuadraturePoint<dim>::corder;
         static constexpr int Ncoeff= SplineBase<dim,corder>::Ncoeff;
         static constexpr int Ndof= SplineBase<dim,corder>::Ndof;
         typedef Eigen::Matrix<double,dim,1> VectorDim;
@@ -116,14 +115,14 @@ namespace model
         typedef Eigen::Matrix<double,Ndof,Ndof> MatrixNdof;
         typedef Eigen::Matrix<double,dim,dim> MatrixDim;
         typedef Eigen::Matrix<double,dim,Ndof> MatrixDimNdof;
-        typedef DislocationQuadraturePointContainer<dim> DislocationQuadraturePointContainerType;
-        typedef DislocationQuadraturePoint<dim> DislocationQuadraturePointType;
+        typedef DislocationQuadraturePointContainer<dim,corder> DislocationQuadraturePointContainerType;
+        typedef DislocationQuadraturePoint<dim,corder> DislocationQuadraturePointType;
         typedef std::deque<DislocationQuadraturePointType> BaseContainerType;
         typedef Eigen::Matrix<double,Ncoeff,Ncoeff> MatrixNcoeff;
         typedef Eigen::Matrix<double,Ncoeff,dim> MatrixNcoeffDim;
         typedef typename DislocationQuadraturePointType::QuadratureDynamicType QuadratureDynamicType;
         typedef typename DislocationQuadraturePointType::QuadPowDynamicType QuadPowDynamicType;
-        typedef DislocationSegment<dim> LinkType;
+        typedef DislocationSegment<dim,corder> LinkType;
 
         VectorNdof nodalVelocityLinearKernel(const int& k) const;
         MatrixNdof nodalVelocityBilinearKernel(const int& k) const;

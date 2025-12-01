@@ -350,6 +350,6 @@ namespace model
         
     }
 
-    template class DislocationCrossSlip<DislocationNetwork<3>>;
+    template class DislocationCrossSlip<DislocationNetwork<3,0>>;
 }
 #endif

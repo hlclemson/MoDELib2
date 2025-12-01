@@ -82,8 +82,8 @@ namespace model
         }
     }
 
-    template struct DislocationClimbSolverBase<DislocationNetwork<3>>;
-    template struct DislocationClimbSolverFactory<DislocationNetwork<3>>;
+    template struct DislocationClimbSolverBase<DislocationNetwork<3,0>>;
+    template struct DislocationClimbSolverFactory<DislocationNetwork<3,0>>;
 
 }
 #endif

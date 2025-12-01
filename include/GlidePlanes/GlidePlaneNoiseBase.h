@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <random>
+#include <filesystem>
 #include <Eigen/Dense>
 #include <boost/math/special_functions/bessel.hpp>
 
@@ -70,6 +71,7 @@ namespace model
         const double& LX;
         const double& LY;
         const double& LZ;
+        const double& effsroAve;
 
 //        std::default_random_engine generator;
 //        std::normal_distribution<REAL_SCALAR> distribution;
@@ -81,13 +83,15 @@ namespace model
                             const int& seed_in,
                             const NoiseTraitsBase::GridSizeType& gridSize_in,
                             const NoiseTraitsBase::GridSpacingType& gridSpacing_SI_in,
-                            const Eigen::Matrix<double,2,2>& latticeBasis);
+                            const Eigen::Matrix<double,2,2>& latticeBasis,
+                            const double& effsroAve);
         virtual ~GlidePlaneNoiseBase(){};
         void computeRealNoise();
-        void computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const;
+        //void computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const;
+        void computeRealNoiseStatistics() const;
         GridSizeType rowAndColIndices(const int& storageIndex) const;
         int storageIndex(const int& i,const int& j) const;
-        void writeFieldSlice() const;
+        void write_field_slice(const PolycrystallineMaterialBase& mat) const;
         const NoiseContainerType& noiseVector() const;
         NoiseContainerType& noiseVector();
         //virtual std::array<COMPLEX,N> kCorrelations(const Eigen::Matrix<double,3,1>& k,const Eigen::Matrix<int,3,1>& kID) const = 0;

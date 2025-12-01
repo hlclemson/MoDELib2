@@ -84,12 +84,12 @@ namespace model
         vtkGenericOpenGLRenderWindow* const renderWindow;
         vtkRenderer* const renderer;
         DefectiveCrystal<3>& defectiveCrystal;
-        const std::shared_ptr<DislocationNetwork<3>> dislocationNetwork;
+        const std::shared_ptr<DislocationNetwork<3,0>> dislocationNetwork;
         QGridLayout* mainLayout;
         QGroupBox* glidePlanesGroup;
         
         vtkSmartPointer<vtkLookupTable> lut;
-        std::array<std::pair<double,double>,3> valuesMinMax;
+        std::array<std::pair<double,double>,4> valuesMinMax; // changed
         QGroupBox* glidePlanesNoiseGroup;
         QLabel* noiseMeshSizeLabel;
         QLineEdit* noiseMeshSizeEdit;
@@ -103,11 +103,13 @@ namespace model
         QLineEdit* ss2NoiseMax;
         QLineEdit* sfNoiseMin;
         QLineEdit* sfNoiseMax;
+        QLineEdit* sroNoiseMin;
+        QLineEdit* sroNoiseMax;
 
 //        vtkSmartPointer<vtkPoints> noisePts;
 //        vtkSmartPointer<vtkCellArray> noiseTriangles;
 //        vtkSmartPointer<vtkUnsignedCharArray> noiseColors;
-        std::deque<std::tuple<double,double,double>> noiseValues;
+        std::deque<std::tuple<double,double,double,double,double>> noiseValues;
         vtkSmartPointer<vtkPolyData> noisePolydata;
         vtkSmartPointer<vtkDataSetMapper> noiseMapper;
         vtkSmartPointer<vtkActor> noiseActor;

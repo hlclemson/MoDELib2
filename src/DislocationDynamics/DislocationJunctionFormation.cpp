@@ -1092,7 +1092,7 @@ namespace model
     template <typename DislocationNetworkType>
     double DislocationJunctionFormation<DislocationNetworkType>::collisionTol=10.0;
 
-    template class DislocationJunctionFormation<DislocationNetwork<3>>;
+    template class DislocationJunctionFormation<DislocationNetwork<3,0>>;
 
 }
 #endif

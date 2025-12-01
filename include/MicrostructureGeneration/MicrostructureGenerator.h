@@ -63,6 +63,10 @@
 #include <PlanarLoopIndividualSpecification.h>
 #include <CircularCrackIndividualSpecification.h>
 #include <CrackMeshIndividualSpecification.h>
+// Added Extended FR Source
+#include <ExtendFRSourceIndividualSpecification.h>
+#include <ExtendFRSourceDensitySpecification.h>
+
 
 namespace model
 {
@@ -106,6 +110,9 @@ struct PolyPoint
         void addShearLoopIndividual(const ShearLoopIndividualSpecification& spec);
         void addPeriodicDipoleDensity(const PeriodicDipoleDensitySpecification& spec);
         void addPeriodicDipoleIndividual(const PeriodicDipoleIndividualSpecification& spec);
+        // Added
+        void addExtendFRSourceDensity(const ExtendFRSourceDensitySpecification& spec);
+        void addExtendFRSourceIndividual(const ExtendFRSourceIndividualSpecification& spec);
         void addPrismaticLoopDensity(const PrismaticLoopDensitySpecification& spec);
         void addPrismaticLoopIndividual(const PrismaticLoopIndividualSpecification& spec);
         void addFrankLoopsDensity(const FrankLoopsDensitySpecification& spec);

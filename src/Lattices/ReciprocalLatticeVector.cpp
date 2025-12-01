@@ -8,6 +8,7 @@
 #ifndef model_ReciprocalLatticeVector_cpp_
 #define model_ReciprocalLatticeVector_cpp_
 
+#include <cassert>
 #include <iostream>
 #include <LatticeModule.h>
 

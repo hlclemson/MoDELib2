@@ -46,7 +46,6 @@
 #include <MeshPlane.h>
 #include <PeriodicGlidePlaneFactory.h>
 #include <DefectiveCrystal.h>
-#include <SlipSystemTab.h>
 
 namespace model
 {
@@ -97,10 +96,10 @@ namespace model
         public:
                 
         const DefectiveCrystal<3>& defectiveCrystal;
-        const std::shared_ptr<DislocationNetwork<3>> dislocationNetwork;
+        const std::shared_ptr<DislocationNetwork<3,0>> dislocationNetwork;
 
         NetworkLoopActor(vtkGenericOpenGLRenderWindow* const,vtkRenderer* const,const DefectiveCrystal<3>& defectiveCrystal_in);
-        void updateConfiguration(const SlipSystemTab::SlipSystemColorMapType& sscm);
+        void updateConfiguration();
         
     };
     

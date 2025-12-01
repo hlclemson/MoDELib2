@@ -430,7 +430,7 @@ namespace model
         }
     }
 
-template class DislocationNodeContraction<DislocationNetwork<3>>;
+template class DislocationNodeContraction<DislocationNetwork<3,0>>;
 }
 #endif
 

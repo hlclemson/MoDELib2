@@ -42,7 +42,6 @@ namespace model
         /* init */,quadrature(new QuadratureActor(renWin,ren,ddBase.poly,ddBase.simulationParameters.traitsIO))
         /* init */,chartActor(new ChartActor(ddBase.simulationParameters.traitsIO,renderWindow,ren))
         /* init */,ddField(new DDFieldWidget(renderWindow,ren,defectiveCrystal))
-        /* init */,slipSystemTab(new SlipSystemTab(defectiveCrystal))
         /* init */,mainLayout(new QGridLayout(this))
         /* init */,frameIDedit(new QLineEdit("0"))
         /* init */,plusFrameButton(new QPushButton(">"))
@@ -62,7 +61,6 @@ namespace model
             tabWidget->addTab(quadrature, tr(std::string("Quadrature").c_str()));
             tabWidget->addTab(chartActor, tr(std::string("Chart").c_str()));
             tabWidget->addTab(ddField, tr(std::string("Fields").c_str()));
-            tabWidget->addTab(slipSystemTab, tr(std::string("SlipSystems").c_str()));
 
             saveImage->setText("save PNG");
 
@@ -202,9 +200,9 @@ namespace model
         {
             try
             {
-                DislocationNode<3>::force_count(0);
-                DislocationLoopNode<3>::force_count(0);
-                DislocationLoop<3>::force_count(0);
+                DislocationNode<3,0>::force_count(0);
+                DislocationLoopNode<3,0>::force_count(0);
+                DislocationLoop<3,0>::force_count(0);
                 EshelbyInclusionBase<3>::force_count(0);
 
                 configIO().read(frameID);
@@ -212,8 +210,8 @@ namespace model
                 //configFields.updateConfiguration();
                 defectiveCrystal.initializeConfiguration(*this);
                 nodes->updateConfiguration(*this);
-                segments->updateConfiguration(nodes->nodePolyData,slipSystemTab->slipSystemColorMap);
-                loops->updateConfiguration(slipSystemTab->slipSystemColorMap);
+                segments->updateConfiguration(nodes->nodePolyData);
+                loops->updateConfiguration();
                 inclusions->updateConfiguration();
 //                glidePlanes->updateConfiguration(*this);
                 glidePlanes->updateConfiguration();

@@ -8,6 +8,7 @@
 #ifndef  model_BarycentricTraits_cpp_
 #define  model_BarycentricTraits_cpp_
 
+#include <cassert>
 #include <BarycentricTraits.h>
 
 namespace model

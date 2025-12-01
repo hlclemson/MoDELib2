@@ -16,8 +16,8 @@
 
 namespace model
 {
-    template <int dim>
-    DislocationLoop<dim>::DislocationLoop(LoopNetworkType* const net,
+    template <int dim, short unsigned int corder>
+    DislocationLoop<dim,corder>::DislocationLoop(LoopNetworkType* const net,
                                                  const VectorDim& B,
                                                  const std::shared_ptr<GlidePlaneType>& glidePlane_in) :
     /* init */ Loop<DislocationLoop>(net,glidePlane_in->grain.rationalLatticeDirection(B))
@@ -39,8 +39,8 @@ namespace model
         VerboseDislocationLoop(1,"Constructing DislocationLoop "<<this->tag()<<std::endl;);
     }
 
-    template <int dim>
-    void DislocationLoop<dim>::crossSlipBranches(std::deque<std::pair<std::deque<std::shared_ptr<LoopNodeType>>,int>>& csNodes) const
+    template <int dim, short unsigned int corder>
+    void DislocationLoop<dim,corder>::crossSlipBranches(std::deque<std::pair<std::deque<std::shared_ptr<LoopNodeType>>,int>>& csNodes) const
     {
         std::deque<std::deque<std::pair<const LoopLinkType*,int>>> csBranches;
         if(this->network().crossSlipModel)
@@ -135,68 +135,68 @@ namespace model
         }
     }
 
-    template <int dim>
-    DislocationLoop<dim>::~DislocationLoop()
+    template <int dim, short unsigned int corder>
+    DislocationLoop<dim,corder>::~DislocationLoop()
     {
         VerboseDislocationLoop(1,"Destroying DislocationLoop "<<this->sID<<std::endl;);
     }
 
-    template <int dim>
-    const DislocationLoopPatches<dim>& DislocationLoop<dim>::patches() const
+    template <int dim, short unsigned int corder>
+    const DislocationLoopPatches<dim>& DislocationLoop<dim,corder>::patches() const
     {
         return _patches;
     }
 
-    template <int dim>
-    std::shared_ptr<typename TypeTraits<DislocationLoop<dim>>::LoopType> DislocationLoop<dim>::clone() const
+    template <int dim, short unsigned int corder>
+    std::shared_ptr<typename TypeTraits<DislocationLoop<dim,corder>>::LoopType> DislocationLoop<dim,corder>::clone() const
     {
-        return std::shared_ptr<typename TypeTraits<DislocationLoop<dim>>::LoopType>(new DislocationLoop(this->p_network(),burgers(),glidePlane));
+        return std::shared_ptr<typename TypeTraits<DislocationLoop<dim,corder>>::LoopType>(new DislocationLoop(this->p_network(),burgers(),glidePlane));
     }
 
-    template <int dim>
-    void DislocationLoop<dim>::initFromFile(const std::string& fileName)
+    template <int dim, short unsigned int corder>
+    void DislocationLoop<dim,corder>::initFromFile(const std::string& fileName)
     {
         verboseDislocationLoop=TextFileParser(fileName).readScalar<int>("verboseDislocationLoop",false);
     }
 
-    template <int dim>
-    const double& DislocationLoop<dim>::slippedArea() const
+    template <int dim, short unsigned int corder>
+    const double& DislocationLoop<dim,corder>::slippedArea() const
     {
         return _slippedArea;
     }
 
-    template <int dim>
-    const double& DislocationLoop<dim>::slippedAreaRate() const
+    template <int dim, short unsigned int corder>
+    const double& DislocationLoop<dim,corder>::slippedAreaRate() const
     {
         return _slippedAreaRate;
     }
 
-    template <int dim>
-    const typename DislocationLoop<dim>::VectorDim& DislocationLoop<dim>::rightHandedUnitNormal() const
+    template <int dim, short unsigned int corder>
+    const typename DislocationLoop<dim,corder>::VectorDim& DislocationLoop<dim,corder>::rightHandedUnitNormal() const
     {
         return _rightHandedUnitNormal;
     }
 
-    template <int dim>
-    const typename DislocationLoop<dim>::VectorDim& DislocationLoop<dim>::rightHandedUnitNormalOld() const
+    template <int dim, short unsigned int corder>
+    const typename DislocationLoop<dim,corder>::VectorDim& DislocationLoop<dim,corder>::rightHandedUnitNormalOld() const
     {
         return _rightHandedUnitNormal_old;
     }
 
-    template <int dim>
-    const typename DislocationLoop<dim>::ReciprocalLatticeDirectionType& DislocationLoop<dim>::rightHandedNormal() const
+    template <int dim, short unsigned int corder>
+    const typename DislocationLoop<dim,corder>::ReciprocalLatticeDirectionType& DislocationLoop<dim,corder>::rightHandedNormal() const
     {
         return *_rightHandedNormal;
     }
 
-    template <int dim>
-    bool DislocationLoop<dim>::isVirtualBoundaryLoop() const
+    template <int dim, short unsigned int corder>
+    bool DislocationLoop<dim,corder>::isVirtualBoundaryLoop() const
     {
         return loopType==DislocationLoopIO<dim>::VIRTUALLOOP;
     }
 
-    template <int dim>
-    double DislocationLoop<dim>::planarSolidAngle(const VectorDim& x,
+    template <int dim, short unsigned int corder>
+    double DislocationLoop<dim,corder>::planarSolidAngle(const VectorDim& x,
                                                          const VectorDim& planePoint,
                                                          const VectorDim& rhN,
                                                          const std::vector<std::pair<VectorDim,VectorDim>>& polygonSegments)
@@ -239,15 +239,15 @@ namespace model
         return temp;
     }
 
-    template <int dim>
+    template <int dim, short unsigned int corder>
     template <typename T>
-    int DislocationLoop<dim>::sgn(const T& val)
+    int DislocationLoop<dim,corder>::sgn(const T& val)
     {
         return (val > T(0)) - (val < T(0));
     }
 
-    template <int dim>
-    double DislocationLoop<dim>::solidAngle(const VectorDim& x) const
+    template <int dim, short unsigned int corder>
+    double DislocationLoop<dim,corder>::solidAngle(const VectorDim& x) const
     {
         double temp(0.0);
         if(glidePlane)
@@ -297,8 +297,8 @@ namespace model
         return temp;
     }
 
-    template <int dim>
-    std::tuple<double,double,double,double> DislocationLoop<dim>::loopLength() const
+    template <int dim, short unsigned int corder>
+    std::tuple<double,double,double,double> DislocationLoop<dim,corder>::loopLength() const
     {
         double freeLength=0.0;
         double boundaryLength=0.0;
@@ -327,8 +327,8 @@ namespace model
         return std::make_tuple(freeLength,junctionLength,boundaryLength,slippedArea());
     }
 
-    template <int dim>
-    std::shared_ptr<SlipSystem> DislocationLoop<dim>::searchSlipSystem() const
+    template <int dim, short unsigned int corder>
+    std::shared_ptr<SlipSystem> DislocationLoop<dim,corder>::searchSlipSystem() const
     {
         for(const auto& ss : grain.slipSystems())
         {
@@ -340,26 +340,26 @@ namespace model
         return std::shared_ptr<SlipSystem>(nullptr);
     }
 
-    template <int dim>
-    typename DislocationLoop<dim>::MatrixDim DislocationLoop<dim>::averagePlasticDistortion() const
+    template <int dim, short unsigned int corder>
+    typename DislocationLoop<dim,corder>::MatrixDim DislocationLoop<dim,corder>::averagePlasticDistortion() const
     {
         return -burgers()*nA.transpose()/this->network().ddBase.mesh.volume();
     }
 
-    template <int dim>
-    typename DislocationLoop<dim>::MatrixDim DislocationLoop<dim>::averagePlasticDistortionRate() const
+    template <int dim, short unsigned int corder>
+    typename DislocationLoop<dim,corder>::MatrixDim DislocationLoop<dim,corder>::averagePlasticDistortionRate() const
     {
         return -burgers()*nAR.transpose()/this->network().ddBase.mesh.volume();
     }
 
-    template <int dim>
-    typename DislocationLoop<dim>::VectorDim DislocationLoop<dim>::burgers() const
+    template <int dim, short unsigned int corder>
+    typename DislocationLoop<dim,corder>::VectorDim DislocationLoop<dim,corder>::burgers() const
     {
         return this->flow().cartesian();
     }
 
-    template <int dim>
-    void DislocationLoop<dim>::updateSlipSystem()
+    template <int dim, short unsigned int corder>
+    void DislocationLoop<dim,corder>::updateSlipSystem()
     {
         VerboseDislocationLoop(3,"DislocationLoop "<<this->tag()<<std::endl;);
         
@@ -407,14 +407,14 @@ namespace model
         }
     }
 
-    template <int dim>
-    const std::shared_ptr<SlipSystem>&  DislocationLoop<dim>::slipSystem() const
+    template <int dim, short unsigned int corder>
+    const std::shared_ptr<SlipSystem>&  DislocationLoop<dim,corder>::slipSystem() const
     {
         return _slipSystem;
     }
 
-    template <int dim>
-    void DislocationLoop<dim>::updateGeometry()
+    template <int dim, short unsigned int corder>
+    void DislocationLoop<dim,corder>::updateGeometry()
     {
         VerboseDislocationLoop(2,"DislocationLoop "<<this->sID<<" updateGeometry"<<std::endl;);
         _rightHandedUnitNormal_old=_rightHandedUnitNormal;
@@ -488,8 +488,8 @@ namespace model
         }
     }
 
-    template <int dim>
-    void DislocationLoop<dim>::updateRates()
+    template <int dim, short unsigned int corder>
+    void DislocationLoop<dim,corder>::updateRates()
     {
         VerboseDislocationLoop(2,"DislocationLoop "<<this->sID<<" updateRates"<<std::endl;);
         nAR.setZero();
@@ -507,21 +507,22 @@ namespace model
         }
     }
 
-    template <int dim>
-    std::vector<MeshedDislocationLoop> DislocationLoop<dim>::meshed(const double& meshSize,const double& localMeshSize) const
+    template <int dim, short unsigned int corder>
+    std::vector<MeshedDislocationLoop> DislocationLoop<dim, corder>::meshed(const double& meshSize,const double& localMeshSize) const
     {
         std::vector<MeshedDislocationLoop> temp;
         for(const auto& gPatch : patches().globalPatches())
         {
+//            temp.emplace_back(burgers(),this->network().ddBase,*gPatch.first->glidePlane,gPatch.second,meshSize,localMeshSize);
             temp.emplace_back(burgers(),*gPatch.first->glidePlane,gPatch.second,this->network(),meshSize,localMeshSize);
         }
         return temp;
     }
 
-    template <int dim>
-    int DislocationLoop<dim>::verboseDislocationLoop=0;
+    template <int dim, short unsigned int corder>
+    int DislocationLoop<dim,corder>::verboseDislocationLoop=0;
 
-    template class DislocationLoop<3>;
+    template class DislocationLoop<3,0>;
 
 }
 #endif

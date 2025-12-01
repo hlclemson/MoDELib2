@@ -304,7 +304,7 @@ namespace model
 
     }
 
-    template class GalerkinGlideSolver<DislocationNetwork<3>>;
+    template class GalerkinGlideSolver<DislocationNetwork<3,0>>;
     
 }
 #endif

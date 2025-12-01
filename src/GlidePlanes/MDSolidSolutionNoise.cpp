@@ -20,10 +20,13 @@ MDSolidSolutionNoise::MDSolidSolutionNoise(const PolycrystallineMaterialBase& ma
                                            const GridSizeType& gridSize,
                                            const GridSpacingType& gridSpacing,
                                            const Eigen::Matrix<double,2,2>& latticeBasis,
-                                           const double& a_Cai_in
-                                           ) :
-  /*init*/ GlidePlaneNoiseBase<2>("MDSolidSolutionNoise"+tag,seed,gridSize,gridSpacing,latticeBasis)
+                                           const double& MSSS_in, // input from MD calculation 
+                                           const double& a_Cai_in,
+                                           const double& effsroAve_in
+                                           ):
+  /*init*/ GlidePlaneNoiseBase<2>("MDSolidSolutionNoise"+tag,seed,gridSize,gridSpacing,latticeBasis,effsroAve_in)
   /*init*/,a_cai(a_Cai_in)
+  /* init */,MSSS(MSSS_in/(mat.mu_SI*mat.mu_SI))
 {
   // read the dimensions of the original correlation sampled from MD
   const auto originalDimensions_xz(readVTKfileDimension(correlationFile_xz.c_str()));
@@ -47,7 +50,8 @@ MDSolidSolutionNoise::MDSolidSolutionNoise(const PolycrystallineMaterialBase& ma
   // compute variable energy correction factor from zero padding
   eNormFactor = (this->NR!=originalNR ? static_cast<double>(this->NR)/static_cast<double>(originalNR) : 1.0);
   // fftScaleFactor is the scaling factor for FFT
-  fftScaleFactor = std::pow(static_cast<double>(this->NR),2.0);
+  // fftScaleFactor = std::pow(static_cast<double>(this->NR),2.0);
+  fftScaleFactor = static_cast<double>(this->NR);
 
   REAL_SCALAR *Rr_xz_original = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*originalNR);
   REAL_SCALAR *Rr_yz_original = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*originalNR);
@@ -64,6 +68,11 @@ MDSolidSolutionNoise::MDSolidSolutionNoise(const PolycrystallineMaterialBase& ma
   {
     Rr_xz_original[i] /= (mat.mu_SI*mat.mu_SI); // divide by mu^2
     Rr_yz_original[i] /= (mat.mu_SI*mat.mu_SI); // divide by mu^2
+    
+    Rr_xz_original[i] *= MSSS;
+    Rr_yz_original[i] *= MSSS;
+
+
   }
 
   // allocate real space correlation

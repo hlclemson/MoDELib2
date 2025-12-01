@@ -113,7 +113,7 @@ namespace model
         {
             throw std::runtime_error("Mesh is empty");
         }
-        
+
         std::cout<<"isPeriodicDomain="<<isPeriodicDomain<<std::endl;
         std::cout<<"periodicLatticeBasis="<<periodicLatticeBasis<<std::endl;
         std::cout<<"periodicLatticeReciprocalBasis="<<periodicLatticeReciprocalBasis<<std::endl;

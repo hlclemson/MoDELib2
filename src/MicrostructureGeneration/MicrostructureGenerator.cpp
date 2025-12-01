@@ -18,6 +18,7 @@
 //#include <VTKGenerator.h>
 #include <MicrostructureGenerator.h>
 #include <PeriodicDipoleGenerator.h>
+#include <ExtendFRSourceGenerator.h> // added
 #include <PrismaticLoopGenerator.h>
 #include <SphericalInclusionsGenerator.h>
 #include <PolyhedronInclusionsGenerator.h>
@@ -88,6 +89,16 @@ namespace model
     void MicrostructureGenerator::addPeriodicDipoleIndividual(const PeriodicDipoleIndividualSpecification& spec)
     {
         PeriodicDipoleGenerator gen(spec,*this);
+    }
+
+    void MicrostructureGenerator::addExtendFRSourceDensity(const ExtendFRSourceDensitySpecification& spec)
+    {
+        ExtendFRSourceGenerator gen(spec,*this); //added
+    }
+
+    void MicrostructureGenerator::addExtendFRSourceIndividual(const ExtendFRSourceIndividualSpecification& spec)
+    {
+        ExtendFRSourceGenerator gen(spec,*this); //added
     }
 
     void MicrostructureGenerator::addPrismaticLoopDensity(const PrismaticLoopDensitySpecification& spec)
@@ -197,6 +208,25 @@ namespace model
                     throw std::runtime_error("Unkown style "+style+" for "+type);
                 }
             }
+
+            else if(type=="ExtendFRSource") //added
+            {
+                if(style=="Density" || style=="density")
+                {
+                    ExtendFRSourceDensitySpecification spec(microstructureFileName);
+                    addExtendFRSourceDensity(spec);
+                }
+                else if(style=="Individual" || style=="individual")
+                {
+                    ExtendFRSourceIndividualSpecification spec(microstructureFileName);
+                    addExtendFRSourceIndividual(spec);
+                }
+                else
+                {
+                    throw std::runtime_error("Unkown style "+style+" for "+type);
+                }
+            }
+
             else if(type=="PrismaticLoop")
             {
                 if(style=="Density" || style=="density")

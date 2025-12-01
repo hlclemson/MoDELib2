@@ -8,6 +8,7 @@
 #ifndef model_SweepPlane_H_
 #define model_SweepPlane_H_
 
+#include <cassert>
 #include <cfloat>
 #include <tuple>
 #include <map>

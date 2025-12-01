@@ -27,15 +27,15 @@
 
 namespace model
 {
-    template <int dim>
-    class DislocationSegment : public NetworkLink<DislocationSegment<dim>>
-    /*                      */,public SplineSegment<dim,0>
-    /*                      */,public DislocationQuadraturePointContainer<dim>
+    template <int dim, short unsigned int corder>
+    class DislocationSegment : public NetworkLink<DislocationSegment<dim,corder>>
+    /*                      */,public SplineSegment<dim,corder>
+    /*                      */,public DislocationQuadraturePointContainer<dim,corder>
     {
-        
+
     public:
-        
-        typedef TypeTraits<DislocationSegment<dim>> TraitsType;
+
+        typedef TypeTraits<DislocationSegment<dim,corder>> TraitsType;
         typedef typename TraitsType::LoopNetworkType LoopNetworkType;
         typedef typename TraitsType::LoopType LoopType;
         typedef typename TraitsType::LoopNodeType LoopNodeType;
@@ -47,7 +47,7 @@ namespace model
         typedef typename TraitsType::MatrixDim MatrixDim;
         typedef typename TraitsType::MeshLocation MeshLocation;
 //        typedef ConfinedDislocationObject<dim> ConfinedDislocationObjectType;
-        typedef SplineSegment<dim,0> SplineSegmentType;
+        typedef SplineSegment<dim,corder> SplineSegmentType;
         typedef typename SplineSegmentType::VectorNdof VectorNdof;
         typedef typename SplineSegmentType::MatrixNdof MatrixNdof;
         typedef typename SplineSegmentType::VectorNcoeff VectorNcoeff;
@@ -59,9 +59,9 @@ namespace model
         typedef std::set<const GlidePlaneType *> GlidePlaneContainerType;
         typedef PlanarMeshFace<dim> PlanarMeshFaceType;
         typedef std::set<const PlanarMeshFaceType *> PlanarMeshFaceContainerType;
-        typedef typename DislocationQuadraturePoint<dim>::QuadratureDynamicType QuadratureDynamicType;
-        
-        
+        typedef typename DislocationQuadraturePoint<dim,corder>::QuadratureDynamicType QuadratureDynamicType;
+
+
         static constexpr int mSize=ClusterDynamicsParameters<dim>::mSize;
         typedef Eigen::Matrix<double,mSize,2>   ConcentrationMatrixType;
         typedef Eigen::Matrix<double,mSize,1>   ConcentrationVectorType;
@@ -78,19 +78,19 @@ namespace model
         StraightDislocationSegment<dim> straight;
         std::shared_ptr<SlipSystem> _slipSystem;
 
-        
+
 //        static const MatrixDim I;
         static const VectorDim zeroVector;
         static double quadPerLength;
 //        static bool assembleWithTangentProjection;
         static int verboseDislocationSegment;
 
-        
+
         DislocationSegment(LoopNetworkType* const net,
                          const std::shared_ptr<NetworkNodeType>&,
                          const std::shared_ptr<NetworkNodeType>&
                          );
-        
+
         void addLoopLink(LoopLinkType* const pL);
         void removeLoopLink(LoopLinkType* const pL);
         void updateSlipSystem();
@@ -122,11 +122,11 @@ namespace model
         std::vector<std::pair<const GlidePlane<dim> *const, const GlidePlane<dim> *const>> parallelAndCoincidentGlidePlanes(const GlidePlaneContainerType &other) const;
         VectorDim snapToGlidePlanes(const VectorDim &P) const;
         VectorDim climbDirection() const;
-        
+
         ConcentrationMatrixType concentrationMatrices(const VectorDim& x,const ClusterDynamicsParameters<dim>& icp) const;
         ConcentrationVectorType clusterConcentration(const VectorDim& x,const ClusterDynamicsParameters<dim>& icp) const;
 
-        
+
     };
 }
 #endif
