@@ -1,4 +1,7 @@
 {
-  "data_path": "../../production_runs/Xin_SS-C_AlMg5_partial_separation_total/generatedData/seed1_steps400404",
-  "evl_step": 4000
+  "data_path": "../../production_runs/Xin_SS-C_AlMg5_partial_separation_total/generatedData/",
+  "number_of_samples": 100,
+  "evl_step": 4000,
+  "glide_axis": "x",
+  "line_tangent_axis": "y"
 }
