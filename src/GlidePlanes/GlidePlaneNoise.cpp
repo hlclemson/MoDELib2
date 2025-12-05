@@ -117,7 +117,8 @@ GlidePlaneNoise::GlidePlaneNoise(const PolycrystallineMaterialBase& mat)
 }
 
 //std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos) const
-std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos, const Eigen::Matrix<double,2,1>& burgers) const
+std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos,
+                                                             const Eigen::Matrix<double,2,1>& burgers) const
 {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
   double effsolNoiseXZ(0.0);
   double effsolNoiseYZ(0.0);
@@ -138,10 +139,10 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
     Eigen::Matrix<double,2,1> _localPos;   // mutable copy
     // transform the basis if it is non-orthogonal
     _localPos = noise.second->invTransposeLatticeBasis*localPos;
-    // rotate stacking fault noise field
-    const Eigen::Rotation2D<double> R0(noise.second->displacementAngle);
+    // rotate stacking fault noise field in negative angle
+    const Eigen::Rotation2D<double> R0(-noise.second->displacementAngle);
+    // positive (counterclockwise) rotation matrix [cos -sin; sin cos]
     const Eigen::Matrix<double,2,1> unitB = burgers/burgers.norm();
-    // negative (clockwise) rotation matrix [cos -sin; sin cos]
     Eigen::Matrix<double,2,2> Rb;
     Rb(0,0) = unitB.x();
     Rb(0,1) = -unitB.y();
