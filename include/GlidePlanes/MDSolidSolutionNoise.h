@@ -41,7 +41,7 @@ struct MDSolidSolutionNoise:  public GlidePlaneNoiseBase<2>
 
   MDSolidSolutionNoise(const PolycrystallineMaterialBase& mat,
                        const std::string& tag,
-                       const int& displacementAngle,
+                       const double& displacementAngle,
                        const std::string& correlationFile_xz,
                        const std::string& correlationFile_yz,
                        const int& seed,

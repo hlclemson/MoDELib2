@@ -32,7 +32,7 @@ struct AnalyticalSolidSolutionWhiteNoise: public GlidePlaneNoiseBase<2>
   const REAL_SCALAR a_cai;
   const REAL_SCALAR uncorrKcoeff;
 
-  AnalyticalSolidSolutionWhiteNoise(const std::string& tag, const int& displacementAngle, const int& seed,
+  AnalyticalSolidSolutionWhiteNoise(const std::string& tag, const double& displacementAngle, const int& seed,
                                     const GridSizeType& gridSize, const GridSpacingType& gridSpacing,
                                     const Eigen::Matrix<double,2,2>& latticeBasis,
                                     const double& a_Cai_in, const double& dislocLength_in, const double& MSSS);

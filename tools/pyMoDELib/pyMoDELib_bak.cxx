@@ -126,7 +126,9 @@ PYBIND11_MODULE(pyMoDELib,m)
 
 
     py::class_<GlidePlaneNoiseBase<1>, std::shared_ptr<GlidePlaneNoiseBase<1>>>(m, "GlidePlaneNoiseBase1")
-      .def(py::init<const std::string&, const double&, const int&,
+      .def(py::init<const std::string&,
+                    const int&,
+                    const int&,
                     const NoiseTraitsBase::GridSizeType&,
                     const NoiseTraitsBase::GridSpacingType&,
                     const Eigen::Matrix<double,2,2>&>())
@@ -139,7 +141,7 @@ PYBIND11_MODULE(pyMoDELib,m)
       .def(py::init<
           const model::PolycrystallineMaterialBase&,
           const std::string&,
-          const double&,
+          const int&,
           const std::string&,
           const int&,
           const model::NoiseTraitsBase::GridSizeType&,
@@ -149,7 +151,9 @@ PYBIND11_MODULE(pyMoDELib,m)
     ;
     
     py::class_<GlidePlaneNoiseBase<2>, std::shared_ptr<GlidePlaneNoiseBase<2>>>(m, "GlidePlaneNoiseBase2")
-      .def(py::init<const std::string&, const double&, const int&,
+      .def(py::init<const std::string&,
+                    const int&,
+                    const int&,
                     const NoiseTraitsBase::GridSizeType&,
                     const NoiseTraitsBase::GridSpacingType&,
                     const Eigen::Matrix<double,2,2>&>())
@@ -162,7 +166,7 @@ PYBIND11_MODULE(pyMoDELib,m)
       .def(py::init<
           const model::PolycrystallineMaterialBase&,
           const std::string&,
-          const double&,
+          const int&,
           const std::string&,
           const std::string&,
           const int&,
@@ -178,7 +182,7 @@ PYBIND11_MODULE(pyMoDELib,m)
       // Constructor
       .def(py::init<
           const std::string&,
-          const double&,
+          const int&,
           const int&,
           const model::NoiseTraitsBase::GridSizeType&,
           const model::NoiseTraitsBase::GridSpacingType&,

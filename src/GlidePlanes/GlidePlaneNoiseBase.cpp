@@ -62,7 +62,7 @@ typename GlidePlaneNoiseBase<N>::REAL_SCALAR GlidePlaneNoiseBase<N>::W_t_Cai(REA
 
 template <int N>
 GlidePlaneNoiseBase<N>::GlidePlaneNoiseBase(const std::string& tag_in,
-                                            const int& displacementAngle_in,
+                                            const double& displacementAngle_in,
                                             const int& seed_in,
                                             const NoiseTraitsBase::GridSizeType& gridSize_in,
                                             const NoiseTraitsBase::GridSpacingType& gridSpacing_in,

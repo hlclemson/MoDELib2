@@ -58,7 +58,7 @@ struct GlidePlaneNoiseBase : public UniformPeriodicGrid<2>
 #endif
 
   const std::string tag;
-  const int displacementAngle;
+  const double displacementAngle;
   const int seed;
   const GridSizeType gridSize;
   const GridSpacingType gridSpacing;
@@ -80,7 +80,7 @@ struct GlidePlaneNoiseBase : public UniformPeriodicGrid<2>
   // lattice basis2
 
   GlidePlaneNoiseBase(const std::string& tag_in,
-                      const int& displacementAngle_in,
+                      const double& displacementAngle_in,
                       const int& seed_in,
                       const NoiseTraitsBase::GridSizeType& gridSize_in,
                       const NoiseTraitsBase::GridSpacingType& gridSpacing_SI_in,

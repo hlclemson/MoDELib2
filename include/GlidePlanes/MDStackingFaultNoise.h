@@ -39,7 +39,7 @@ struct MDStackingFaultNoise : public GlidePlaneNoiseBase<1>
 
   MDStackingFaultNoise(const PolycrystallineMaterialBase& mat,
                        const std::string& tag,
-                       const int& displacementAngle,
+                       const double& displacementAngle,
                        const std::string& correlationFile_in,
                        const int& seed,
                        const GridSizeType& gridSize,

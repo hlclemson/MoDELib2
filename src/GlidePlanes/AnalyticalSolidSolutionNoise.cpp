@@ -76,7 +76,7 @@ namespace model
     }
 
     AnalyticalSolidSolutionNoise::AnalyticalSolidSolutionNoise(const std::string& tag,
-                                                               const int& displacementAngle,
+                                                               const double& displacementAngle,
                                                                const int& seed,
                                                                const GridSizeType& gridSize,
                                                                const GridSpacingType& gridSpacing,
