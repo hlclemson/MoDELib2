@@ -1,0 +1,9 @@
+{
+  "data_path": "/home/anon/Documents/Research/MoDELib_VERSIONS/MoDELib2_20251027_Fork_git_rotate/MoDELib2/production_runs_field_corrected/partial_orient_615AA_crss_0-1_almg5_total/generatedData",
+  "xAxisData": "runID",
+  "yAxisData": "betaP_13",
+  "alloy": "AlMg5",
+  "number_of_samples": 100,
+  "glide_axis": "x",
+  "line_tangent_axis": "y"
+}
