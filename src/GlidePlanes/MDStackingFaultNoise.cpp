@@ -41,6 +41,7 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
   eNormFactor = (this->NR!=originalNR ? static_cast<double>(this->NR)/static_cast<double>(originalNR) : 1.0);
   // fftScaleFactor is the scaling factor for FFT
   fftScaleFactor = std::pow(static_cast<double>(this->NR), 2.0);
+  // fftScaleFactor = std::pow(static_cast<double>(this->NR), 2.0);
 
   // original input correlation array
   REAL_SCALAR *Rr_original = (REAL_SCALAR*) fftw_malloc(sizeof(REAL_SCALAR)*originalNR);

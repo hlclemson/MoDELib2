@@ -1,0 +1,7 @@
+type=MDShortRangeOrderNoise;
+tag=1;
+seed=0;
+correlationFile=placeHolder.vtk;
+gridSize=100 100;
+gridSpacing_SI=1e-9 1e-9;
+effsroAve = 70.0e-3;

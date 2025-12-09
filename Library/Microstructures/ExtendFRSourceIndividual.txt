@@ -1,0 +1,11 @@
+type=ExtendFRSource;
+style=individual;
+slipSystemIDs=0 -1 -1; # each value in the vector is the slipSystem ID os a ExtendFRSource
+exitFaceIDs=1 1 2; #  each value in the vector is the ID of the face from which the ExtendFRSource enters/exits
+nodesPerLine=10 0 0;
+ExtendFRSourceCenters=0 0 0
+	      0 0 0
+	0 0 0; # each row in the matrix is a the "center" of the ExtendFRSource 
+ExtendFRSourceHeights=500 500 200; # each value in the vector is the height of the ExtendFRSource in number of slip planes
+glideSteps=1 1 0; # [b], each value in the vector is the length of the ExtendFRSource step on its glide plane
+ExtendFRSourceLengths = 125 1200 250; #[b] ExtendFRSource length

@@ -2,5 +2,5 @@ type=MDStackingFaultNoise;
 tag=1;
 seed=0;
 correlationFile=placeHolder.vtk;
-gridSize=100 100;
-gridSpacing_SI=1e-9 1e-9;
+gridSize=1000 1000;
+gridSpacing_SI=2.515e-10 2.515e-10;

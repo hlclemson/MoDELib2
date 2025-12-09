@@ -63,12 +63,14 @@ GlidePlaneNoise::GlidePlaneNoise(const PolycrystallineMaterialBase& mat)
       if(type=="MDSolidSolutionNoise")
       {
         const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
+        const double MSSS_xz(parser.readScalar<double>("MSSS_xz_SI",true)); // Added
+        const double MSSS_yz(parser.readScalar<double>("MSSS_yz_SI",true)); // Added
 
         // relative paths for correlation vtk files (easier to make everything self contained)
         const std::string correlationFile_xz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_xz",true)));
         const std::string correlationFile_yz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_yz",true)));
 
-        const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_xz,correlationFile_yz,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai,0.0)));
+        const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_xz,correlationFile_yz,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),MSSS_xz,MSSS_yz,a_Cai,0.0)));
         if(!success.second)
         {
           throw std::runtime_error("Could not insert noise "+tag);
@@ -131,9 +133,10 @@ GlidePlaneNoise::GlidePlaneNoise(const PolycrystallineMaterialBase& mat)
 
 //std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos) const
 std::tuple<double,double,double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos ) const
-{   // Added by Hyunsoo (hyunsol@g.clemson.edu)
+{   // Added by Hyunsoo (hyunsol@g.clemson.edu), Xin Liu (liuxin23@mails.tsinghua.edu.cn)
   double effsolNoiseXZ(0.0);
   double effsolNoiseYZ(0.0);
+  // 1. Solid solution noise
   for(const auto& noise : solidSolutionNoise())
   {
     const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
@@ -144,7 +147,7 @@ std::tuple<double,double,double,double,double> GlidePlaneNoise::gridInterp(const
       effsolNoiseYZ+=noise.second->operator[](storageID)(1)*idxAndWeights.second[p];
     }
   }
-
+  // 2. Stacking fault noise
   double effsfNoise(0.0);
   for(const auto& noise : stackingFaultNoise())
   {
@@ -159,7 +162,8 @@ std::tuple<double,double,double,double,double> GlidePlaneNoise::gridInterp(const
       const int storageID(noise.second->storageIndex(idxAndWeights.first[p](0),idxAndWeights.first[p](1)));
       effsfNoise+=noise.second->operator[](storageID)*idxAndWeights.second[p];
     }
-
+  }
+   // 3. SRO noise
     double effsroNoise(0.0);
     double effsroAve(0.0);
     for(const auto& noise : shortRangeOrderNoise())
@@ -169,6 +173,7 @@ std::tuple<double,double,double,double,double> GlidePlaneNoise::gridInterp(const
       // transform the basis if it is non-orthogonal
       const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(noise.second->invTransposeLatticeBasis*localPos));
       effsroAve = noise.second->effsroAve;
+      // std::cout<<"effsroAve="<<effsroAve<<std::endl;
 
       for(size_t p=0;p<idxAndWeights.first.size();++p)
       {
@@ -177,12 +182,10 @@ std::tuple<double,double,double,double,double> GlidePlaneNoise::gridInterp(const
       }
   }
   return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise, effsroAve, effsroNoise);
-  //return std::make_tuple(effsolNoiseYZ,effsolNoiseXZ,effsfNoise);
-}
 }
 
 std::tuple<double,double,double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int,2,1>& idx) const
-{   // Added by Hyunsoo (hyunsol@g.clemson.edu)
+{   // Added by Hyunsoo (hyunsol@g.clemson.edu, Liuxin, liuxin23@mails.tsinghua.eud.cn)
 
   double effsolNoiseXZ(0.0);
   double effsolNoiseYZ(0.0);
@@ -204,7 +207,6 @@ std::tuple<double,double,double,double,double> GlidePlaneNoise::gridVal(const Ei
 
   double effsroNoise(0.0);
   double effsroAve(0.0);
-
   for(const auto& noise : shortRangeOrderNoise())
   {
     const double effsroAve = noise.second->effsroAve;
@@ -217,8 +219,6 @@ std::tuple<double,double,double,double,double> GlidePlaneNoise::gridVal(const Ei
   return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise,effsroAve, effsroNoise);
 
 }
-
-// }
 
 const typename GlidePlaneNoise::SolidSolutionNoiseContainer& GlidePlaneNoise::solidSolutionNoise() const
 {
@@ -249,18 +249,6 @@ typename GlidePlaneNoise::StackingFaultNoiseContainer& GlidePlaneNoise::shortRan
 {
   return *this;
 }
-
-//    typename GlidePlaneNoise::GridSizeType GlidePlaneNoise::rowAndColIndices(const int& storageIdx) const
-//    {
-//        return GridSizeType(storageIdx/this->gridSize(1), storageIdx%this->gridSize(1));
-//    }
-
-//    int GlidePlaneNoise::storageIndex(const int& i,const int& j) const
-//    {/*!\param[in] localPos the  position vector on the grid
-//      * \returns The grid index periodically wrapped within the gridSize bounds
-//      */
-//        return gridSize(1)*i+j;
-//    }
 
 }
 #endif

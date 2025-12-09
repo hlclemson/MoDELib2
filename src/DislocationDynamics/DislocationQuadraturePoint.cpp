@@ -522,8 +522,8 @@ void DislocationQuadraturePointContainer<dim,corder>::update(const LinkType& par
                   }
               }
               // qPoint.stackingFaultForce+= -(gamma2-gamma1+gammaNoise)*outDir; // Original version
-              qPoint.stackingFaultForce += -(gamma2-gamma1+gammaSro+gammaIsfNoise+gammaDriftNoise)*outDir; // Consider SRO
-              // qPoint.stackingFaultForce += -(gamma2-gamma1+gammaIsfNoise)*outDir; // Only ISF
+              // qPoint.stackingFaultForce += -(gamma2-gamma1+gammaSro+gammaIsfNoise+gammaDriftNoise)*outDir; // Consider SRO
+              qPoint.stackingFaultForce += -(gamma2-gamma1+gammaIsfNoise)*outDir; // Only ISF
 
             }
             // For Sitiuation when the full dislocation passed -> glideplane softening leading

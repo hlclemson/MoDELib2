@@ -10,7 +10,9 @@ rho_SI=2700.0;		# [kg/m^3]	mass density (pure Al)
 Tm=933;			# [K] 		melting temperature (pure Al)
 
 # Mobility parameters
-dislocationMobilityType=default; # default or FCC,BCC,HEXbasal,HEXprismatic,HEXpyramidal 
+#dislocationMobilityType=default; # default or FCC,BCC,HEXbasal,HEXprismatic,HEXpyramidal 
+#dislocationMobilityType=../../python/DDMobilityPy.py; # default or FCC,BCC,HEXbasal,HEXprismatic,HEXpyramidal 
+dislocationMobilityType=/Users/anon/Documents/Research/MoDELib_VERSIONS/MoDELib2_20250711_Fork/MoDELib2/python/DDMobilityPy;
 B0e_SI=13.4e-6;			# [Pa*s] (pure Al at 0 wave vector)    temperature-independent drag coefficient for edge  dislocations	
 B1e_SI=0;	# [Pa*s]	temperature-dependent drag coefficient for edge  dislocations			
 B0s_SI=13.4e-6;			# [Pa*s] (pure Al at 0 wave vector)    temperature-independent drag coefficient for screw dislocations	
