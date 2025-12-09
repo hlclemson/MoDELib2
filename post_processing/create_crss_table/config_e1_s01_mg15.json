@@ -1,0 +1,12 @@
+{
+  "data_path": "/scratch/hyunsol/MoDELib2_20251027_Fork_git_rotate_fix/MoDELib2/production_runs/exitID1_partial_orient_615AA_crss_0-1_almg15_total",
+  "output_path": "output/exitID1_partial_orient_615AA_crss_0-1_almg15_total",
+  "alloy": "AlMg15",
+  "minimizationSteps": 500,
+  "xAxisData": "runID",
+  "yAxisData": "betaP_13",
+  "dislocChar": "edge",
+  "dislocType": "partial",
+  "dislocLength": 215,
+  "noiseType": "SF-noise"
+}

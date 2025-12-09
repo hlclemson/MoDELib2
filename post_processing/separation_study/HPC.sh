@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name crss_table
+#SBATCH --job-name separation
 #SBATCH -C chip_manufacturer_intel,cpu_gen_haswell
 #SBATCH --nodes 1
 #SBATCH --cpus-per-task 4
@@ -21,26 +21,26 @@ cd $SLURM_SUBMIT_DIR
 
 # run Python script inside container with bound virtual environment
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e1_s01_mg5.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e1_s01_mg5.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e1_s01_mg10.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e1_s01_mg10.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e1_s01_mg15.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e1_s01_mg15.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e1_s23_mg5.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e1_s23_mg5.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e1_s23_mg10.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e1_s23_mg10.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e1_s23_mg15.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e1_s23_mg15.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e2_s01_mg5.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e2_s01_mg5.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e2_s01_mg10.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e2_s01_mg10.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e2_s01_mg15.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e2_s01_mg15.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e2_s23_mg5.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e2_s23_mg5.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e2_s23_mg10.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e2_s23_mg10.json"
 apptainer exec --bind $VENV_PATH --pwd $SLURM_SUBMIT_DIR $SANDBOXDIR \
-    /bin/bash -c "source $VENV_PATH/bin/activate && python gen_crss_table.py config_e2_s23_mg15.json"
+    /bin/bash -c "source $VENV_PATH/bin/activate && python generate_separation_data.py config_e2_s23_mg15.json"

@@ -11,21 +11,6 @@ import tempfile
 import numpy as np
 from pathlib import Path
 from collections import defaultdict
-#from matplotlib import rcParams
-
-# Configure global plot settings (applies to all figures)
-#rcParams.update(
-#    {
-#        "figure.dpi": 200,
-#        #"figure.autolayout": True,  # Prevent label clipping
-#        #"axes.grid": True,
-#        #"grid.alpha": 0.6,
-#        "text.usetex": False,
-#        "font.size": 10,  # Default font size for text
-#        "mathtext.fontset": "stix",  # Use STIX font for math text
-#        "font.family": "serif",  # Use serif font (matches LaTeX default)
-#    }
-#)
 
 # ----- MoDELib / utils paths -----
 sys.path.append("../../python")
@@ -49,9 +34,14 @@ def readValFromMaterialFile(matDir: str, alloy: str, var: str) -> float:
 
 
 def main():
+    try:
+        config_fname = sys.argv[1]
+    except:
+        exit("usage) generate_separation_data.py config.json")
+
     box_axis_idx = {"x": 0, "y": 1, "z": 2}
 
-    with open("config.json", "r") as f:
+    with open(config_fname, "r") as f:
         config = json.load(f)
     simulationDir = Path(config["data_path"])
     glide_axis = box_axis_idx[config["glide_axis"]]
@@ -105,9 +95,11 @@ def main():
             # open F file
             fData = np.loadtxt(work_dir/"F/F_0.txt")
             # find the last step
-            last_runID=getFarray(fData,fLabels,'runID').astype(int)[-1]
+            runIDs = getFarray(fData,fLabels,'runID').astype(int)
+            #last_runID=getFarray(fData,fLabels,'runID').astype(int)[-1]
+            stable_runID = runIDs[len(runIDs)//3]
             # read evl file
-            ddio.readTxt(last_runID)
+            ddio.readTxt(stable_runID)
 
             # First pass: find active planes over ALL EVLs
             active_plane_keys_global = set()
@@ -144,10 +136,17 @@ def main():
                     node_pos = node_pos_per_loop[partial_loop_id]
                     line_glide_pos = node_pos[:, glide_axis]
                     glide_pos_per_id.append(line_glide_pos)
+                # skip the partial pair if node nums are not the same
+                if glide_pos_per_id[0].shape != glide_pos_per_id[1].shape:
+                    continue
                 glide_pos_per_id = np.array(glide_pos_per_id)
                 separation_bt_nodes_all.append(np.abs(glide_pos_per_id[1,:]-glide_pos_per_id[0,:]))
             # reshape to 1D
-            separation_bt_nodes_all = np.reshape(separation_bt_nodes_all, -1)
+            separation_bt_nodes_all = [item for row in separation_bt_nodes_all for item in row]
+            separation_bt_nodes_all = np.array(separation_bt_nodes_all)
+
+            #if len(separation_bt_nodes_all)>1:
+            #    separation_bt_nodes_all = np.reshape(separation_bt_nodes_all, -1)
             separation_out_fname = data_path.parent/f"{re.search(r"(\d+)MPa", str(data_path.name)).group(0)}.txt"
             np.savetxt(separation_out_fname, separation_bt_nodes_all)
 

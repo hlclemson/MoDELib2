@@ -1,5 +1,7 @@
 # standard lib
+import os
 import re
+import sys
 import json
 import shutil
 import tarfile
@@ -25,7 +27,12 @@ def readValFromMaterialFile(matDir: str, alloy: str, var: str) -> float:
 
 
 def main():
-    with open("config.json", "r") as f:
+    try:
+        config_fname = sys.argv[1]
+    except:
+        exit("usage) gen_crss_table.py config.json")
+
+    with open(config_fname, "r") as f:
         config = json.load(f)
     simulationDir = Path(config["data_path"])
     output_dir = Path(config["output_path"])
@@ -197,10 +204,18 @@ def main():
 
         # rows whose stress is below the CRSS
         below = local_df[local_df["stress"] < crss_above]
+        if not len(below):
+            crss = crss_above
+            crss_search_step = crss_above
+        else:
+            # pick the one with the highest such stress
+            entry_below = below.loc[below["stress"].idxmax(), "stress"]
+            crss_search_step = crss_above - entry_below
+            crss = crss_above - (crss_search_step / 2)
         # pick the one with the highest such stress
-        entry_below = below.loc[below["stress"].idxmax(), "stress"]
-        crss_search_step = crss_above - entry_below
-        crss = crss_above - (crss_search_step / 2)
+        #entry_below = below.loc[below["stress"].idxmax(), "stress"]
+        #crss_search_step = crss_above - entry_below
+        #crss = crss_above - (crss_search_step / 2)
         new_entry = [
             (
                 crss_above_row["d_type"],

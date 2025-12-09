@@ -1,8 +1,8 @@
 {
-  "data_path": "../../production_runs/partial_orient_615AA_crss_2-3_almg10_total/generatedData",
-  "output_path": "output/partial_orient_615AA_crss_2-3_almg10_total",
-  "alloy": "AlMg10",
-  "minimizationSteps": 100,
+  "data_path": "/scratch/hyunsol/MoDELib2_20251027_Fork_git_rotate/MoDELib2/production_runs_field_corrected/partial_orient_615AA_crss_0-1_almg5_total/generatedData",
+  "output_path": "output/production_runs_field_corrected/partial_orient_615AA_crss_0-1_almg5_total",
+  "alloy": "AlMg5",
+  "minimizationSteps": 500,
   "xAxisData": "runID",
   "yAxisData": "betaP_13",
   "dislocChar": "edge",

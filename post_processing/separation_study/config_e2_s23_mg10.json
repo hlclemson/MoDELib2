@@ -1,0 +1,9 @@
+{
+  "data_path": "/scratch/hyunsol/MoDELib2_20251027_Fork_git_rotate_fix/MoDELib2/production_runs/exitID2_partial_orient_615AA_crss_2-3_almg10_total/generatedData",
+  "xAxisData": "runID",
+  "yAxisData": "betaP_13",
+  "alloy": "AlMg10",
+  "number_of_samples": 100,
+  "glide_axis": "y",
+  "line_tangent_axis": "x"
+}
