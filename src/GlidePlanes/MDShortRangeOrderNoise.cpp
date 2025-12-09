@@ -5,23 +5,24 @@
  * GNU General Public License (GPL) v2 <http://www.gnu.org/licenses/>.
  */
 
-#ifndef model_MDStackingFaultNoise_cpp
-#define model_MDStackingFaultNoise_cpp
+#ifndef model_MDShortRangeOrderNoise_cpp
+#define model_MDShortRangeOrderNoise_cpp
 
-#include <MDStackingFaultNoise.h>
+#include <MDShortRangeOrderNoise.h>
 #include <cmath>
 
 namespace model
 {
-MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& mat,
+MDShortRangeOrderNoise::MDShortRangeOrderNoise(const PolycrystallineMaterialBase& mat,
                                            const std::string& tag,
                                            const std::string& correlationFile_in,
                                            const int& seed,
                                            const GridSizeType& gridSize,
                                            const GridSpacingType& gridSpacing,
                                            const Eigen::Matrix<double,2,2>& latticeBasis,
-                                           const double& effsroAve_in) :
-  /* init */ GlidePlaneNoiseBase<1>("MDStackingFaultNoise"+tag,seed,gridSize,gridSpacing,nonOrthogonalBasisReader(correlationFile_in),effsroAve_in)
+                                          const double& effsroAve_in) :
+  /* init */ GlidePlaneNoiseBase<1>("MDShortRangeOrderNoise"+tag,seed,gridSize,gridSpacing,nonOrthogonalBasisReader(correlationFile_in),effsroAve_in)
+  /* init */,effsroAve(effsroAve_in)
   /* init */,correlationFile(correlationFile_in)
 {
   // read the dimension of the original correlation
@@ -29,7 +30,7 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
 
   if(originalDimensions(2)!=1)
   {
-      throw std::runtime_error("vtk stacking fault correlationFile 'DIMENSIONS' should have 3rd component == 1.");
+      throw std::runtime_error("vtk short range order correlationFile 'DIMENSIONS' should have 3rd component == 1.");
   }
 
   const int originalNX = originalDimensions(0);
@@ -48,7 +49,7 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
   std::fill(Rr_original, Rr_original+originalNR, REAL_SCALAR{0.0});
 
   // populate Rr_original with the correlation data
-  StackingFaultCorrelationReader(correlationFile, Rr_original, originalNR);
+  ShortRangeOrderCorrelationReader(correlationFile, Rr_original, originalNR);
 
   // unit conversion (from J^2/m^4 to unitless)
   for (int i = 0; i < originalNR; ++i)
@@ -99,16 +100,16 @@ MDStackingFaultNoise::MDStackingFaultNoise(const PolycrystallineMaterialBase& ma
   fftw_free(Rr);
 }
 
-std::array<MDStackingFaultNoise::COMPLEX,1> MDStackingFaultNoise::kCorrelations(const Eigen::Matrix<double, 3, 1> &kv, const Eigen::Matrix<int, 3, 1> &index) const
+std::array<MDShortRangeOrderNoise::COMPLEX,1> MDShortRangeOrderNoise::kCorrelations(const Eigen::Matrix<double, 3, 1> &kv, const Eigen::Matrix<int, 3, 1> &index) const
 {
     int idx=(this->NY/2+1)*NZ*index(0) + index(1)*NZ + index(2);
     // eNormFactor is variable energy correction factor from zero padding (1 if not padded)
     // fftScaleFactor is the Scaling factor for FFT (match the original input scale)
-    std::array<MDStackingFaultNoise::COMPLEX,1> temp{eNormFactor*Rk[idx]/fftScaleFactor};
+    std::array<MDShortRangeOrderNoise::COMPLEX,1> temp{eNormFactor*Rk[idx]/fftScaleFactor};
     return temp;
 }
 
-Eigen::Matrix<double,2,2> MDStackingFaultNoise::nonOrthogonalBasisReader(const std::string& fileName_vtk) const
+Eigen::Matrix<double,2,2> MDShortRangeOrderNoise::nonOrthogonalBasisReader(const std::string& fileName_vtk) const
 {
     typedef Eigen::Matrix<double,2,1> VectorDimD;
     std::deque<VectorDimD> basis1;
@@ -116,7 +117,7 @@ Eigen::Matrix<double,2,2> MDStackingFaultNoise::nonOrthogonalBasisReader(const s
     std::ifstream vtkFile(fileName_vtk); //access vtk file
     // error check
     if (!vtkFile.is_open()) {
-        throw std::runtime_error("Error opening stacking fault VTK correlation file!");
+        throw std::runtime_error("Error opening short range order VTK correlation file!");
     }
     // begin parsing structured_grid vtk file for lines
     std::string line;
@@ -155,15 +156,15 @@ Eigen::Matrix<double,2,2> MDStackingFaultNoise::nonOrthogonalBasisReader(const s
     return nonOrthoBasisMatrix;
 }
 
-void MDStackingFaultNoise::StackingFaultCorrelationReader(const std::string& correlationFile, REAL_SCALAR* Rr, const int& NR)
+void MDShortRangeOrderNoise::ShortRangeOrderCorrelationReader(const std::string& correlationFile, REAL_SCALAR* Rr, const int& NR)
 {
-  std::cout << "Reading stacking fault correlation" << std::endl;
+  std::cout << "Reading short range order correlation" << std::endl;
 
   std::ifstream vtkFile(correlationFile); // access vtk file
   // error check
   if (!vtkFile.is_open())
   {
-    throw std::runtime_error("Error opening stacking fault VTK correlation file!");
+    throw std::runtime_error("Error opening short range order VTK correlation file!");
   }
 
   std::string line;
@@ -210,13 +211,13 @@ void MDStackingFaultNoise::StackingFaultCorrelationReader(const std::string& cor
   vtkFile.close(); // Close the file after reading
 }
 
-typename MDStackingFaultNoise::GridSizeType MDStackingFaultNoise::readVTKfileDimension(const char *fname)
+typename MDShortRangeOrderNoise::GridSizeType MDShortRangeOrderNoise::readVTKfileDimension(const char *fname)
 {
     FILE *InFile=fopen(fname,"r");
 
     if (InFile == NULL)
     {
-        fprintf(stderr, "Can't open stacking fault correlation VTK file %s\n",fname);
+        fprintf(stderr, "Can't open Short range order correlation VTK file %s\n",fname);
         exit(1);
     }
     // return the 5th line of the vtk file

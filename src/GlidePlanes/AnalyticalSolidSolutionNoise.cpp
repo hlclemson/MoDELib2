@@ -82,8 +82,9 @@ namespace model
                                                                const Eigen::Matrix<double,2,2>& latticeBasis,
                                                                const double& a_in,
                                                                const double& a_Cai_in,
-                                                               const double& MSSS) :
-    /* init */ GlidePlaneNoiseBase<2>("AnalyticalSolidSolutionNoise"+tag,seed,gridSize,gridSpacing,latticeBasis)
+                                                               const double& MSSS,
+                                                               const double& effsroAve_in) :
+    /* init */ GlidePlaneNoiseBase<2>("AnalyticalSolidSolutionNoise"+tag,seed,gridSize,gridSpacing,latticeBasis,effsroAve_in)
     /* init */,a(a_in)
     /* init */,a_cai(a_Cai_in)
     /* init */,stressPrefactor(MSSS*120.0*M_PI*sqrt(M_PI)*a*a*a/(gridLength.prod()))

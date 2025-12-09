@@ -20,10 +20,15 @@ MDSolidSolutionNoise::MDSolidSolutionNoise(const PolycrystallineMaterialBase& ma
                                            const GridSizeType& gridSize,
                                            const GridSpacingType& gridSpacing,
                                            const Eigen::Matrix<double,2,2>& latticeBasis,
-                                           const double& a_Cai_in
+                                           const double& MSSS_xz_in, // input from MD calculation 
+                                           const double& MSSS_yz_in, // input from MD calculation 
+                                           const double& a_Cai_in,
+                                           const double& effsroAve_in
                                            ) :
-  /*init*/ GlidePlaneNoiseBase<2>("MDSolidSolutionNoise"+tag,seed,gridSize,gridSpacing,latticeBasis)
+  /*init*/ GlidePlaneNoiseBase<2>("MDSolidSolutionNoise"+tag,seed,gridSize,gridSpacing,latticeBasis,effsroAve_in)
   /*init*/,a_cai(a_Cai_in)
+  /* init */,MSSS_xz(MSSS_xz_in)
+  /* init */,MSSS_yz(MSSS_yz_in)
 {
   // read the dimensions of the original correlation sampled from MD
   const auto originalDimensions_xz(readVTKfileDimension(correlationFile_xz.c_str()));
@@ -64,6 +69,8 @@ MDSolidSolutionNoise::MDSolidSolutionNoise(const PolycrystallineMaterialBase& ma
   {
     Rr_xz_original[i] /= (mat.mu_SI*mat.mu_SI); // divide by mu^2
     Rr_yz_original[i] /= (mat.mu_SI*mat.mu_SI); // divide by mu^2
+    Rr_xz_original[i] *= (MSSS_xz*originalNR);
+    Rr_yz_original[i] *= (MSSS_yz*originalNR);
   }
 
   // allocate real space correlation

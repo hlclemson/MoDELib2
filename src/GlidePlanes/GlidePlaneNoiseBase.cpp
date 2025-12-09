@@ -355,7 +355,8 @@ std::vector<std::vector<double>> GlidePlaneNoiseBase<N>::sampleAverageNoise(cons
 }
 
 template <int N>
-void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const
+//void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMaterialBase& mat) const
+void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics() const
 {
   // Compute Statistics
   NoiseType ave(NoiseTraits<N>::Zero());
@@ -374,38 +375,103 @@ void GlidePlaneNoiseBase<N>::computeRealNoiseStatistics(const PolycrystallineMat
 
   std::cout<<"gridSize= "<<gridSize.transpose()<<std::endl;
   std::cout<<"gridSpacing= "<<gridSpacing.transpose()<<std::endl;
-  std::cout<<"noiseAverage="<<ave*mat.mu_SI<<" [Pa]"<<std::endl;
-  std::cout<<"noiseVariance="<<var*std::pow(mat.mu_SI,2)<<" [Pa^2]"<<std::endl;
+
+  // these are incorrect for MD stacking fault noises (J/m2)
+  //std::cout<<"noiseAverage="<<ave*mat.mu_SI<<" [Pa]"<<std::endl;
+  //std::cout<<"noiseVariance="<<var*std::pow(mat.mu_SI,2)<<" [Pa^2]"<<std::endl;
+  std::cout<<"noiseAverage="<<ave<<std::endl;
+  std::cout<<"noiseVariance="<<var<<std::endl;
 }
 
-//    void AnalyticalSolidSolutionNoise::Write_field_slice(REAL_SCALAR *F, const char *fname)
-//    {
-//        FILE *OutFile=fopen(fname,"w");
-//
-//        fprintf(OutFile,"# vtk DataFile Version 2.0\n");
-//        fprintf(OutFile,"iter %d\n",0);
-//        fprintf(OutFile,"BINARY\n");
-//        fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
-//        fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
-//        fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
-//        fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
-//        fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
-//        fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
-//        fprintf(OutFile,"LOOKUP_TABLE \t default\n");
-//
-//        for(int i=0;i<NX;i++)
-//        {
-//            for(int j=0;j<NY;j++)
-//            {
-//                const int k=0;
-//                const int ind = NY*NZ*i + j*NZ + k;
-//                const double temp=NoiseTraitsBase::ReverseDouble(double(F[ind]));
-//                fwrite(&temp, sizeof(double), 1, OutFile);
-//            }
-//        }
-//
-//        fclose(OutFile);
-//    }
+template <int N>
+void GlidePlaneNoiseBase<N>::write_field_slice(const PolycrystallineMaterialBase& mat) const
+{
+  const std::string matPath = std::filesystem::path(mat.materialFile).parent_path().string();
+  const double DX = gridSpacing(0);
+  const double DY = gridSpacing(1);
+  const double DZ = gridSpacing(2);
+
+  std::vector<std::vector<double>> noiseArrays(N, std::vector<double>(NR, 0.0));
+  //const int k=0;
+  for(int i=0;i<NX;i++)
+  {
+    for(int j=0;j<NY;j++)
+    {
+      // input array is 2D, so index calculation
+      // must be changed
+      //const int ind = NY*NZ*i + j*NZ + k;
+      const int ind = NY*i + j;
+      const NoiseType& row = noiseVector()[ind];
+      for(int n=0;n<N;++n)
+      {
+        if constexpr (N==1)
+        {
+          noiseArrays[n][ind] = row;
+        }
+        else
+        {
+          noiseArrays[n][ind] = row(n);
+        }
+      }
+    }
+  }
+
+  std::string stress_comp;
+  for(int n=0;n<N;++n)
+  {
+    // if there are more than one noise field
+    if (N > 1)
+    {
+      switch (n)
+      {
+        case 0:
+            stress_comp = "_xz";
+            break;
+        case 1:
+            stress_comp = "_yz";
+            break;
+        default:
+            stress_comp = "";
+      }
+    }
+    else
+    {
+      stress_comp = "";
+    }
+    //std::string fname="noise_patch_"+type+"_"+std::to_string(n)+".vtk";
+    std::string fname="noise_patch_"+type+stress_comp+".vtk";
+    //std::string fname="noise_patch_"+std::to_string(n)+".vtk";
+    std::string fnamePath = matPath+"/"+fname;
+    //FILE *OutFile=fopen(fname.c_str(),"w");
+    FILE *OutFile=fopen(fnamePath.c_str(),"w");
+
+    fprintf(OutFile,"# vtk DataFile Version 2.0\n");
+    fprintf(OutFile,"iter %d\n",0);
+    //fprintf(OutFile,"ASCII\n");
+    fprintf(OutFile,"BINARY\n");
+    fprintf(OutFile,"DATASET STRUCTURED_POINTS\n");
+    fprintf(OutFile,"ORIGIN \t %f %f %f\n",0.,0.,0.);
+    fprintf(OutFile,"SPACING \t %f %f %f\n", DX, DY, DZ);
+    fprintf(OutFile,"DIMENSIONS \t %d %d %d\n", NX, NY, 1);
+    fprintf(OutFile,"POINT_DATA \t %d\n",NX*NY);
+    fprintf(OutFile,"SCALARS \t volume_scalars double 1\n");
+    fprintf(OutFile,"LOOKUP_TABLE \t default\n");
+
+    for(int i=0;i<NX;i++)
+    {
+      for(int j=0;j<NY;j++)
+      {
+        const int ind = NY*i + j;
+        //const double temp=noiseArrays[n][ind]; // for ascii
+        const double temp=NoiseTraitsBase::ReverseDouble(noiseArrays[n][ind]);
+        fwrite(&temp, sizeof(double), 1, OutFile);
+        //fprintf(OutFile, "%.18e ", temp); // for ascii
+      }
+    }
+    fclose(OutFile);
+  }
+}
+
 
 template struct GlidePlaneNoiseBase<1>;
 template struct GlidePlaneNoiseBase<2>;
