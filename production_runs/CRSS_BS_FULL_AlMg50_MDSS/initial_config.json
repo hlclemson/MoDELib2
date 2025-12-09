@@ -1,0 +1,81 @@
+{
+  "files_to_copy_from_lib" : {
+    "dd_file": "../../Library/DislocationDynamics/DD.txt",
+    "noise_file": [
+      "../../Library/GlidePlaneNoise/MDSolidSolution.txt"
+    ],
+    "material_file": "../../Library/Materials/AlMg50.txt",
+    "elastic_deformation_file": "../../Library/ElasticDeformation/ElasticDeformation.txt",
+    "mesh": "../../Library/Meshes/unitCube24.msh",
+    "microstructure": "../../Library/Microstructures/periodicDipoleIndividual.txt",
+    "correlation_file_md_sf": "",
+    "correlation_file_md_ss_xz": "../../Library/GlidePlaneNoise/MoDELib_AlMg50_xz_R1.vtk",
+    "correlation_file_md_ss_yz": "../../Library/GlidePlaneNoise/MoDELib_AlMg50_yz_R1.vtk"
+  },
+
+  "DD_parameters" : {
+    "useFEM": 0,
+    "useDislocations": 1,
+    "useInclusions": 0,
+    "useElasticDeformation": 1,
+    "maxJunctionIterations": 0,
+    "EwaldLengthFactor": 1,
+    "use_velocityFilter": 0,
+    "use_stochasticForce": 0,
+    "timeSteppingMethod": "fixed",
+    "dtMax": 0.06,
+    "alphaLineTension": 1,
+    "quadPerLength": 0.1,
+    "coreSize": 1,
+    "remeshFrequency": 0,
+    "Lmin": 1,
+    "Lmax": 5,
+    "outputFrequency": 100,
+    "computeElasticEnergyPerLength": 1,
+    "computeDDinteractions" : 1,
+    "glideSolverType": "Galerkin",
+    "Nsteps": 1000,
+    "nodalVelocityConstraints": [0,1,0]
+  },
+
+  "noise_settings" : {
+    "MDSolidSolution.txt":{
+      "tag": 2,
+      "seed": 1,
+      "gridSize": [512, 512, 1],
+      "gridSpacing_SI": [1.0e-10, 1.0e-10, 1e-10],
+      "a_cai_SI": 2.86e-10,
+      "MSSS_xz_SI": 6.106928373083736e+17,
+      "MSSS_yz_SI": 6.163241930692339e+17
+    }
+  },
+
+  "Material_parameters" : {
+    "enabledSlipSystems": "Full",
+    "glidePlaneNoise": [
+      "MDSolidSolution.txt"
+    ],
+    "atomsPerUnitCell": 1,
+    "dislocationMobilityType": "default"
+  },
+
+  "Microstructure_parameters" : {
+    "slipSystemIDs": [0],
+    "exitFaceIDs": [1],
+    "glideSteps": [400],
+    "dipoleCenters": [[0.0,0.0,0.0]],
+    "dipoleHeights": [2500],
+    "nodesPerLine": [1]
+  },
+
+  "polycrystal" : {
+    "absoluteTemperature":1,
+    "grain1globalX1":[0,1,1],
+    "grain1globalX3":[-1,1,-1],
+    "boxEdges":[[0,1,1], [-2,-1,1], [-1,1,-1]],
+    "boxScaling":[1020, 215, 5880],
+    "X0":[0, 0, 0],
+    "periodicFaceIDs":[-1]
+  }
+
+}

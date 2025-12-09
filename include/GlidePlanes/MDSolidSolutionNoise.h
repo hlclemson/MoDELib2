@@ -33,6 +33,8 @@ struct MDSolidSolutionNoise:  public GlidePlaneNoiseBase<2>
   COMPLEX *Rk_xz;
   COMPLEX *Rk_yz;
   const REAL_SCALAR a_cai;
+  const double MSSS_xz;
+  const double MSSS_yz;
 
   // variable energy correction factor from zero padding
   REAL_SCALAR eNormFactor;
@@ -45,6 +47,8 @@ struct MDSolidSolutionNoise:  public GlidePlaneNoiseBase<2>
                        const std::string& correlationFile_xz, const std::string& correlationFile_yz,
                        const int& seed, const GridSizeType& gridSize, const GridSpacingType& gridSpacing,
                        const Eigen::Matrix<double,2,2>& latticeBasis,
+                       const double& MSSS_xz_in, // input from MD calculation 
+                       const double& MSSS_yz_in, // input from MD calculation 
                        const double& a_Cai_in);
 
 
