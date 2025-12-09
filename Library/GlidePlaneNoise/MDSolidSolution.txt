@@ -1,4 +1,4 @@
-type=MDSolidSolution;
+type=MDSolidSolutionNoise;
 tag=1;
 seed=0;
 correlationFile_xz=placeHolder.vtk;
