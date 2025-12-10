@@ -79,7 +79,7 @@ def main():
             elif src.suffixes == [".tar", ".gz"]:  # if .tar.gz format
                 tmp = tempfile.TemporaryDirectory()
                 with tarfile.open(src, "r:gz") as tf:
-                    tf.extractall(tmp.name)
+                    tf.extractall(tmp.name, filter='data')
                 work_dir = Path(tmp.name) / src.name.removesuffix(".tar.gz")
             else:
                 raise FileNotFoundError("neither directory nor .tar.gz found")
