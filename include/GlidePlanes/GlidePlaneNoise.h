@@ -33,6 +33,9 @@ namespace model
 
         GlidePlaneNoise(const PolycrystallineMaterialBase& mat);
         std::tuple<double,double,double> gridInterp(const Eigen::Matrix<double,2,1>& localPos, const Eigen::Matrix<double,2,1>& burgers) const;
+        // overloaded function for DDqt. You cannot access to burgers vector 
+        // when the noise-mesh is being constructed
+        std::tuple<double,double,double> gridInterp(const Eigen::Matrix<double,2,1>& localPos) const;
         std::tuple<double,double,double> gridVal(const Eigen::Array<int,2,1>& idx) const;
         const SolidSolutionNoiseContainer& solidSolutionNoise() const;
         SolidSolutionNoiseContainer& solidSolutionNoise();

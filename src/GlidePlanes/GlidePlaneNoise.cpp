@@ -169,6 +169,39 @@ std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix
   //return std::make_tuple(effsolNoiseYZ,effsolNoiseXZ,effsfNoise);
 }
 
+// overloaded function for DDqt. You cannot access to burgers vector 
+// when the noise-mesh is being constructed
+std::tuple<double,double,double> GlidePlaneNoise::gridInterp(const Eigen::Matrix<double,2,1>& localPos) const
+{   // Added by Hyunsoo (hyunsol@g.clemson.edu)
+  double effsolNoiseXZ(0.0);
+  double effsolNoiseYZ(0.0);
+  for(const auto& noise : solidSolutionNoise())
+  {
+    const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(localPos));
+    for(size_t p=0;p<idxAndWeights.first.size();++p)
+    {
+      const int storageID(noise.second->storageIndex(idxAndWeights.first[p](0),idxAndWeights.first[p](1)));
+      effsolNoiseXZ+=noise.second->operator[](storageID)(0)*idxAndWeights.second[p];
+      effsolNoiseYZ+=noise.second->operator[](storageID)(1)*idxAndWeights.second[p];
+    }
+  }
+
+  double effsfNoise(0.0);
+  for(const auto& noise : stackingFaultNoise())
+  {
+    // transform the basis if it is non-orthogonal
+    const auto idxAndWeights(noise.second->posToPeriodicCornerIdxAndWeights(noise.second->invTransposeLatticeBasis*localPos));
+
+    for(size_t p=0;p<idxAndWeights.first.size();++p)
+    {
+      const int storageID(noise.second->storageIndex(idxAndWeights.first[p](0),idxAndWeights.first[p](1)));
+      effsfNoise+=noise.second->operator[](storageID)*idxAndWeights.second[p];
+    }
+  }
+  return std::make_tuple(effsolNoiseXZ,effsolNoiseYZ,effsfNoise);
+  //return std::make_tuple(effsolNoiseYZ,effsolNoiseXZ,effsfNoise);
+}
+
 std::tuple<double,double,double> GlidePlaneNoise::gridVal(const Eigen::Array<int,2,1>& idx) const
 {   // Added by Hyunsoo (hyunsol@g.clemson.edu)
 

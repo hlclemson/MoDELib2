@@ -278,8 +278,8 @@ namespace model
                                     //const auto point3d(slipSystem->localToGlobal(point2d)+glidePlane->P); //changed
                                     meshPts->InsertNextPoint(point3d(0),point3d(1),point3d(2));
                                     //noiseValues.push_back(planeNoise->gridInterp(point2d));
-                                    //noiseValues.push_back(planeNoise->gridInterp(slipSystem->globalToLocal(point3d))); // changed
-                                    noiseValues.push_back(planeNoise->gridInterp(slipSystem->globalToLocal(point3d),slipSystem->globalToLocal(point3d))); // changed
+                                    noiseValues.push_back(planeNoise->gridInterp(slipSystem->globalToLocal(point3d))); // changed
+                                    //noiseValues.push_back(planeNoise->gridInterp(slipSystem->globalToLocal(point3d),slipSystem->globalToLocal(point3d))); // changed
 
                                     valuesMinMax[0]=std::make_pair(std::min(valuesMinMax[0].first,std::get<0>(noiseValues.back())),std::max(valuesMinMax[0].second,std::get<0>(noiseValues.back())));
                                     valuesMinMax[1]=std::make_pair(std::min(valuesMinMax[1].first,std::get<1>(noiseValues.back())),std::max(valuesMinMax[1].second,std::get<1>(noiseValues.back())));
