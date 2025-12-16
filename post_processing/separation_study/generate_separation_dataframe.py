@@ -12,25 +12,6 @@ import pandas as pd
 from pathlib import Path
 from scipy import stats
 from collections import defaultdict
-from matplotlib import rcParams
-import seaborn as sns
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-
-# Configure global plot settings (applies to all figures)
-rcParams.update(
-    {
-        "figure.dpi": 200,
-        #"figure.autolayout": True,  # Prevent label clipping
-        #"axes.grid": True,
-        #"grid.alpha": 0.6,
-        "text.usetex": False,
-        "font.size": 10,  # Default font size for text
-        "mathtext.fontset": "stix",  # Use STIX font for math text
-        "font.family": "serif",  # Use serif font (matches LaTeX default)
-    }
-)
-
 
 def ci95(data):
     """return mean and 95 % margin for a 1-D array"""
@@ -53,24 +34,6 @@ def readValFromMaterialFile(matDir: str, alloy: str, var: str) -> float:
 
 
 def main():
-    #"exitID1_partial_orient_615AA_crss_0-1_almg5_total"
-    #"exitID1_partial_orient_615AA_crss_0-1_almg10_total"
-    #"exitID1_partial_orient_615AA_crss_0-1_almg15_total"
-    #"exitID1_partial_orient_615AA_crss_2-3_almg5_total"
-    #"exitID1_partial_orient_615AA_crss_2-3_almg10_total"
-    #"exitID1_partial_orient_615AA_crss_2-3_almg15_total"
-    #"exitID1_partial_orient_615AA_crss_2-3_lead2_almg5_total"
-    #"exitID1_partial_orient_615AA_crss_2-3_lead2_almg10_total"
-    #"exitID1_partial_orient_615AA_crss_2-3_lead2_almg15_total"
-    #"exitID2_partial_orient_615AA_crss_0-1_almg5_total"
-    #"exitID2_partial_orient_615AA_crss_0-1_almg15_total"
-    #"exitID2_partial_orient_615AA_crss_0-1_almg10_total"
-    #"exitID2_partial_orient_615AA_crss_2-3_almg5_total"
-    #"exitID2_partial_orient_615AA_crss_2-3_almg10_total"
-    #"exitID2_partial_orient_615AA_crss_2-3_almg15_total"
-    #"exitID2_partial_orient_615AA_crss_2-3_lead2_almg5_total"
-    #"exitID2_partial_orient_615AA_crss_2-3_lead2_almg10_total"
-    #"exitID2_partial_orient_615AA_crss_2-3_lead2_almg15_total"
 
     exit1_01_lead0 = {
         "dirs":[
