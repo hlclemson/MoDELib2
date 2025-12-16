@@ -1,11 +1,7 @@
 # standard lib
 import os
-from os import error, path
-from posixpath import exists
+#from posixpath import exists
 import re
-import sys
-import json
-import shutil
 # 3rd party lib
 import numpy as np
 import pandas as pd
@@ -34,7 +30,6 @@ def readValFromMaterialFile(matDir: str, alloy: str, var: str) -> float:
 
 
 def main():
-
     exit1_01_lead0 = {
         "dirs":[
             "exitID1_partial_orient_615AA_crss_0-1_almg5_total",
@@ -120,7 +115,7 @@ def main():
     fig_dir = Path("figures")
 
     data_frames = []
-    data_columns = ["exitID", "sIDs", "leading_partial_id", "Mg", "stress", "separation_mean", "separation_ci95", "data_size"]
+    data_columns = ["exitID", "sIDs", "leading_partial_id", "Mg", "stress", "CRSS", "separation_mean", "separation_ci95", "data_size"]
 
     for exit_pairs in [exit1_01_lead0, exit1_23_lead3, exit1_23_lead2, exit2_01_lead0, exit2_23_lead3, exit2_23_lead2]:
         print(exit_pairs)
@@ -146,10 +141,6 @@ def main():
                 seed_num = re.search(r"seed(\d+)", str(i.parent)).group(1)
                 paths_per_seed[int(seed_num)].append(i)
 
-            # sort stress value
-            # for per seed
-            total_data_mean = {}
-            total_data_std = {}
             # for overall average
             total_data_overall = defaultdict(list)
             alloy = f"AlMg{re.search(r"almg(\d+)", str(gpath)).group(1)}" 
@@ -183,6 +174,7 @@ def main():
                     leading_p,
                     mg,
                     stress,
+                    avg_crss,
                     mean,
                     error95,
                     data_size
@@ -193,7 +185,8 @@ def main():
     data_frames = pd.concat(data_frames, ignore_index=True)
     data_out_dir = Path("generated_data")
     os.makedirs(data_out_dir, exist_ok=True)
-    data_frames.to_csv(data_out_dir/"separation_distance_total_data.csv", index=False)
+    #data_frames.to_csv(data_out_dir/"separation_distance_total_data.csv", index=False)
+    data_frames.to_pickle(data_out_dir/"separation_distance_total_data.pkl")
 
 
 if __name__ == "__main__":
