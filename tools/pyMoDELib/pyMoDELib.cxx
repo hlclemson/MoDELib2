@@ -504,13 +504,13 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def("runSteps",&DefectiveCrystal<3>::runSteps)
     ;
 
-    py::class_<Plane<3>>(m, "Plane3")
-      .def(py::init<
-           const Eigen::Matrix<double,3,1>&,
-           const Eigen::Matrix<double,3,1>&
-      >())
-      .def("localPosition", &Plane<3>::localPosition)
-    ;
+    //py::class_<Plane<3>>(m, "Plane3")
+    //  .def(py::init<
+    //       const Eigen::Matrix<double,3,1>&,
+    //       const Eigen::Matrix<double,3,1>&
+    //  >())
+    //  .def("localPosition", &Plane<3>::localPosition)
+    //;
 
     // -------------------- IO Structs --------------------
     py::class_<model::DislocationNodeIO<3>>(m, "DislocationNodeIO")
