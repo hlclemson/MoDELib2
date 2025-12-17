@@ -32,7 +32,7 @@ rcParams.update(
         "figure.dpi": 400,
         # "figure.autolayout": True,  # Prevent label clipping
         # "axes.grid": True,
-        # "grid.alpha": 0.6,
+        "grid.alpha": 0.9,
         "text.usetex": False,
         "font.size": 10,  # Default font size for text
         "mathtext.fontset": "stix",  # Use STIX font for math text
@@ -79,7 +79,7 @@ def main():
     elif src.suffixes == [".tar", ".gz"]:  # if .tar.gz format
         tmp = tempfile.TemporaryDirectory()
         with tarfile.open(src, "r:gz") as tf:
-            tf.extractall(tmp.name)
+            tf.extractall(tmp.name, filter="tar")
         work_dir = Path(tmp.name) / src.name.removesuffix(".tar.gz")
     else:
         raise FileNotFoundError("neither directory nor .tar.gz found")
@@ -161,8 +161,11 @@ def main():
         raise RuntimeError("No active planes with segments found over the EVL range.")
 
     # cColormap for active planes
-    cmap = plt.cm.get_cmap("tab20", len(active_plane_keys_global))
-    key_to_color = {pk: cmap(i % 20) for i, pk in enumerate(active_plane_keys_global)}
+    # cmap = plt.cm.get_cmap("tab20", len(active_plane_keys_global))
+    # key_to_color = {pk: cmap(i % 20) for i, pk in enumerate(active_plane_keys_global)}
+    n_colors = 20
+    colors = cm.tab20(np.linspace(0, 1, n_colors))
+    key_to_color = {pk: colors[i] for i, pk in enumerate(active_plane_keys_global)}
 
     # Build static 2D frames (basis + edges + global x/y)
     plane_frames = {}  # pk -> (origin, u, v, n)
@@ -180,7 +183,7 @@ def main():
         pts = np.asarray(pts, dtype=np.float32)
         origin, u, v, n = plane_basis_from_points(pts)
         # Return a consistently-oriented (u,v,n) frame
-        #u, v, n = orient_basis(pts, origin, u, v, n)
+        # u, v, n = orient_basis(pts, origin, u, v, n)
         plane_frames[pk] = (origin, u, v, n)
 
         edges2d = []
@@ -223,7 +226,10 @@ def main():
         ax.axis("on")
         ax.set_xlim(*xlim)
         ax.set_ylim(*ylim)
-        ax.grid(True, ls=":", alpha=0.35)
+        ax.grid(True, ls=":", alpha=0.55)
+        ax.tick_params(labelbottom=False, labelleft=False)  # hide ticks
+        # ax.set_xticks([]) # remove x-tick marks and labels
+        # ax.set_yticks([]) # remove y-tick marks and labels
 
         # static plane outline, glide plane edges
         for (x0, y0), (x1, y1) in plane_proj_edges.get(pk, []):
@@ -234,7 +240,7 @@ def main():
                 alpha=0.6,
                 color="k",
             )
-        #ax.set_title(f"Plane key={pk}")
+        # ax.set_title(f"Plane key={pk}")
 
     # draw new segments
     for pk in occupied_pks:
@@ -271,9 +277,21 @@ def main():
         burgers_v = np.asarray(burgers_v)
         burgers_v_tail = np.asarray(burgers_v_tail)
         ax.quiver(
-            burgers_v_tail[:, 0], burgers_v_tail[:, 1], burgers_v[:, 0], burgers_v[:, 1], label="Burgers"
+            burgers_v_tail[:, 0],
+            burgers_v_tail[:, 1],
+            burgers_v[:, 0],
+            burgers_v[:, 1],
+            label="Burgers",
+            scale=9,
+            alpha=0.5,
         )
-    ax.legend(fontsize=5)
+    # ax.legend(fontsize=5)
+    # legend fully outside the axes
+    ax.legend(
+        loc="upper left", bbox_to_anchor=(1.02, 1), borderaxespad=0.0, frameon=False
+    )
+    fig.tight_layout()  # keeps everything visible when saving/showing
+    # plt.show()
     fig.savefig(config["figure_name"], transparent=True)
 
     # automatically deletes the tmp tree if there is any

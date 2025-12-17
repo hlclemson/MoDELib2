@@ -1,0 +1,6 @@
+python visualize_disloc_with_burgers.py config_exitID1_sID01_lead0.json
+python visualize_disloc_with_burgers.py config_exitID1_sID23_lead2.json
+python visualize_disloc_with_burgers.py config_exitID1_sID23_lead3.json
+python visualize_disloc_with_burgers.py config_exitID2_sID01_lead0.json
+python visualize_disloc_with_burgers.py config_exitID2_sID23_lead2.json
+python visualize_disloc_with_burgers.py config_exitID2_sID23_lead3.json
