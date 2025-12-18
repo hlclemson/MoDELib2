@@ -67,9 +67,6 @@ def main():
     line_tangent_axis = box_axis_idx[config["line_tangent_axis"]]
     #runID = config["target_runID"]
 
-    # sort stress value
-    # extract stress value
-    stress = int(re.search(r"(\d+)MPa", str(data_path.name)).group(1))
     # open data
     src = data_path
     tmp = None  # will hold TemporaryDirectory handle
@@ -232,7 +229,7 @@ def main():
         # ax.set_title(f"Plane key={pk}")
 
     segment_artists = defaultdict(list)
-    def draw_frame_for_evl(evl_idx):
+    def draw_frame_for_evl(run_id):
         # clear previous artists
         for pk in occupied_pks:
             for artist in segment_artists[pk]:
@@ -240,7 +237,7 @@ def main():
             segment_artists[pk].clear()
 
         # read evl file
-        ddio.readTxt(evl_idx)
+        ddio.readTxt(run_id)
 
         defectiveCrystal = pyMoDELib.DefectiveCrystal(ddBase)
         defectiveCrystal.initializeConfiguration(ddio)
@@ -310,6 +307,7 @@ def main():
                     #    avg_y = np.mean(pos_v_y)
                     #    ylim = (avg_y - 10, avg_y + 10)
                     #    ax.set_ylim(*ylim)
+                ax.set_title(f"runID = {run_id}")
 
                 segment_artists[pk].append(ln)
 
@@ -333,13 +331,14 @@ def main():
         return [art for lst in segment_artists.values() for art in lst]
 
     def animate(frame_idx):
-        evl_idx = runIDs[frame_idx]
-        print(f"Rendering EVL {evl_idx}")
-        return draw_frame_for_evl(evl_idx)
+        run_id = runIDs[frame_idx]
+        print(f"Rendering EVL {run_id}")
+        return draw_frame_for_evl(run_id)
 
     ani = animation.FuncAnimation(
         fig, animate, frames=len(runIDs), interval=200, blit=False
     )
+
     # Save movie (requires ffmpeg)
     movie_dir = Path("movies")
     os.makedirs(movie_dir, exist_ok=True)

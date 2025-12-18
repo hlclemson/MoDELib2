@@ -1,0 +1,13 @@
+{
+  "data_path": "/home/anon/Documents/Research/MoDELib_VERSIONS/MoDELib2_20251027_Fork_git_rotate/MoDELib2/production_runs/exitID1_partial_orient_615AA_crss_2-3_lead2_almg5_total/generatedData/seed1/101MPa.tar.gz",
+  "movie_name": "e1_s0-1_ld0_mg5_101MPa.mp4",
+  "alloy": "AlMg5",
+  "pad_glide_edge": 0.00,
+  "glide_axis": "x",
+  "line_tangent_axis": "y",
+  "glide_plane_line_width": 0,
+  "dislocation_line_width": 1,
+  "track_dislocation": true,
+  "dislocation_buffer": 8,
+  "FPS": 2
+}

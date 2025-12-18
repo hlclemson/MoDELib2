@@ -1,0 +1,13 @@
+{
+  "data_path": "/home/anon/Documents/Research/MoDELib_VERSIONS/MoDELib2_20251027_Fork_git_rotate/MoDELib2/production_runs_no_stress/ex1_s2-3_ld2_mg5_crss_215b/generatedData/seed1",
+  "movie_name": "e1_s2-3_ld2_mg5.mp4",
+  "alloy": "AlMg5",
+  "pad_glide_edge": 0.00,
+  "glide_axis": "x",
+  "line_tangent_axis": "y",
+  "glide_plane_line_width": 0,
+  "dislocation_line_width": 1,
+  "track_dislocation": true,
+  "dislocation_buffer": 5,
+  "FPS": 3
+}
