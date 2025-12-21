@@ -83,6 +83,8 @@ def main():
 
     # plot all
     fig, ax = plt.subplots(1, 1, figsize=(9, 6))
+    b_SI=2.86e-10 # m
+    aa_to_nm = 1e+9
     for exit_id in exit_ids:
         for slip_id in slip_ids:
             for leading_partial_id in leading_partial_ids:
@@ -101,8 +103,8 @@ def main():
                 label_type = f"e{exit_id}_s{slip_id}_l{leading_partial_id}"
                 plt.errorbar(
                     mg,
-                    data["separation_mean"],
-                    yerr=data["separation_ci95"],
+                    data["separation_mean"]*b_SI*aa_to_nm,
+                    yerr=data["separation_ci95"]*b_SI*aa_to_nm,
                     fmt="o",
                     capsize=5,
                     markersize=8,
@@ -111,13 +113,10 @@ def main():
                 )
     ax.set_xlabel("Mg Concentration [%]")
     ax.set_xticks(alloys.astype(int))
-    # ax.xlim(-10, 150)
-    ax.set_ylabel("Distance [b]")
+    ax.set_ylabel("Separation Width [nm]")
     # legend fully outside the axes
     ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0., frameon=False)
-    fig.tight_layout()   # keeps everything visible when saving/showing
-    #plt.show()
-    #plt.tight_layout()
+    fig.tight_layout() # keeps everything visible when saving/showing
     fig.savefig(fig_dir / f"relaxation.png", transparent=True)
     plt.close("all")
 
