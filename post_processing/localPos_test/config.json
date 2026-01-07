@@ -1,0 +1,9 @@
+{
+  "data_path": "/home/anon/Server/Sync/Documents/Research/MoDELib_VERSIONS/MoDELib2_20251027_Fork_git_rotate/MoDELib2/production_runs_white_SFnoise_total/ex1_s0-1_ld0_mg5_crss_215b/generatedData/seed1/32MPa.tar.gz",
+  "xAxisData": "runID",
+  "yAxisData": "betaP_13",
+  "alloy": "AlMg5",
+  "number_of_samples": 100,
+  "glide_axis": "x",
+  "line_tangent_axis": "y"
+}

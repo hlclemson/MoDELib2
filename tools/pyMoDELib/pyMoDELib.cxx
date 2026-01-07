@@ -304,8 +304,9 @@ PYBIND11_MODULE(pyMoDELib,m)
     //    .def(py::init<const GlidePlaneBase&,const RationalLatticeDirection<3>&,const std::shared_ptr<DislocationMobilityBase>&,const std::shared_ptr<GlidePlaneNoise>&>())
         .def_readonly("unitNormal", &SlipSystem::unitNormal)
         .def_readonly("unitSlip", &SlipSystem::unitSlip)
+        .def_readonly("planeNoise", &SlipSystem::planeNoise)
     ;
-    
+
 //    py::bind_map<std::map<const GlidePlaneBase*,std::shared_ptr<GammaSurface>>>(m, "GammaSurfaceMap");
     py::class_<SecondPhase<3>,std::shared_ptr<SecondPhase<3>>>(m,"SecondPhase")
 //        .def(py::init<const GlidePlaneBase&,const RationalLatticeDirection<3>&,const std::shared_ptr<DislocationMobilityBase>&,const std::shared_ptr<GlidePlaneNoise>&>())
