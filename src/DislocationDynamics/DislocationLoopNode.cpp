@@ -95,7 +95,12 @@ namespace model
     template <int dim, short unsigned int corder>
     const DislocationLoopNode<dim,corder>* DislocationLoopNode<dim,corder>::periodicNext() const
     {
-         auto currentNext(this->next.first);
+        //auto currentNext(this->next.first);
+        //if (this->next.first)
+        //{
+        //  auto currentNext(this->next.first);
+        //}
+        auto currentNext(this->next.first);
         if (currentNext)
         {
             while (currentNext->periodicPlaneEdge.first)
