@@ -42,6 +42,7 @@
 #include <DislocationMobilityBCC.h>
 #include <DislocationMobilityPy.h>
 #include <DislocationMobilityHEXprismatic.h>
+#include <GlidePlaneNoise.h>
 #include <GlidePlaneNoiseBase.h>
 #include <DislocationSegmentIO.h>
 
@@ -69,6 +70,7 @@ PYBIND11_MAKE_OPAQUE(std::map<typename NetworkLinkType::KeyType,const std::weak_
 PYBIND11_MAKE_OPAQUE(std::vector<MeshedDislocationLoop>);
 PYBIND11_MAKE_OPAQUE(GlidePlaneNoiseBase<1>); // opaque: pybind11 is not going to try to guess the data type for python
 PYBIND11_MAKE_OPAQUE(GlidePlaneNoiseBase<2>);
+PYBIND11_MAKE_OPAQUE(GlidePlaneNoise);
 PYBIND11_MAKE_OPAQUE(std::map<std::pair<size_t,size_t>,DislocationSegmentIO<3>>);
 
 
@@ -124,8 +126,11 @@ PYBIND11_MODULE(pyMoDELib,m)
 
    // #################################################################################################### //
 
-
-
+    py::class_<GlidePlaneNoise>(m, "GlidePlaneNoise")
+      .def(py::init<const PolycrystallineMaterialBase&>())
+      .def("gridInterp", static_cast<std::tuple<double,double,double> (GlidePlaneNoise::*)(const Eigen::Matrix<double,2,1>&, const Eigen::Matrix<double,2,1>&) const>(&GlidePlaneNoise::gridInterp))
+      .def("gridVal", &GlidePlaneNoise::gridVal)
+    ;
 
     py::class_<GlidePlaneNoiseBase<1>, std::shared_ptr<GlidePlaneNoiseBase<1>>>(m, "GlidePlaneNoiseBase1")
       .def(py::init<const std::string&, const double&, const int&,
