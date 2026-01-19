@@ -96,12 +96,14 @@ PYBIND11_MODULE(pyMoDELib,m)
     ;
 
     py::class_<GlidePlane<3>, std::shared_ptr<GlidePlane<3>>>(m, "GlidePlane")
-        .def_property_readonly("unitNormal", [](const GlidePlane<3>& gp){ return gp.unitNormal; })
-        .def("localPosition",  &GlidePlane<3>::localPosition)
+        //.def_property_readonly("unitNormal", [](const GlidePlane<3>& gp){ return gp.unitNormal; })
+        .def("unitNormal", [](const GlidePlane<3>& gp){ return gp.unitNormal; })
+        .def("localPosition", &GlidePlane<3>::localPosition)
         .def("globalPosition", &GlidePlane<3>::globalPosition)
+        .def("planeOrigin", &GlidePlane<3>::planeOrigin) // return plane origin coord
         .def("key_tuple", [](const GlidePlane<3>& gp){
             const auto& k = gp.key;
-            const auto r  = k.reciprocalDirectionComponents(); // 3 ints
+            const auto r = k.reciprocalDirectionComponents(); // 3 ints
             // tuple = (h, k, l, layer, latticeID)
             return py::make_tuple(static_cast<long>(r(0)),
                                   static_cast<long>(r(1)),
