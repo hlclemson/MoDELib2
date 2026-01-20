@@ -1,0 +1,9 @@
+python main.py config_ex1_s2-3_mg10_crss_215b.json
+python main.py config_ex1_s2-3_mg15_crss_215b.json
+python main.py config_ex1_s2-3_mg5_crss_215b.json
+python main.py config_ex2_s0-1_mg10_crss_215b.json
+python main.py config_ex2_s0-1_mg15_crss_215b.json
+python main.py config_ex2_s0-1_mg5_crss_215b.json
+python main.py config_ex2_s2-3_mg10_crss_215b.json
+python main.py config_ex2_s2-3_mg15_crss_215b.json
+python main.py config_ex2_s2-3_mg5_crss_215b.json

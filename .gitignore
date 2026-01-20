@@ -42,6 +42,7 @@ OLD/
 header_symlinks/
 build/
 evl/
+data/
 __pycache__/
 
 # Output Files
