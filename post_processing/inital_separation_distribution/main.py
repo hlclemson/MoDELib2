@@ -177,33 +177,10 @@ def main():
         g_step1 = int(sep_match[:midpoint])
         g_step2 = int(sep_match[midpoint:])
         init_sep = np.abs(np.diff([g_step1, g_step2]))
-        #match = re.search(r"seed(\d+)", str(data_path))
-        #init_sep = re.search("steps*", data_path)
         json_data = {"seed":seed , "init_sep_dist": init_sep.item(), "relaxed_sep_dist": separation_dist.item()}
         with open(out_file, "a") as json_f:
             json_f.write(f"{json.dumps(json_data)}\n")
 
-    #plt.hist(total_separation_dist_data)
-    #fig, ax = plt.subplots(1, 1, figsize=(8, 6), dpi=200)
-    #n, bins, patches = ax.hist(total_separation_dist_data, bins=30, density=True, alpha=0.7, color='skyblue', edgecolor='black', linewidth=0.5)
-    ## Calculate Gaussian fit parameters
-    #mu, sigma = np.mean(total_separation_dist_data), np.std(total_separation_dist_data)
-    ## Generate x values for the Gaussian curve
-    #x = np.linspace(total_separation_dist_data.min(), total_separation_dist_data.max(), 1000)
-    ## Calculate Gaussian probability density function
-    #gaussian_fit = stats.norm.pdf(x, mu, sigma)
-    ## Plot the Gaussian fit
-    ##ax.plot(x, gaussian_fit, 'r-', linewidth=2, label=f'Gaussian fit (μ={mu:.2f}, σ={sigma:.2f})')
-
-    ## Add labels and legend
-    #ax.set_xlabel('Value')
-    #ax.set_ylabel('Density')
-    #ax.set_title('Histogram with Gaussian Fit')
-    #ax.legend()
-    #plt.tight_layout()
-    #os.makedirs(out_file.parent, exist_ok=True)
-    #fig.savefig(out_file, transparent=True)
-    ##plt.show()
 
 if __name__ == "__main__":
     main()

@@ -31,17 +31,23 @@ rcParams.update(
 
 data_dir = Path("data/")
 data_fnames = [
-    "ex1_s23_mg10.jsonl",
-    "ex1_s23_mg15.jsonl",
-    "ex1_s23_mg5.jsonl",
-    #    "ex2_s01_mg10.jsonl",
-    #    "ex2_s01_mg15.jsonl",
-    #    "ex2_s01_mg5.jsonl",
-    #    "ex2_s23_mg10.jsonl",
-    #    "ex2_s23_mg15.jsonl",
-    #    "ex2_s23_mg5.jsonl"
+    "ex1_s01_mg5.jsonl",
+    "ex1_s01_mg10.jsonl",
+    "ex1_s01_mg15.jsonl",
+    #"ex1_s23_mg5.jsonl",
+    #"ex1_s23_mg10.jsonl",
+    #"ex1_s23_mg15.jsonl",
+    #"ex2_s01_mg5.jsonl",
+    #"ex2_s01_mg10.jsonl",
+    #"ex2_s01_mg15.jsonl",
+    #"ex2_s23_mg5.jsonl",
+    #"ex2_s23_mg10.jsonl",
+    #"ex2_s23_mg15.jsonl",
 ]
-out_fname = Path("figures/ex1_s23.png")
+out_fname = Path("figures/ex1_s01.png")
+#out_fname = Path("figures/ex1_s23.png")
+#out_fname = Path("figures/ex2_s01.png")
+#out_fname = Path("figures/ex2_s23.png")
 
 fig, ax = plt.subplots(1, 1, figsize=(12, 6), dpi=200)
 # Number of colors
@@ -49,11 +55,12 @@ n_colors = 3
 colors = sns.color_palette("tab10")
 
 burger = 2.86 # angstrom
+ang_to_nm = 1e-1
 for idx, data_fname in enumerate(data_fnames):
     alloy = re.search(r"mg(\d+)", str(data_fname)).group(0)
     df = pd.read_json(data_dir / data_fname, lines=True)
 
-    sep_data = df["relaxed_sep_dist"]*burger
+    sep_data = df["relaxed_sep_dist"]*burger*ang_to_nm
     n, bins, patches = ax.hist(
         sep_data,
         bins=30,
@@ -75,11 +82,11 @@ for idx, data_fname in enumerate(data_fnames):
         gaussian_fit,
         linewidth=3,
         color=colors[idx],
-        label=f"{alloy} $\\mu$={mu:.2f}, $\\sigma$={sigma:.2f}",
+        label=f"{alloy} $\\mu$={mu:.4f}, $\\sigma$={sigma:.4f}",
     )
 
 # Add labels and legend
-ax.set_xlabel("d")
+ax.set_xlabel("d [nm]")
 ax.set_ylabel("Probability Density")
 # ax.set_title('')
 ax.legend(
